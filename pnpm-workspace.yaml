@@ -1,0 +1,20 @@
+packages:
+  - apps/*
+  - packages/*
+
+allowBuilds:
+  '@parcel/watcher': true
+  '@scarf/scarf': true
+  unrs-resolver: true
+
+onlyBuiltDependencies:
+  - '@parcel/watcher'
+  - '@nestjs/core'
+  - '@prisma/client'
+  - '@prisma/engines'
+  - argon2
+  - esbuild
+  - prisma
+  - '@scarf/scarf'
+  - sharp
+  - unrs-resolver

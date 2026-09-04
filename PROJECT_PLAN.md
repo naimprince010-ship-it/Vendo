@@ -1,0 +1,141 @@
+# Vendo — Tiles + Sanitary POS Project Plan
+
+Checkboxes are marked complete only after implementation and verification. Phase gates record the exact evidence used.
+
+## Phase 1 — Repository, Architecture, and Foundation
+
+- [x] Inspect local and remote repositories
+- [x] Connect GitHub remote
+- [x] Establish governed monorepo
+- [x] Scaffold Next.js frontend
+- [x] Scaffold NestJS REST API with Swagger
+- [x] Add shared TypeScript packages
+- [x] Add PostgreSQL and Docker Compose development environment
+- [x] Add lint, format, typecheck, test, and build workflows
+- [x] Add CI and environment templates
+- [x] Complete Phase 1 gate
+
+## Phase 2 — Database Foundation
+
+- [ ] Finalize relational model and invariants
+- [ ] Configure Prisma and PostgreSQL
+- [ ] Create initial migration
+- [ ] Add seed architecture for development/test only
+- [ ] Verify constraints, indexes, migration, and client generation
+- [ ] Complete Phase 2 gate
+
+## Phase 3 — Authentication, Users, Roles, and Permissions
+
+- [ ] Authentication and secure session lifecycle
+- [ ] Password reset architecture and abuse controls
+- [ ] Users and employees
+- [ ] Permission-based RBAC enforced by API
+- [ ] Authentication and authorization tests
+- [ ] Complete Phase 3 gate
+
+## Phase 4 — Company, Branch, Warehouse, and Register
+
+- [ ] Company profile and settings
+- [ ] Branches and user branch access
+- [ ] Warehouses
+- [ ] POS registers and cash drawers
+- [ ] Location-context authorization tests
+- [ ] Complete Phase 4 gate
+
+## Phase 5 — Catalog, Units, Tile Domain, and Pricing
+
+- [ ] Categories, subcategories, brands, and manufacturers
+- [ ] Reusable product catalog and searchable barcodes
+- [ ] Units and backend-validated conversions
+- [ ] Tile and sanitary profiles
+- [ ] Unit-specific product pricing
+- [ ] Catalog, conversion, and pricing tests
+- [ ] Complete Phase 5 gate
+
+## Phase 6 — Inventory and Batch/Lot/Shade
+
+- [ ] Auditable inventory movement ledger
+- [ ] Transactional inventory balances and stock policy
+- [ ] Optional product batch, lot, and shade tracking
+- [ ] Adjustments, damage, loss, counts, and reconciliation
+- [ ] Warehouse and branch transfers
+- [ ] Concurrency and inventory invariant tests
+- [ ] Complete Phase 6 gate
+
+## Phase 7 — Customers and Suppliers
+
+- [ ] Customers, groups, walk-in customer, credit limits
+- [ ] Suppliers
+- [ ] Customer and supplier ledger foundation
+- [ ] Complete Phase 7 gate
+
+## Phase 8 — Purchasing and Supplier Dues
+
+- [ ] Purchase orders and partial receiving
+- [ ] Goods receipts with tile batch/shade
+- [ ] Supplier invoices and additional costs
+- [ ] Supplier payments, dues, and returns
+- [ ] Purchasing workflow tests
+- [ ] Complete Phase 8 gate
+
+## Phase 9 — POS and Sales
+
+- [ ] Cashier-optimized product search and cart
+- [ ] Draft, hold, and resume sales
+- [ ] Atomic sale completion workflow
+- [ ] Stock deduction, pricing, discounts, tax, and invoice
+- [ ] Critical sale and concurrent overselling tests
+- [ ] Complete Phase 9 gate
+
+## Phase 10 — Payments, Dues, Returns, Refunds, and Exchange
+
+- [ ] Split payments and change calculation
+- [ ] Customer credit and due collection
+- [ ] Full and partial returns
+- [ ] Refund and exchange workflows
+- [ ] Reversal and ledger tests
+- [ ] Complete Phase 10 gate
+
+## Phase 11 — Cash Shifts and Expenses
+
+- [ ] Shift open/close and reconciliation
+- [ ] Cash movements
+- [ ] Expense categories and expenses
+- [ ] Complete Phase 11 gate
+
+## Phase 12 — Dashboard, Reports, and Receipts
+
+- [ ] Real-data operational dashboard
+- [ ] Sales, tile, inventory, purchasing, customer, and finance reports
+- [ ] Thermal and full-page printable receipts/invoices
+- [ ] Accuracy and query-performance verification
+- [ ] Complete Phase 12 gate
+
+## Phase 13 — Audit, Security, Testing, and Production Readiness
+
+- [ ] Critical action audit trail
+- [ ] Security hardening and threat review
+- [ ] File and input validation
+- [ ] End-to-end critical workflow suite
+- [ ] Production Docker and deployment documentation
+- [ ] Final migration and backup/restore verification
+- [ ] Final module-by-module production review
+- [ ] Complete Phase 13 gate
+
+## Phase Gate Log
+
+### Phase 1 — PASS (2026-09-04)
+
+- Clean frozen dependency install: PASS
+- Repository lint across 5 packages: PASS
+- Strict TypeScript checks across 5 packages: PASS
+- Automated tests: PASS (API health test 1/1; packages with no runtime tests report zero failures)
+- NestJS API production build: PASS
+- Next.js production build and static generation: PASS
+- Prettier check: PASS
+- Docker Compose configuration: PASS
+- Live API health endpoint: PASS (`200`, validated payload)
+- Live production web server: PASS (`200`, expected page content)
+- Secret scan: PASS (no matches)
+- Git diff check and repository integrity: PASS
+- Blocking Critical/High bugs: none open
