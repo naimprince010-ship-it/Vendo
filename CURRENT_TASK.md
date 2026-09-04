@@ -4,11 +4,11 @@ Phase 2 — Database Foundation
 
 # Current Task
 
-Finalize the relational model and inventory/financial invariants before implementing the Prisma schema.
+Phase 2 database foundation gate completed; retain the verified schema and migration as the baseline for the next approved phase.
 
 # Objective
 
-Translate the approved modular-monolith, reusable-core, tile-profile, movement-ledger, base-quantity, conversion, batch, and Decimal decisions into a documented PostgreSQL/Prisma model with enforceable relations, constraints, indexes, and migration safety.
+Maintain the verified PostgreSQL/Prisma baseline without starting Phase 3 implementation in this task.
 
 # Dependencies
 
@@ -46,7 +46,7 @@ Translate the approved modular-monolith, reusable-core, tile-profile, movement-l
 
 # Status
 
-IN PROGRESS
+COMPLETE — Phase 2 gate passed on 2026-09-04.
 
 # Blockers
 

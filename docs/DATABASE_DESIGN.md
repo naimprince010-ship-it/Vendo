@@ -1,17 +1,63 @@
 # Database Design
 
-PostgreSQL is the system of record and Prisma manages schema migrations. The detailed entity model is finalized and verified in Phase 2.
+PostgreSQL 17 is the system of record. Prisma 7.10 manages the typed client and migrations. All primary identifiers are UUIDs, timestamps are UTC `timestamptz(3)`, money is `numeric(19,4)`, physical quantities are `numeric(20,6)`, and conversion factors are `numeric(24,10)`.
 
-## Design Rules
+## Ownership and Integrity
 
-- Every business-owned record carries company scope; location-sensitive records also carry branch and/or warehouse scope.
-- Financial and physical transactions are reversed, not physically deleted.
-- Money uses `numeric`/Prisma Decimal and explicit rounding.
-- Inventory movements are append-only audit records; balances are transactional projections.
-- Foreign keys, unique constraints, check constraints, and composite indexes enforce invariants where PostgreSQL can express them.
-- List queries are paginated and search fields are indexed.
-- All timestamps are stored in UTC and rendered in the company timezone.
+Every business-owned aggregate carries `companyId`. Location-sensitive aggregates carry branch and, where stock is involved, warehouse. Composite candidate keys such as `(id, companyId)` and `(id, branchId, companyId)` allow foreign keys to enforce tenant and location ownership rather than trusting request IDs.
 
-## Planned Aggregates
+Transactional records use restrictive deletion. Cascades are limited to configuration joins and product barcodes whose parent is not a posted transaction. Financial and physical history is reversed in later workflow phases, never deleted.
 
-Organization, identity/access, catalog, inventory, parties/ledgers, purchasing, sales/returns, payments, cash/expenses, audit, and settings form the major persistence boundaries. Exact tables and cardinalities will be documented alongside the Phase 2 Prisma schema.
+## Organization and Access Foundation
+
+- `Company` owns branches, identity, catalog, parties, methods, categories, settings, and audit history.
+- `Branch` owns warehouses and registers. A warehouse belongs to exactly one branch.
+- `User`, `Role`, and global `Permission` are joined through tenant-safe `UserRole`, `RolePermission`, and `UserBranch` tables.
+- Sessions and refresh tokens are intentionally deferred to Phase 3, where their security lifecycle is implemented and tested.
+
+## Catalog and Tile Extension
+
+- `Product` is the reusable core and references one authoritative base `Unit`.
+- `ProductTileProfile` is optional and one-to-one; it stores tile-only dimensions and merchandising attributes.
+- Packaging and area conversions live in versioned `UnitConversion` records as `factorToBase`. Tile profile does not duplicate pieces-per-box or coverage counters.
+- `ProductPrice` permits independent retail, wholesale, minimum, and custom prices per unit.
+- `ProductBarcode` supports multiple globally unique barcodes per company and one primary barcode per product.
+- `ProductBatch` is optional. Its batch/lot/shade identity is unique with PostgreSQL `NULLS NOT DISTINCT`, avoiding duplicate identities when lot or shade is absent.
+
+## Parties and Transaction Foundations
+
+- `CustomerGroup`, `Customer`, and `Supplier` carry opening balances and credit metadata; current due/payable is derived from posted transactions and allocations, not a mutable frontend counter.
+- Purchasing separates `PurchaseOrder`, `GoodsReceipt`, and `PurchaseInvoice`. Their item tables snapshot transaction unit, base quantity, factor, cost, discount, tax, and totals as applicable.
+- `Sale` and `SaleItem` retain branch/register/warehouse/customer/user context and Decimal totals. Completion logic is deferred to Phase 9.
+- `Payment` is a direction-aware monetary event linked to one method and optional customer or supplier. `SalePayment` and `PurchasePayment` support split payments and allocations without conflating payment with invoice/receipt creation.
+- Returns, refunds, exchanges, purchase returns, and ledger postings are deferred to their approved workflow phases; their eventual records will reference these immutable foundations.
+
+## Inventory
+
+`InventoryMovement` is the auditable stock journal. It stores a signed base quantity plus the original positive transaction quantity, unit, and snapshotted conversion factor. `InventoryBalance` is the only current-stock projection and contains one `baseQuantity` per warehouse/product/optional batch.
+
+There are no independent box, piece, square-foot, or square-metre stock columns. A PostgreSQL `NULLS NOT DISTINCT` unique index prevents duplicate unbatched balance rows.
+
+## Cash, Expenses, Settings, and Audit
+
+- `CashShift` and `CashMovement` provide the monetary drawer foundation; one open shift per register is enforced by a partial unique index.
+- `Expense` references branch, category, payment method, and actor.
+- `Setting` uses JSON values with one key per company/optional branch scope.
+- `AuditLog` records actor, branch, entity, before/after JSON, reason, IP address, and timestamp.
+- A general ledger/chart of accounts is not included. No double-entry accounting figures are represented before a correct accounting module exists.
+
+## Database-Level Constraints
+
+The initial migration adds checks that Prisma schema syntax cannot express, including positive quantities and factors, non-negative monetary totals, valid scale settings, payment party exclusivity, tile dimensions, setting scope consistency, shift close consistency, and inventory movement sign/type rules. Partial and null-safe unique indexes enforce operational identities.
+
+## Indexing Strategy
+
+Composite indexes begin with `companyId`, followed by branch/warehouse or searchable/filterable fields. Covered access paths include SKU, barcode, product name/model/brand/category, tile size/series, batch/shade, party name/phone, transaction number/status/date, inventory product/batch/date, payment party/date, and audit entity/actor/action/date.
+
+## Transaction Boundaries
+
+Later application services must use database transactions for goods receipt, sale completion, returns, transfers, adjustments, payment allocation, and shift close. Inventory balance rows use a version column for optimistic concurrency and may additionally be locked with PostgreSQL row locks. A movement and its balance mutation must commit together.
+
+## Deferred Schema
+
+Authentication sessions/reset tokens (Phase 3), return/refund/exchange entities (Phases 8 and 10), and any double-entry journal (future accounting scope) are deliberately deferred so their lifecycle rules are designed with the implementing workflow rather than guessed in Phase 2.

@@ -17,12 +17,12 @@ Checkboxes are marked complete only after implementation and verification. Phase
 
 ## Phase 2 — Database Foundation
 
-- [ ] Finalize relational model and invariants
-- [ ] Configure Prisma and PostgreSQL
-- [ ] Create initial migration
-- [ ] Add seed architecture for development/test only
-- [ ] Verify constraints, indexes, migration, and client generation
-- [ ] Complete Phase 2 gate
+- [x] Finalize relational model and invariants
+- [x] Configure Prisma and PostgreSQL
+- [x] Create initial migration
+- [x] Add seed architecture for development/test only
+- [x] Verify constraints, indexes, migration, and client generation
+- [x] Complete Phase 2 gate
 
 ## Phase 3 — Authentication, Users, Roles, and Permissions
 
@@ -138,4 +138,18 @@ Checkboxes are marked complete only after implementation and verification. Phase
 - Live production web server: PASS (`200`, expected page content)
 - Secret scan: PASS (no matches)
 - Git diff check and repository integrity: PASS
+- Blocking Critical/High bugs: none open
+
+### Phase 2 — PASS (2026-09-04)
+
+- PostgreSQL 17 container health: PASS
+- Prisma 7.10 format, schema validation, and client generation: PASS
+- Initial migration `20260904143000_initial_foundation` application: PASS
+- Migration status and clean replay/drift comparison: PASS (one migration applied; no difference detected)
+- Live PostgreSQL catalog verification: PASS (43 public tables including `_prisma_migrations`, 99 foreign keys, 23 custom check constraints, and 164 total indexes)
+- Required null-safe and partial unique indexes: PASS (6/6 present)
+- Inventory, conversion, batch ownership, balance uniqueness, and immutable-ledger integration checks: PASS with transaction rollback confirmed
+- Guarded development seed: PASS and idempotent (24 permissions after two executions)
+- Repository lint, strict TypeScript checks, tests, production builds, and Prettier check: PASS
+- Docker Compose configuration, live database-backed API health, secret scan, and Git diff check: PASS
 - Blocking Critical/High bugs: none open
