@@ -13,7 +13,9 @@ Transactional records use restrictive deletion. Cascades are limited to configur
 - `Company` owns branches, identity, catalog, parties, methods, categories, settings, and audit history.
 - `Branch` owns warehouses and registers. A warehouse belongs to exactly one branch.
 - `User`, `Role`, and global `Permission` are joined through tenant-safe `UserRole`, `RolePermission`, and `UserBranch` tables.
-- Sessions and refresh tokens are intentionally deferred to Phase 3, where their security lifecycle is implemented and tested.
+- `AuthSession` stores one hash of a high-entropy opaque refresh credential per rotation, a family identifier, expiry, revocation state, replacement link, and request metadata. Rotation creates a successor row; reuse of a revoked credential revokes its active family.
+- `PasswordResetToken` stores only a SHA-256 token hash, expiry, use timestamp, and request IP. Reset completion consumes the token and revokes the user's sessions atomically.
+- `User.credentialVersion` invalidates access tokens after credential administration; failed-login and temporary-lock fields support account-level abuse controls.
 
 ## Catalog and Tile Extension
 
@@ -60,4 +62,4 @@ Later application services must use database transactions for goods receipt, sal
 
 ## Deferred Schema
 
-Authentication sessions/reset tokens (Phase 3), return/refund/exchange entities (Phases 8 and 10), and any double-entry journal (future accounting scope) are deliberately deferred so their lifecycle rules are designed with the implementing workflow rather than guessed in Phase 2.
+Return/refund/exchange entities (Phases 8 and 10) and any double-entry journal (future accounting scope) remain deliberately deferred so their lifecycle rules are designed with the implementing workflow rather than guessed early.

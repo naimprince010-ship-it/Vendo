@@ -98,3 +98,21 @@
 - **Alternatives:** Prisma 6 `prisma-client-js`; adopting the newly released Prisma 8 contract API immediately.
 - **Rationale:** Prisma 7 is fully supported and stable while avoiding premature adoption of Prisma 8's revised migration/query workflow.
 - **Consequences:** Generation runs before API typecheck/build, and the database service supplies a PostgreSQL adapter.
+
+## ADR-012 — Opaque Rotating Refresh Credentials
+
+- **Date:** 2026-09-04
+- **Context:** Access tokens must be short-lived while browser sessions remain revocable and refresh-token reuse is detectable.
+- **Decision:** Use signed 15-minute JWT access tokens plus 256-bit opaque refresh credentials stored in HttpOnly cookies. Persist only SHA-256 credential hashes in versioned session-family rows; rotation revokes the predecessor and creates a successor atomically.
+- **Alternatives:** Long-lived access JWTs; stateless refresh JWTs; overwrite one refresh hash per user.
+- **Rationale:** Server-side session rows provide immediate revocation and family-wide response to replay without storing bearer secrets.
+- **Consequences:** Protected requests verify current user and session state, refresh requires a database transaction, and deployments must use HTTPS for secure cookies.
+
+## ADR-013 — Server-Loaded Permission Context
+
+- **Date:** 2026-09-04
+- **Context:** Permissions and account status changes must take effect without waiting for access-token expiry, and client-supplied tenant context is untrusted.
+- **Decision:** JWTs identify user, company, session, and credential version only. The global authentication guard reloads active user/session, branch assignments, and effective permission keys from PostgreSQL; a separate global permission guard evaluates controller metadata.
+- **Alternatives:** Embed permissions in JWTs; hardcode role names; repeat authorization queries in controllers.
+- **Rationale:** Centralized guards enforce current authorization and company scope consistently.
+- **Consequences:** Protected requests incur a database lookup; caching may be added later only with explicit invalidation guarantees.

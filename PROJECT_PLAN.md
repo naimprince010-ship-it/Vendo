@@ -26,12 +26,12 @@ Checkboxes are marked complete only after implementation and verification. Phase
 
 ## Phase 3 — Authentication, Users, Roles, and Permissions
 
-- [ ] Authentication and secure session lifecycle
-- [ ] Password reset architecture and abuse controls
-- [ ] Users and employees
-- [ ] Permission-based RBAC enforced by API
-- [ ] Authentication and authorization tests
-- [ ] Complete Phase 3 gate
+- [x] Authentication and secure session lifecycle
+- [x] Password reset architecture and abuse controls
+- [x] Users and employees
+- [x] Permission-based RBAC enforced by API
+- [x] Authentication and authorization tests
+- [x] Complete Phase 3 gate
 
 ## Phase 4 — Company, Branch, Warehouse, and Register
 
@@ -152,4 +152,20 @@ Checkboxes are marked complete only after implementation and verification. Phase
 - Guarded development seed: PASS and idempotent (24 permissions after two executions)
 - Repository lint, strict TypeScript checks, tests, production builds, and Prettier check: PASS
 - Docker Compose configuration, live database-backed API health, secret scan, and Git diff check: PASS
+- Blocking Critical/High bugs: none open
+
+### Phase 3 — PASS (2026-09-05)
+
+- Additive migration `20260904160000_phase3_auth_identity`: PASS (two migrations applied; status current; no drift)
+- Authentication/session database constraints and tenant ownership checks: PASS
+- Argon2id login, short-lived JWT access, opaque rotating refresh credentials, reuse detection, and revocation: PASS
+- Password change/reset architecture, inactive-account enforcement, failed-login lockout, and endpoint throttling: PASS
+- Company-scoped user/role administration and server-loaded permission enforcement: PASS
+- Permission catalog seed and explicit Owner bootstrap: PASS and idempotent (35 permissions; one company/user/role on two bootstrap runs)
+- API integration and regression tests: PASS (5 suites, 23 tests)
+- Repository lint and strict TypeScript checks: PASS (5/5 packages)
+- NestJS and Next.js production builds: PASS (5/5 packages); repeated API builds emit the correct runnable artifact
+- Swagger/OpenAPI authentication metadata: PASS (19 paths; bearer and refresh-cookie schemes)
+- Live browser login, protected route, refresh-on-reload, logout, and anonymous redirect: PASS
+- Prisma format/validation/generation, Prettier, Compose configuration, secret scan, Git diff check, and repository integrity: PASS
 - Blocking Critical/High bugs: none open

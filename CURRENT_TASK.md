@@ -1,52 +1,50 @@
 # Current Phase
 
-Phase 2 — Database Foundation
+Phase 3 — Authentication, Users, Roles, and Permissions
 
 # Current Task
 
-Phase 2 database foundation gate completed; retain the verified schema and migration as the baseline for the next approved phase.
+Implement and verify authentication, revocable rotating sessions, user administration, configurable roles, granular permissions, server-side authorization, and the minimum real frontend login/logout flow.
 
 # Objective
 
-Maintain the verified PostgreSQL/Prisma baseline without starting Phase 3 implementation in this task.
+Deliver the production-grade identity and access-control foundation without starting Phase 4 organization-management workflows.
 
 # Dependencies
 
-- Verified Phase 1 foundation
-- PostgreSQL 17 development service
-- ADR-001 through ADR-008
-- Tile, inventory, and unit conversion design documents
+- Verified Phase 2 database foundation and PostgreSQL 17 development service
+- Existing company-scoped User/Role and global Permission relational model
+- AuditLog foundation
+- Environment-provided JWT secrets and explicit development bootstrap values
 
 # Expected Files To Change
 
 - `apps/api/prisma/**`
-- `apps/api/src/database/**`
-- API package scripts and dependencies
-- `docs/DATABASE_DESIGN.md`
-- Relevant project-control files
+- `apps/api/src/auth/**`, `apps/api/src/users/**`, and shared authorization infrastructure
+- Minimal real auth routes/state under `apps/web/src/**`
+- Environment, API, security, permission, database, and decision documentation
+- Project-control files
 
 # Acceptance Criteria
 
-- Prisma schema models the approved organization, identity, catalog, tile, inventory, party, purchasing, sales, payments, cash, expense, audit, and settings foundations without fake workflows.
-- Money and authoritative quantities use Decimal-compatible database types.
-- Core product records do not require tile-specific fields.
-- Inventory has one base quantity and an auditable movement ledger.
-- Batch/lot/shade is optional per product.
-- Tenant/location foreign keys, uniqueness, search indexes, and key database constraints are documented and implemented where appropriate.
+- Password login issues a short-lived access token and a rotating, revocable refresh credential whose raw value is never persisted.
+- Passwords use Argon2id; inactive users and revoked sessions are rejected.
+- Protected APIs derive company scope and current permissions from authenticated server-side state.
+- User, role, permission, session, password-change/reset, and administrative role APIs validate requests and never serialize credential fields.
+- Login/reset abuse controls and security-event audit records are active.
+- The web login, protected shell, session refresh, and logout use the real API.
 
 # Verification Required
 
-- PostgreSQL container health
-- Prisma format and validation
-- Prisma client generation
-- Initial migration creation and clean application
-- Migration status verification
-- Database constraint/invariant integration checks
-- Repository lint, typecheck, tests, and builds
+- Additive auth migration application, status, catalog checks, and clean replay/drift
+- Auth/RBAC unit and live API integration tests covering the required security workflows
+- Swagger bearer security metadata
+- Rate limiting and startup environment validation
+- Repository lint, typecheck, tests, production builds, formatting, Compose, secret scan, and Git integrity
 
 # Status
 
-COMPLETE — Phase 2 gate passed on 2026-09-04.
+COMPLETE — Phase 3 gate passed on 2026-09-05. Authentication, session lifecycle, company-scoped user/RBAC APIs, minimal real web authentication, migration, tests, builds, Swagger metadata, and live browser workflows are verified.
 
 # Blockers
 
@@ -54,4 +52,4 @@ None.
 
 # Next Approved Task
 
-Phase 3 — Authentication, users, roles, and permissions after the Phase 2 gate passes.
+Phase 4 — Company, branch, warehouse, and register. Begin by reading the governance and organization-domain documents, then implement company profile/settings, branches and user branch access before warehouses and registers.

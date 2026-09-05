@@ -48,6 +48,42 @@
 - **Status:** Resolved — the same uncached lint, typecheck, test, and build tasks passed with `--concurrency=1`; normal root verification commands also pass.
 - **Related task:** Phase 2 — final verification gate
 
+## BUG-005 — CommonJS authentication dependencies failed lint/runtime interop
+
+- **ID:** BUG-005
+- **Severity:** Medium
+- **Area:** API authentication build and tests
+- **Description:** TypeScript import-equals syntax made `cookie-parser` and `supertest` callable under CommonJS but violated the typed ESLint policy; synthetic default imports compiled to non-callable `.default` values without interop.
+- **Reproduction:** Run the uncached API lint and integration tests with the initial Phase 3 imports.
+- **Expected:** Imports satisfy lint and remain callable at runtime.
+- **Actual:** Lint rejected import-equals syntax, while the earlier default-import form failed at runtime.
+- **Status:** Resolved — enabled TypeScript `esModuleInterop`, used standard default imports, and reverified API lint, typecheck, and all 23 tests.
+- **Related task:** Phase 3 — authentication and authorization verification
+
+## BUG-006 — Authentication restoration violated React effect lint rule
+
+- **ID:** BUG-006
+- **Severity:** Low
+- **Area:** Web authentication state
+- **Description:** The initial mount effect directly invoked a callback that mutates authentication state, triggering `react-hooks/set-state-in-effect`.
+- **Reproduction:** Run the uncached web lint task against the initial Phase 3 auth context.
+- **Expected:** Session restoration synchronizes with the API without a synchronous effect-state cascade.
+- **Actual:** Repository lint failed on the mount-time refresh invocation.
+- **Status:** Resolved — session restoration now fetches inside the effect and applies state only from its asynchronous continuation; web and repository lint pass.
+- **Related task:** Phase 3 — frontend auth foundation
+
+## BUG-007 — Nest production build launched stale or missing output
+
+- **ID:** BUG-007
+- **Severity:** High
+- **Area:** API production artifact
+- **Description:** The build inherited a broad source root and incremental state, producing current files under `dist/src` while `pnpm start` launched stale `dist/main.js`; after output cleanup, a repeated incremental build could emit no `dist` directory.
+- **Reproduction:** Build the API, run `pnpm --filter @vendo/api start`, inspect Swagger routes, then repeat the build.
+- **Expected:** Every build emits current application code at `dist/main.js` and production start exposes all Phase 3 routes.
+- **Actual:** The first smoke run exposed only the Phase 1 health route; a later repeated build removed the output without re-emitting it.
+- **Status:** Resolved — restricted the production build to `src`, set its root directory, disabled incremental emission for that build, enabled output cleanup, verified two consecutive API builds, and passed the full repository production build plus live Swagger/auth smoke checks.
+- **Related task:** Phase 3 — production build and Swagger gate
+
 ## Entry Template
 
 - **ID:** BUG-000

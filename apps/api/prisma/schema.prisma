@@ -121,20 +121,22 @@ model Company {
   createdAt            DateTime @default(now()) @db.Timestamptz(3)
   updatedAt            DateTime @updatedAt @db.Timestamptz(3)
 
-  branches          Branch[]
-  users             User[]
-  roles             Role[]
-  units             Unit[]
-  categories        Category[]
-  brands            Brand[]
-  products          Product[]
-  customerGroups    CustomerGroup[]
-  customers         Customer[]
-  suppliers         Supplier[]
-  paymentMethods    PaymentMethod[]
-  expenseCategories ExpenseCategory[]
-  settings          Setting[]
-  auditLogs         AuditLog[]
+  branches            Branch[]
+  users               User[]
+  roles               Role[]
+  units               Unit[]
+  categories          Category[]
+  brands              Brand[]
+  products            Product[]
+  customerGroups      CustomerGroup[]
+  customers           Customer[]
+  suppliers           Supplier[]
+  paymentMethods      PaymentMethod[]
+  expenseCategories   ExpenseCategory[]
+  settings            Setting[]
+  auditLogs           AuditLog[]
+  authSessions        AuthSession[]
+  passwordResetTokens PasswordResetToken[]
 
   @@unique([id, code])
 }
@@ -215,34 +217,85 @@ model Register {
 }
 
 model User {
-  id           String     @id @default(uuid()) @db.Uuid
-  companyId    String     @db.Uuid
-  email        String     @db.VarChar(254)
-  passwordHash String     @db.VarChar(255)
-  firstName    String     @db.VarChar(100)
-  lastName     String?    @db.VarChar(100)
-  phone        String?    @db.VarChar(40)
-  status       UserStatus @default(ACTIVE)
-  lastLoginAt  DateTime?  @db.Timestamptz(3)
-  createdAt    DateTime   @default(now()) @db.Timestamptz(3)
-  updatedAt    DateTime   @updatedAt @db.Timestamptz(3)
+  id                String     @id @default(uuid()) @db.Uuid
+  companyId         String     @db.Uuid
+  email             String     @db.VarChar(254)
+  passwordHash      String     @db.VarChar(255)
+  firstName         String     @db.VarChar(100)
+  lastName          String?    @db.VarChar(100)
+  phone             String?    @db.VarChar(40)
+  status            UserStatus @default(ACTIVE)
+  lastLoginAt       DateTime?  @db.Timestamptz(3)
+  lastFailedLoginAt DateTime?  @db.Timestamptz(3)
+  lockedUntil       DateTime?  @db.Timestamptz(3)
+  failedLoginCount  Int        @default(0)
+  credentialVersion Int        @default(0)
+  passwordChangedAt DateTime   @default(now()) @db.Timestamptz(3)
+  createdAt         DateTime   @default(now()) @db.Timestamptz(3)
+  updatedAt         DateTime   @updatedAt @db.Timestamptz(3)
 
-  company            Company             @relation(fields: [companyId], references: [id], onDelete: Restrict)
-  userRoles          UserRole[]
-  userBranches       UserBranch[]
-  purchaseOrders     PurchaseOrder[]     @relation("PurchaseOrderCreatedBy")
-  goodsReceipts      GoodsReceipt[]      @relation("GoodsReceiptReceivedBy")
-  sales              Sale[]              @relation("SaleCreatedBy")
-  payments           Payment[]           @relation("PaymentRecordedBy")
-  cashShifts         CashShift[]         @relation("CashShiftCashier")
-  cashMovements      CashMovement[]      @relation("CashMovementRecordedBy")
-  expenses           Expense[]           @relation("ExpenseCreatedBy")
-  inventoryMovements InventoryMovement[] @relation("InventoryMovementCreatedBy")
-  auditLogs          AuditLog[]          @relation("AuditActor")
+  company             Company              @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  userRoles           UserRole[]
+  userBranches        UserBranch[]
+  purchaseOrders      PurchaseOrder[]      @relation("PurchaseOrderCreatedBy")
+  goodsReceipts       GoodsReceipt[]       @relation("GoodsReceiptReceivedBy")
+  sales               Sale[]               @relation("SaleCreatedBy")
+  payments            Payment[]            @relation("PaymentRecordedBy")
+  cashShifts          CashShift[]          @relation("CashShiftCashier")
+  cashMovements       CashMovement[]       @relation("CashMovementRecordedBy")
+  expenses            Expense[]            @relation("ExpenseCreatedBy")
+  inventoryMovements  InventoryMovement[]  @relation("InventoryMovementCreatedBy")
+  auditLogs           AuditLog[]           @relation("AuditActor")
+  authSessions        AuthSession[]
+  passwordResetTokens PasswordResetToken[]
 
   @@unique([companyId, email])
   @@unique([id, companyId])
   @@index([companyId, status])
+}
+
+model AuthSession {
+  id               String    @id @default(uuid()) @db.Uuid
+  companyId        String    @db.Uuid
+  userId           String    @db.Uuid
+  familyId         String    @db.Uuid
+  refreshTokenHash String    @unique @db.Char(64)
+  expiresAt        DateTime  @db.Timestamptz(3)
+  lastUsedAt       DateTime? @db.Timestamptz(3)
+  revokedAt        DateTime? @db.Timestamptz(3)
+  revokeReason     String?   @db.VarChar(120)
+  replacedById     String?   @db.Uuid
+  ipAddress        String?   @db.Inet
+  userAgent        String?
+  createdAt        DateTime  @default(now()) @db.Timestamptz(3)
+
+  company    Company      @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  user       User         @relation(fields: [userId, companyId], references: [id, companyId], onDelete: Cascade)
+  replacedBy AuthSession? @relation("AuthSessionRotation", fields: [replacedById, companyId], references: [id, companyId], onDelete: Restrict)
+  replaces   AuthSession? @relation("AuthSessionRotation")
+
+  @@unique([id, companyId])
+  @@unique([replacedById, companyId])
+  @@index([companyId, userId, revokedAt, expiresAt])
+  @@index([familyId, revokedAt])
+  @@index([expiresAt])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(uuid()) @db.Uuid
+  companyId String    @db.Uuid
+  userId    String    @db.Uuid
+  tokenHash String    @unique @db.Char(64)
+  expiresAt DateTime  @db.Timestamptz(3)
+  usedAt    DateTime? @db.Timestamptz(3)
+  ipAddress String?   @db.Inet
+  createdAt DateTime  @default(now()) @db.Timestamptz(3)
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  user    User    @relation(fields: [userId, companyId], references: [id, companyId], onDelete: Cascade)
+
+  @@index([companyId, userId, expiresAt])
+  @@index([expiresAt, usedAt])
 }
 
 model Role {

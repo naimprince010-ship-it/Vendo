@@ -1,4 +1,5 @@
 import { ApiHealth } from './api-health';
+import Link from 'next/link';
 
 const foundations = [
   'Modular monolith',
@@ -26,6 +27,12 @@ export default function Home() {
           The production workspace is being built in dependency order. Transaction modules remain
           unavailable until their database and authorization gates pass.
         </p>
+        <Link
+          href="/login"
+          className="mt-8 inline-flex rounded-lg bg-amber-400 px-5 py-2.5 font-semibold text-slate-950"
+        >
+          Sign in to Vendo
+        </Link>
         <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {foundations.map((item) => (
             <div
