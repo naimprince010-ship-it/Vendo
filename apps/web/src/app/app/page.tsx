@@ -7,11 +7,14 @@ import { OrganizationConsole } from './organization-console';
 import { CatalogConsole } from './catalog-console';
 import { InventoryConsole } from './inventory-console';
 import { PartiesConsole } from './parties-console';
+import { PurchasingConsole } from './purchasing-console';
 
 export default function ProtectedAppPage() {
   const router = useRouter();
   const { user, status, logout } = useAuth();
-  const [area, setArea] = useState<'organization' | 'catalog' | 'inventory' | 'parties'>('parties');
+  const [area, setArea] = useState<
+    'organization' | 'catalog' | 'inventory' | 'parties' | 'purchasing'
+  >('purchasing');
 
   useEffect(() => {
     if (status === 'anonymous') router.replace('/login');
@@ -45,18 +48,22 @@ export default function ProtectedAppPage() {
           </button>
         </header>
         <nav className="mb-5 flex gap-2" aria-label="Application sections">
-          {(['parties', 'inventory', 'catalog', 'organization'] as const).map((item) => (
-            <button
-              key={item}
-              type="button"
-              onClick={() => setArea(item)}
-              className={`rounded-lg px-4 py-2 text-sm font-semibold capitalize ${area === item ? 'bg-amber-400 text-slate-950' : 'border border-slate-700 text-slate-300'}`}
-            >
-              {item}
-            </button>
-          ))}
+          {(['purchasing', 'parties', 'inventory', 'catalog', 'organization'] as const).map(
+            (item) => (
+              <button
+                key={item}
+                type="button"
+                onClick={() => setArea(item)}
+                className={`rounded-lg px-4 py-2 text-sm font-semibold capitalize ${area === item ? 'bg-amber-400 text-slate-950' : 'border border-slate-700 text-slate-300'}`}
+              >
+                {item}
+              </button>
+            ),
+          )}
         </nav>
-        {area === 'parties' ? (
+        {area === 'purchasing' ? (
+          <PurchasingConsole />
+        ) : area === 'parties' ? (
           <PartiesConsole />
         ) : area === 'inventory' ? (
           <InventoryConsole />

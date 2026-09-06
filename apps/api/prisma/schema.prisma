@@ -35,7 +35,29 @@ enum OrderStatus {
   APPROVED
   PARTIALLY_RECEIVED
   RECEIVED
+  CLOSED
   CANCELLED
+}
+
+enum PurchaseReturnStatus {
+  DRAFT
+  POSTED
+  VOIDED
+}
+
+enum PurchaseOperationType {
+  GOODS_RECEIPT
+  SUPPLIER_INVOICE
+  SUPPLIER_PAYMENT
+  PURCHASE_RETURN
+}
+
+enum PurchaseDocumentType {
+  PURCHASE_ORDER
+  GOODS_RECEIPT
+  SUPPLIER_INVOICE
+  SUPPLIER_PAYMENT
+  PURCHASE_RETURN
 }
 
 enum ReceiptStatus {
@@ -177,6 +199,9 @@ model Company {
   physicalCounts        PhysicalCount[]
   customerLedgerEntries CustomerLedgerEntry[]
   supplierLedgerEntries SupplierLedgerEntry[]
+  purchaseSequences     PurchaseDocumentSequence[]
+  purchaseOperations    PurchaseOperation[]
+  purchaseReturns       PurchaseReturn[]
 
   @@unique([id, code])
 }
@@ -210,6 +235,7 @@ model Branch {
   physicalCounts        PhysicalCount[]
   customerLedgerEntries CustomerLedgerEntry[]
   supplierLedgerEntries SupplierLedgerEntry[]
+  purchaseReturns       PurchaseReturn[]
 
   @@unique([companyId, code])
   @@unique([id, companyId])
@@ -233,6 +259,7 @@ model Warehouse {
   inventoryMovements InventoryMovement[]
   inventoryBalances  InventoryBalance[]
   physicalCounts     PhysicalCount[]
+  purchaseReturns    PurchaseReturn[]
 
   @@unique([companyId, code])
   @@unique([id, companyId])
@@ -298,6 +325,9 @@ model User {
   postedCounts          PhysicalCount[]       @relation("PhysicalCountPostedBy")
   customerLedgerEntries CustomerLedgerEntry[] @relation("CustomerLedgerCreatedBy")
   supplierLedgerEntries SupplierLedgerEntry[] @relation("SupplierLedgerCreatedBy")
+  purchaseInvoices      PurchaseInvoice[]     @relation("PurchaseInvoiceCreatedBy")
+  purchaseReturns       PurchaseReturn[]      @relation("PurchaseReturnCreatedBy")
+  purchaseOperations    PurchaseOperation[]   @relation("PurchaseOperationCreatedBy")
 
   @@unique([companyId, email])
   @@unique([id, companyId])
@@ -427,6 +457,7 @@ model Unit {
   saleItems            SaleItem[]
   inventoryMovements   InventoryMovement[]
   physicalCountItems   PhysicalCountItem[]
+  purchaseReturnItems  PurchaseReturnItem[]
 
   @@unique([companyId, code])
   @@unique([id, companyId])
@@ -520,6 +551,7 @@ model Product {
   inventoryMovements   InventoryMovement[]
   inventoryBalances    InventoryBalance[]
   physicalCountItems   PhysicalCountItem[]
+  purchaseReturnItems  PurchaseReturnItem[]
 
   @@unique([companyId, sku])
   @@unique([id, companyId])
@@ -619,24 +651,25 @@ model ProductPrice {
 }
 
 model ProductBatch {
-  id                 String              @id @default(uuid()) @db.Uuid
-  companyId          String              @db.Uuid
-  productId          String              @db.Uuid
-  supplierId         String?             @db.Uuid
-  batchNumber        String              @db.VarChar(100)
-  lotNumber          String?             @db.VarChar(100)
-  shade              String?             @db.VarChar(80)
-  receivedAt         DateTime?           @db.Timestamptz(3)
-  isActive           Boolean             @default(true)
-  createdAt          DateTime            @default(now()) @db.Timestamptz(3)
-  updatedAt          DateTime            @updatedAt @db.Timestamptz(3)
-  product            Product             @relation(fields: [productId, companyId], references: [id, companyId], onDelete: Restrict)
-  supplier           Supplier?           @relation(fields: [supplierId, companyId], references: [id, companyId], onDelete: Restrict)
-  goodsReceiptItems  GoodsReceiptItem[]
-  saleItems          SaleItem[]
-  inventoryMovements InventoryMovement[]
-  inventoryBalances  InventoryBalance[]
-  physicalCountItems PhysicalCountItem[]
+  id                  String               @id @default(uuid()) @db.Uuid
+  companyId           String               @db.Uuid
+  productId           String               @db.Uuid
+  supplierId          String?              @db.Uuid
+  batchNumber         String               @db.VarChar(100)
+  lotNumber           String?              @db.VarChar(100)
+  shade               String?              @db.VarChar(80)
+  receivedAt          DateTime?            @db.Timestamptz(3)
+  isActive            Boolean              @default(true)
+  createdAt           DateTime             @default(now()) @db.Timestamptz(3)
+  updatedAt           DateTime             @updatedAt @db.Timestamptz(3)
+  product             Product              @relation(fields: [productId, companyId], references: [id, companyId], onDelete: Restrict)
+  supplier            Supplier?            @relation(fields: [supplierId, companyId], references: [id, companyId], onDelete: Restrict)
+  goodsReceiptItems   GoodsReceiptItem[]
+  saleItems           SaleItem[]
+  inventoryMovements  InventoryMovement[]
+  inventoryBalances   InventoryBalance[]
+  physicalCountItems  PhysicalCountItem[]
+  purchaseReturnItems PurchaseReturnItem[]
 
   @@unique([id, companyId])
   @@unique([id, productId, companyId])
@@ -712,6 +745,8 @@ model Supplier {
   purchaseInvoices PurchaseInvoice[]
   payments         Payment[]
   ledgerEntries    SupplierLedgerEntry[]
+  goodsReceipts    GoodsReceipt[]
+  purchaseReturns  PurchaseReturn[]
 
   @@unique([companyId, code])
   @@unique([id, companyId])
@@ -801,6 +836,8 @@ model PurchaseOrder {
   createdBy   User                @relation("PurchaseOrderCreatedBy", fields: [createdById, companyId], references: [id, companyId], onDelete: Restrict)
   items       PurchaseOrderItem[]
   receipts    GoodsReceipt[]
+  invoices    PurchaseInvoice[]
+  returns     PurchaseReturn[]
 
   @@unique([companyId, orderNumber])
   @@unique([id, companyId])
@@ -838,6 +875,7 @@ model GoodsReceipt {
   branchId      String             @db.Uuid
   warehouseId   String             @db.Uuid
   orderId       String?            @db.Uuid
+  supplierId    String             @db.Uuid
   receivedById  String             @db.Uuid
   receiptNumber String             @db.VarChar(60)
   status        ReceiptStatus      @default(DRAFT)
@@ -848,14 +886,17 @@ model GoodsReceipt {
   branch        Branch             @relation(fields: [branchId, companyId], references: [id, companyId], onDelete: Restrict)
   warehouse     Warehouse          @relation(fields: [warehouseId, branchId, companyId], references: [id, branchId, companyId], onDelete: Restrict)
   order         PurchaseOrder?     @relation(fields: [orderId, companyId], references: [id, companyId], onDelete: Restrict)
+  supplier      Supplier           @relation(fields: [supplierId, companyId], references: [id, companyId], onDelete: Restrict)
   receivedBy    User               @relation("GoodsReceiptReceivedBy", fields: [receivedById, companyId], references: [id, companyId], onDelete: Restrict)
   items         GoodsReceiptItem[]
   invoices      PurchaseInvoice[]
+  returns       PurchaseReturn[]
 
   @@unique([companyId, receiptNumber])
   @@unique([id, companyId])
   @@index([companyId, warehouseId, receivedAt])
   @@index([companyId, orderId])
+  @@index([companyId, supplierId, receivedAt])
 }
 
 model GoodsReceiptItem {
@@ -877,6 +918,7 @@ model GoodsReceiptItem {
   unit             Unit                  @relation(fields: [unitId, companyId], references: [id, companyId], onDelete: Restrict)
   batch            ProductBatch?         @relation(fields: [batchId, productId, companyId], references: [id, productId, companyId], onDelete: Restrict)
   invoiceItems     PurchaseInvoiceItem[]
+  returnItems      PurchaseReturnItem[]
 
   @@unique([id, companyId])
   @@index([companyId, receiptId])
@@ -889,6 +931,8 @@ model PurchaseInvoice {
   branchId              String                @db.Uuid
   supplierId            String                @db.Uuid
   receiptId             String?               @db.Uuid
+  orderId               String?               @db.Uuid
+  createdById           String                @db.Uuid
   invoiceNumber         String                @db.VarChar(80)
   supplierInvoiceNumber String?               @db.VarChar(100)
   status                InvoiceStatus         @default(DRAFT)
@@ -899,40 +943,50 @@ model PurchaseInvoice {
   tax                   Decimal               @default(0) @db.Decimal(19, 4)
   freight               Decimal               @default(0) @db.Decimal(19, 4)
   additionalCost        Decimal               @default(0) @db.Decimal(19, 4)
+  currencyCode          String                @default("BDT") @db.Char(3)
   total                 Decimal               @default(0) @db.Decimal(19, 4)
+  notes                 String?
   createdAt             DateTime              @default(now()) @db.Timestamptz(3)
   updatedAt             DateTime              @updatedAt @db.Timestamptz(3)
   branch                Branch                @relation(fields: [branchId, companyId], references: [id, companyId], onDelete: Restrict)
   supplier              Supplier              @relation(fields: [supplierId, companyId], references: [id, companyId], onDelete: Restrict)
   receipt               GoodsReceipt?         @relation(fields: [receiptId, companyId], references: [id, companyId], onDelete: Restrict)
+  order                 PurchaseOrder?        @relation(fields: [orderId, companyId], references: [id, companyId], onDelete: Restrict)
+  createdBy             User                  @relation("PurchaseInvoiceCreatedBy", fields: [createdById, companyId], references: [id, companyId], onDelete: Restrict)
   items                 PurchaseInvoiceItem[]
   paymentAllocations    PurchasePayment[]
+  returns               PurchaseReturn[]
 
   @@unique([companyId, invoiceNumber])
   @@unique([id, companyId])
   @@index([companyId, supplierId, invoiceDate])
   @@index([companyId, status, dueDate])
+  @@index([companyId, orderId])
+  @@index([companyId, receiptId])
 }
 
 model PurchaseInvoiceItem {
-  id            String            @id @default(uuid()) @db.Uuid
-  companyId     String            @db.Uuid
-  invoiceId     String            @db.Uuid
-  receiptItemId String?           @db.Uuid
-  productId     String            @db.Uuid
-  unitId        String            @db.Uuid
-  quantity      Decimal           @db.Decimal(20, 6)
-  baseQuantity  Decimal           @db.Decimal(20, 6)
-  unitCost      Decimal           @db.Decimal(19, 4)
-  discount      Decimal           @default(0) @db.Decimal(19, 4)
-  tax           Decimal           @default(0) @db.Decimal(19, 4)
-  lineTotal     Decimal           @db.Decimal(19, 4)
-  createdAt     DateTime          @default(now()) @db.Timestamptz(3)
-  invoice       PurchaseInvoice   @relation(fields: [invoiceId, companyId], references: [id, companyId], onDelete: Restrict)
-  receiptItem   GoodsReceiptItem? @relation(fields: [receiptItemId, companyId], references: [id, companyId], onDelete: Restrict)
-  product       Product           @relation(fields: [productId, companyId], references: [id, companyId], onDelete: Restrict)
-  unit          Unit              @relation(fields: [unitId, companyId], references: [id, companyId], onDelete: Restrict)
+  id               String               @id @default(uuid()) @db.Uuid
+  companyId        String               @db.Uuid
+  invoiceId        String               @db.Uuid
+  receiptItemId    String?              @db.Uuid
+  productId        String               @db.Uuid
+  unitId           String               @db.Uuid
+  quantity         Decimal              @db.Decimal(20, 6)
+  baseQuantity     Decimal              @db.Decimal(20, 6)
+  conversionFactor Decimal              @db.Decimal(24, 10)
+  unitCost         Decimal              @db.Decimal(19, 4)
+  discount         Decimal              @default(0) @db.Decimal(19, 4)
+  tax              Decimal              @default(0) @db.Decimal(19, 4)
+  lineTotal        Decimal              @db.Decimal(19, 4)
+  createdAt        DateTime             @default(now()) @db.Timestamptz(3)
+  invoice          PurchaseInvoice      @relation(fields: [invoiceId, companyId], references: [id, companyId], onDelete: Restrict)
+  receiptItem      GoodsReceiptItem?    @relation(fields: [receiptItemId, companyId], references: [id, companyId], onDelete: Restrict)
+  product          Product              @relation(fields: [productId, companyId], references: [id, companyId], onDelete: Restrict)
+  unit             Unit                 @relation(fields: [unitId, companyId], references: [id, companyId], onDelete: Restrict)
+  returnItems      PurchaseReturnItem[]
 
+  @@unique([id, companyId])
   @@index([companyId, invoiceId])
   @@index([companyId, productId])
 }
@@ -1073,6 +1127,95 @@ model PurchasePayment {
 
   @@id([invoiceId, paymentId])
   @@index([companyId, paymentId])
+}
+
+model PurchaseDocumentSequence {
+  companyId  String               @db.Uuid
+  type       PurchaseDocumentType
+  nextNumber BigInt               @default(1)
+  updatedAt  DateTime             @updatedAt @db.Timestamptz(3)
+  company    Company              @relation(fields: [companyId], references: [id], onDelete: Restrict)
+
+  @@id([companyId, type])
+}
+
+model PurchaseOperation {
+  id             String                @id @default(uuid()) @db.Uuid
+  companyId      String                @db.Uuid
+  createdById    String                @db.Uuid
+  type           PurchaseOperationType
+  idempotencyKey String                @db.VarChar(120)
+  requestHash    String                @db.Char(64)
+  result         Json?
+  createdAt      DateTime              @default(now()) @db.Timestamptz(3)
+  company        Company               @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  createdBy      User                  @relation("PurchaseOperationCreatedBy", fields: [createdById, companyId], references: [id, companyId], onDelete: Restrict)
+
+  @@unique([companyId, idempotencyKey])
+  @@unique([id, companyId])
+  @@index([companyId, type, createdAt])
+}
+
+model PurchaseReturn {
+  id             String               @id @default(uuid()) @db.Uuid
+  companyId      String               @db.Uuid
+  branchId       String               @db.Uuid
+  warehouseId    String               @db.Uuid
+  supplierId     String               @db.Uuid
+  orderId        String?              @db.Uuid
+  receiptId      String               @db.Uuid
+  invoiceId      String?              @db.Uuid
+  createdById    String               @db.Uuid
+  returnNumber   String               @db.VarChar(60)
+  status         PurchaseReturnStatus @default(DRAFT)
+  returnedAt     DateTime             @db.Timestamptz(3)
+  financialTotal Decimal              @default(0) @db.Decimal(19, 4)
+  reason         String               @db.VarChar(1000)
+  notes          String?
+  createdAt      DateTime             @default(now()) @db.Timestamptz(3)
+  branch         Branch               @relation(fields: [branchId, companyId], references: [id, companyId], onDelete: Restrict)
+  warehouse      Warehouse            @relation(fields: [warehouseId, branchId, companyId], references: [id, branchId, companyId], onDelete: Restrict)
+  supplier       Supplier             @relation(fields: [supplierId, companyId], references: [id, companyId], onDelete: Restrict)
+  order          PurchaseOrder?       @relation(fields: [orderId, companyId], references: [id, companyId], onDelete: Restrict)
+  receipt        GoodsReceipt         @relation(fields: [receiptId, companyId], references: [id, companyId], onDelete: Restrict)
+  invoice        PurchaseInvoice?     @relation(fields: [invoiceId, companyId], references: [id, companyId], onDelete: Restrict)
+  createdBy      User                 @relation("PurchaseReturnCreatedBy", fields: [createdById, companyId], references: [id, companyId], onDelete: Restrict)
+  items          PurchaseReturnItem[]
+  company        Company              @relation(fields: [companyId], references: [id])
+
+  @@unique([companyId, returnNumber])
+  @@unique([id, companyId])
+  @@index([companyId, supplierId, returnedAt])
+  @@index([companyId, receiptId])
+  @@index([companyId, invoiceId])
+}
+
+model PurchaseReturnItem {
+  id               String               @id @default(uuid()) @db.Uuid
+  companyId        String               @db.Uuid
+  returnId         String               @db.Uuid
+  receiptItemId    String               @db.Uuid
+  invoiceItemId    String?              @db.Uuid
+  productId        String               @db.Uuid
+  unitId           String               @db.Uuid
+  batchId          String?              @db.Uuid
+  quantity         Decimal              @db.Decimal(20, 6)
+  baseQuantity     Decimal              @db.Decimal(20, 6)
+  conversionFactor Decimal              @db.Decimal(24, 10)
+  unitCost         Decimal              @db.Decimal(19, 4)
+  financialAmount  Decimal              @default(0) @db.Decimal(19, 4)
+  createdAt        DateTime             @default(now()) @db.Timestamptz(3)
+  purchaseReturn   PurchaseReturn       @relation(fields: [returnId, companyId], references: [id, companyId], onDelete: Restrict)
+  receiptItem      GoodsReceiptItem     @relation(fields: [receiptItemId, companyId], references: [id, companyId], onDelete: Restrict)
+  invoiceItem      PurchaseInvoiceItem? @relation(fields: [invoiceItemId, companyId], references: [id, companyId], onDelete: Restrict)
+  product          Product              @relation(fields: [productId, companyId], references: [id, companyId], onDelete: Restrict)
+  unit             Unit                 @relation(fields: [unitId, companyId], references: [id, companyId], onDelete: Restrict)
+  batch            ProductBatch?        @relation(fields: [batchId, productId, companyId], references: [id, productId, companyId], onDelete: Restrict)
+
+  @@unique([id, companyId])
+  @@index([companyId, returnId])
+  @@index([companyId, receiptItemId])
+  @@index([companyId, invoiceItemId])
 }
 
 model InventoryMovement {

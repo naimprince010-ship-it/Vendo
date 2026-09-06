@@ -155,3 +155,43 @@ No Critical/High inventory blocker remains. `BUG-009` was found and resolved dur
 ## Phase 7 Verification Note — 2026-09-06
 
 No Critical/High customer, supplier, tenant, financial-foundation, migration, API, or UI blocker remains. `BUG-010` and `BUG-011` were found by migration/integration gates and resolved with additive migration and transaction changes before final verification. Deferred `BUG-008` remains a low-severity future pg@9 compatibility warning on the pinned pg 8.23 runtime.
+
+## BUG-012 — Generated Phase 8 migration dropped null-safe indexes and added an ambiguous relation
+
+- **ID:** BUG-012
+- **Severity:** High
+- **Area:** Phase 8 Prisma migration / relational integrity
+- **Description:** Prisma's first generated Phase 8 SQL proposed dropping two PostgreSQL-only Phase 6 `NULLS NOT DISTINCT` indexes and inferred an unintended second PurchaseInvoice-to-return-item foreign key.
+- **Reproduction:** Inspect the initially generated Phase 8 migration before finalizing the schema relation.
+- **Expected:** Phase 6 batch/count identity constraints remain intact and return items reference one optional invoice line through a company-safe key.
+- **Actual:** The generated SQL dropped both indexes and added `purchaseInvoiceId` independently of `invoiceItemId`.
+- **Status:** Resolved — the original generated migration checksum was preserved, an additive constraints migration removes the unintended relation, adds a composite invoice-line key/FK, and restores both null-safe indexes. Fresh replay/drift verification is required by the gate.
+- **Related task:** Phase 8 — migration inspection and purchasing returns
+
+## BUG-013 — Zero-value Decimal was treated as a positive purchase-return credit
+
+- **ID:** BUG-013
+- **Severity:** High
+- **Area:** Phase 8 purchase return / supplier ledger
+- **Description:** Decimal.js reports positive zero as positive for sign inspection, causing a received-only return to attempt a zero supplier-ledger entry that violates the non-zero ledger check.
+- **Reproduction:** Post a purchase return with a receipt line but no supplier invoice/invoice line.
+- **Expected:** Inventory decreases and no financial ledger entry is created.
+- **Actual:** The initial implementation attempted a zero `PURCHASE_RETURN` ledger entry and the entire atomic operation rolled back.
+- **Status:** Resolved — financial posting now requires `financialTotal > 0`; the integration suite verifies an inventory-only return leaves supplier ledger balance unchanged.
+- **Related task:** Phase 8 — received-only purchase return
+
+## BUG-014 — Purchase-order detail omitted batch-tracking metadata
+
+- **ID:** BUG-014
+- **Severity:** High
+- **Area:** Phase 8 goods-receipt UI / tile batches
+- **Description:** The initial PO-detail projection omitted `product.batchTracking`, so the receiving form did not render required batch/lot/shade inputs for a batch-tracked tile.
+- **Reproduction:** Select a confirmed batch-tracked tile PO line in the production receiving UI.
+- **Expected:** Batch number and optional lot/shade controls are displayed before posting.
+- **Actual:** The controls stayed hidden and the backend would correctly reject the incomplete receipt.
+- **Status:** Resolved — PO detail now includes the authoritative batch-tracking flag; production UI/browser receiving is reverified with explicit batch, lot, and shade.
+- **Related task:** Phase 8 — tile batch receiving browser gate
+
+## Phase 8 Verification Note — 2026-09-06
+
+No Critical/High purchasing, inventory-integration, supplier-ledger, migration, API, or UI blocker remains. `BUG-012`, `BUG-013`, and `BUG-014` were found and resolved before the final gate. One parallel Turbo lint attempt exhausted the local Node worker heap while production verification servers were still resident; after those servers were stopped, the required uncached sequential lint run passed 5/5 with a 4096 MiB worker ceiling. This was an execution-resource failure, not a source defect. The guarded seed also correctly refused an invocation without `ALLOW_DEV_SEED=true`, then passed twice when explicitly authorized. Deferred `BUG-008` remains the only known issue and is a low-severity future pg@9 compatibility warning on the pinned pg 8.23 runtime.

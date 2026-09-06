@@ -179,3 +179,12 @@
 - **Alternatives:** One global walk-in record; lazy POS creation; automatic max-plus codes; globally unique party codes.
 - **Rationale:** Database provisioning covers every company creation path and avoids concurrency collisions. Explicit company-local codes fit established business numbering without inventing an unapproved sequence policy.
 - **Consequences:** The walk-in identity cannot be renamed or deactivated through the API. Phone and email remain searchable but intentionally non-unique so legitimate shared contacts are not blocked.
+
+## ADR-021 — Separate Purchasing Events with Shared Physical and Financial Journals
+
+- **Date:** 2026-09-06
+- **Context:** An order, physical receipt, supplier invoice, payment, and return can occur at different times and have different stock/payable effects.
+- **Decision:** Keep separate PO, receipt, invoice, payment/allocation, and return aggregates. Only a posted receipt/return calls the Phase 6 inventory transaction primitive; only a posted invoice, payment, or invoiced return writes the immutable supplier ledger. Company/document counters allocate numbers with atomic PostgreSQL upserts. Critical posts use company-scoped request hashes and idempotency records, while advisory locks serialize PO receipt capacity, invoice allocation, and returnable quantities.
+- **Alternatives:** One purchase transaction; stock updates embedded in purchasing; mutable supplier due columns; `MAX(number)+1` numbering.
+- **Rationale:** Separate aggregates match real operations while shared journals preserve one physical and one payable authority. Database sequencing and locks work across API instances.
+- **Consequences:** POs never affect stock/payable. Receipt conversion factors and costs are snapshots. Unallocated payment is a supplier advance. A received-only return has no financial effect; an invoiced return credits the proportional stored invoice-line amount. Automatic landed-cost allocation and Phase 11 cash-drawer effects remain explicitly deferred.

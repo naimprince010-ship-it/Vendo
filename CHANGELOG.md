@@ -88,3 +88,16 @@ All meaningful project changes are recorded here. This project follows a phase-o
 - Added migrations `20260906153000_phase7_parties_ledgers`, `20260906154500_phase7_walkin_provision`, and corrective `20260906155500_phase7_walkin_timestamp_fix`; `BUG-010` records the caught and resolved trigger timestamp defect.
 - Added concurrent opening-post coverage and resolved the serializable-snapshot/advisory-lock conflict (`BUG-011`) so one request commits and the competing post returns a deterministic conflict without duplicate history.
 - Verified eight-migration clean replay/zero drift, 78-permission and Owner-bootstrap idempotency, 55 API tests, all repository lint/type/build gates, 89-path Swagger metadata, database constraints/triggers, and live production browser customer/supplier ledger workflows with a clean console.
+
+### Phase 8 — Purchasing and Supplier Dues
+
+- Added separate purchase-order, goods-receipt, supplier-invoice, supplier-payment/allocation, and purchase-return API workflows with backend-owned lifecycle transitions and Decimal totals.
+- Reused the Phase 6 inventory transaction primitive for receipt/return movements, base-unit conversion snapshots, tile batch/lot/shade creation, position locking, negative-stock policy, and atomic balance projection updates.
+- Added immutable supplier-ledger effects for posted invoices, outbound payments/advances, and invoiced returns; received-only returns intentionally create no financial history.
+- Added company/document sequences, command idempotency records, PO/invoice/receipt/return capacity locks, partial receiving/invoicing, allocation limits, proportional stored-line return credits, and real supplier due/outstanding queries.
+- Added migrations `20260906170000_phase8_purchasing_workflow` and `20260906171000_phase8_purchasing_constraints`; SQL inspection restored Phase 6 null-safe indexes and corrected an unintended generated return relation before gate verification.
+- Extended the centralized catalog with six Phase 8 permissions and added idempotent default Cash/Bank/Card/MFS payment methods to company bootstrap.
+- Added a real authenticated purchasing console for PO lifecycle/detail, explicit tile receipt batches/shades, supplier invoices, payments/advances, and inventory-only versus financial returns. Cash-drawer effects and landed-cost allocation remain honestly deferred.
+- Added draft-update, cancel/close lifecycle controls and real supplier-payment/purchase-return history to the purchasing UI; corrected transition audit action names.
+- Added five Phase 8 integration workflows within the 60-test regression suite, covering PO lifecycle, partial/concurrent/idempotent receipts, Box-to-PCS batch stock, Decimal invoice posting, payment allocation/advance, and financial versus received-only returns.
+- Verified all 10 migrations through a clean replay and exact live/replay catalog comparison (1,109 objects each, matching hash), 84-permission seed idempotency, 104-path Swagger metadata, live production browser purchasing/inventory/ledger behavior, and all repository lint/type/test/build/format/Prisma/Compose/security/integrity gates.

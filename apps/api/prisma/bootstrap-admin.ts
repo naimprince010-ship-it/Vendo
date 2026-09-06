@@ -69,6 +69,18 @@ async function main(): Promise<void> {
     for (const key of PERMISSION_CATALOG) {
       await tx.permission.upsert({ where: { key }, create: { key }, update: {} });
     }
+    for (const method of [
+      { code: 'CASH', name: 'Cash' },
+      { code: 'BANK', name: 'Bank transfer' },
+      { code: 'CARD', name: 'Card' },
+      { code: 'MFS', name: 'Mobile financial service' },
+    ]) {
+      await tx.paymentMethod.upsert({
+        where: { companyId_code: { companyId: company.id, code: method.code } },
+        create: { companyId: company.id, ...method },
+        update: { name: method.name, isActive: true },
+      });
+    }
     const ownerRole = await tx.role.upsert({
       where: { companyId_key: { companyId: company.id, key: 'owner' } },
       create: { companyId: company.id, key: 'owner', name: 'Owner', isSystem: true },

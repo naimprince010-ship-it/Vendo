@@ -9,6 +9,7 @@ import { DatabaseModule } from './database/database.module';
 import { HealthModule } from './health/health.module';
 import { InventoryModule } from './inventory/inventory.module';
 import { PartiesModule } from './parties/parties.module';
+import { PurchasingModule } from './purchasing/purchasing.module';
 import { RegistersModule } from './registers/registers.module';
 import { RolesModule } from './roles/roles.module';
 import { UsersModule } from './users/users.module';
@@ -26,6 +27,7 @@ import { WarehousesModule } from './warehouses/warehouses.module';
     CatalogModule,
     InventoryModule,
     PartiesModule,
+    PurchasingModule,
     WarehousesModule,
     RegistersModule,
     HealthModule,

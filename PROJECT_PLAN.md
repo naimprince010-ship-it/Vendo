@@ -71,12 +71,12 @@ Checkboxes are marked complete only after implementation and verification. Phase
 
 ## Phase 8 — Purchasing and Supplier Dues
 
-- [ ] Purchase orders and partial receiving
-- [ ] Goods receipts with tile batch/shade
-- [ ] Supplier invoices and additional costs
-- [ ] Supplier payments, dues, and returns
-- [ ] Purchasing workflow tests
-- [ ] Complete Phase 8 gate
+- [x] Purchase orders and partial receiving
+- [x] Goods receipts with tile batch/shade
+- [x] Supplier invoices and additional costs
+- [x] Supplier payments, dues, and returns
+- [x] Purchasing workflow tests
+- [x] Complete Phase 8 gate
 
 ## Phase 9 — POS and Sales
 
@@ -237,3 +237,20 @@ Checkboxes are marked complete only after implementation and verification. Phase
 - Live production browser customer group, customer, walk-in, supplier, opening, correction, ledger, signed balance, and honest empty-history workflows: PASS; console clean
 - Prettier, Compose, Prisma format/validation/generation/status, replay/drift, secret scan, Git whitespace/integrity, and 68.38 GiB destination free space: PASS
 - Blocking Critical/High bugs: none open; `BUG-010` and `BUG-011` found and resolved during verification
+
+### Phase 8 — PASS (2026-09-06)
+
+- Separate PO, receipt, supplier invoice, outbound payment/allocation, and purchase-return workflows: PASS
+- Backend-owned PO lifecycle, atomic company/document sequences, Decimal totals, partial receiving/invoicing, and capacity protection: PASS
+- Phase 6 inventory reuse, base-unit conversion snapshots, batch/lot/shade receipt and exact-batch return reconciliation: PASS
+- Immutable supplier-ledger invoice/payment/advance/financial-return effects and ledger-derived supplier dues: PASS
+- Critical-command request-hash idempotency and concurrent receipt/payment/return protection: PASS
+- Migrations `20260906170000_phase8_purchasing_workflow` and `20260906171000_phase8_purchasing_constraints`: PASS (10 migrations current; clean replay/live catalog parity at 1,109 objects and matching hash)
+- PostgreSQL verification: PASS (56 tables, 236 indexes, 13 custom triggers, and required Phase 6 null-safe identities retained)
+- Central permission seed: PASS and idempotent (84 permissions after two executions); default payment-method bootstrap remains idempotent
+- API integration/regression tests: PASS (10 suites, 60 tests; Phase 8 suite 5/5 including concurrency, idempotency, Decimal, inventory, and ledger invariants)
+- Repository sequential lint, strict TypeScript, tests, and production builds: PASS across 5 packages; Next.js generated `/`, `/app`, and `/login`
+- Swagger/OpenAPI: PASS (104 paths; 15 purchasing paths; bearer and refresh-cookie schemes)
+- Live production browser PO, partial batch/shade receipt, invoice, partial payment, financial return, inventory, and supplier-ledger workflows: PASS; console clean
+- Prisma format/validation/generation/status, Prettier, Compose, API artifact, secret scan, Git whitespace/integrity, and destination free-space checks: PASS
+- Blocking Critical/High bugs: none open; `BUG-012`, `BUG-013`, and `BUG-014` found and resolved before the final gate

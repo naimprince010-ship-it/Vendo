@@ -31,3 +31,9 @@ Each movement records company, branch, warehouse, product, optional batch, signe
 Each posted operation requires an `Idempotency-Key`. `InventoryOperation` stores a SHA-256 payload identity and the committed response. A same-key/same-payload retry returns that result without another movement; different payload reuse is rejected. PostgreSQL advisory transaction locks serialize the physical stock position across API instances. The balance version is then updated conditionally. Negative-stock-disabled companies reject an outbound result below zero, rolling back all lines and audit data.
 
 All quantities enter as decimal strings, convert through the active product factor, and round to `numeric(20,6)` base quantity before the transaction is accepted. The applied `numeric(24,10)` factor is snapshotted on movements and count items.
+
+## Purchasing Integration
+
+Phase 8 does not implement a second stock updater. Goods receipt and purchase return call the Phase 6 transaction-owned movement primitive, which retains warehouse authorization, product conversion, batch policy, advisory position locking, negative-stock enforcement, balance version CAS, movement creation, and balance update.
+
+A receipt movement is positive `PURCHASE_RECEIPT`; a return movement is negative `PURCHASE_RETURN`. Both retain the document UUID, entered unit/quantity, factor, cost snapshot, warehouse, and exact tile batch/shade. Remaining PO and returnable receipt quantities are compared in six-decimal base units. Boxes, PCS, sq.ft, and sq.m remain representations of the same balance.

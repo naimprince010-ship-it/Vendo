@@ -44,3 +44,5 @@ Phase 7 adds:
 - `supplier.view`, `supplier.create`, `supplier.edit`, `supplier.view_ledger`, `supplier.adjust_balance`
 
 Customer and supplier masters are company-scoped, not branch-scoped. Ledger viewing and signed balance posting are intentionally separate permissions from ordinary master-data editing. API ownership checks use the authenticated company and never accept a client company ID.
+
+Phase 8 adds `purchase.view`, `purchase.edit`, `purchase.invoice`, `purchase.return`, `supplier.payment.create`, and `supplier.payment.view`. Existing `purchase.create`, `purchase.approve`, and `purchase.receive` are retained. Every purchase controller uses active-branch enforcement; document IDs, supplier IDs, receipt/invoice lines, warehouses, products, units, and batches are revalidated in the authenticated company on the backend.

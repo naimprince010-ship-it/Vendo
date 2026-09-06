@@ -4,6 +4,8 @@ The NestJS REST API is versioned at `/api/v1`; Swagger/OpenAPI is exposed in non
 
 Phase 7 exposes authenticated company-scoped `/customer-groups`, `/customers`, and `/suppliers` resources with server-side pagination/search and lifecycle endpoints. Customer credit limits have a dedicated permission endpoint. Customer and supplier ledger routes provide real balance/history queries plus idempotent opening, correction, and adjustment posting. Party master routes do not require `x-branch-id`; optional branch attribution belongs to future operational transaction origins.
 
+Phase 8 exposes active-branch-scoped `/purchases` resources for purchase orders, goods receipts, supplier invoices, outbound supplier payments, purchase returns, payment methods, and supplier due queries. The API owns lifecycle transitions, Decimal calculations, company/location ownership, inventory/supplier-ledger effects, allocation limits, and duplicate-submit protection.
+
 ## Conventions
 
 - JSON request/response bodies with Zod/shared schemas where practical and Nest validation at the transport boundary.
@@ -43,3 +45,12 @@ Phase 7 exposes authenticated company-scoped `/customer-groups`, `/customers`, a
 - `GET /inventory/balances`, `/low-stock`, and `/movements` expose bounded active-branch stock projections and immutable history with base and derived quantities.
 - `/inventory/counts` supports create/list/detail, draft item replacement, review, reopen, and idempotent reconciliation posting.
 - All mutations load company ownership, active location, product tracking state, unit conversion, batch requirement, permission, and negative-stock policy on the backend. Transfers additionally verify destination-branch access.
+
+## Phase 8 Purchasing API
+
+- `/purchases/orders` provides paginated create/read/draft-update plus submit, confirm, cancel, and close transitions. Orders do not change inventory or supplier payable.
+- `POST /purchases/receipts` posts partial/full receipts with an `Idempotency-Key`; one database transaction creates receipt lines, conversion snapshots, optional batch/lot/shade identity, inventory movements/balances, PO progress, and audit history.
+- `/purchases/invoices` creates draft supplier invoices and idempotently posts them to the immutable supplier ledger. Posted monetary documents cannot be silently changed.
+- `/purchases/payments` records idempotent outbound supplier payments, partial invoice allocations, or explicit unapplied advances. `/purchases/suppliers/:supplierId/due` derives payable and invoice outstanding values from authoritative records.
+- `POST /purchases/returns` atomically returns exact received stock and creates a supplier credit only when the return references legitimately invoiced quantity. Received-only returns create no fake financial event.
+- All purchasing collection APIs are bounded/paginated and active-branch/company scoped. Critical posting endpoints declare and enforce `Idempotency-Key` request-hash semantics.

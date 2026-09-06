@@ -48,6 +48,13 @@ type Position = {
   };
 };
 
+export type PurchasingStockLine = {
+  productId: string;
+  unitId: string;
+  batchId?: string;
+  quantity: string;
+};
+
 type DecimalValue = string | number | Prisma.Decimal;
 const q6 = (value: DecimalValue) => new Prisma.Decimal(value).toDecimalPlaces(6);
 const factor10 = (value: DecimalValue) => new Prisma.Decimal(value).toDecimalPlaces(10);
@@ -58,6 +65,40 @@ export class InventoryService {
     private readonly database: DatabaseService,
     private readonly branches: ActiveBranchService,
   ) {}
+
+  /**
+   * Phase 8 transaction boundary. The caller owns the surrounding database
+   * transaction, while inventory retains conversion, batch-policy, locking,
+   * negative-stock, movement, and balance authority.
+   */
+  async postPurchasingMovement(
+    tx: Tx,
+    principal: AuthPrincipal,
+    branchId: string,
+    warehouseId: string,
+    line: PurchasingStockLine,
+    direction: 'IN' | 'OUT',
+    meta: {
+      type: InventoryMovementType;
+      referenceType: 'GOODS_RECEIPT' | 'PURCHASE_RETURN';
+      referenceId: string;
+      reason: string;
+      unitCost?: Prisma.Decimal;
+    },
+  ) {
+    await this.requireWarehouse(tx, principal.companyId, branchId, warehouseId);
+    const position = await this.resolvePosition(tx, principal.companyId, line);
+    const result = await this.applyMovement(
+      tx,
+      principal,
+      branchId,
+      warehouseId,
+      position,
+      direction === 'IN' ? 1 : -1,
+      meta,
+    );
+    return { position, ...result };
+  }
 
   opening(
     principal: AuthPrincipal,
@@ -832,6 +873,7 @@ export class InventoryService {
       reason: string;
       correlationId?: string;
       alreadyLocked?: boolean;
+      unitCost?: Prisma.Decimal;
     },
   ) {
     if (!meta.alreadyLocked)
@@ -870,6 +912,7 @@ export class InventoryService {
         baseQuantity: signed,
         transactionQuantity: position.transactionQuantity,
         conversionFactor: position.conversionFactor,
+        unitCost: meta.unitCost,
         referenceType: meta.referenceType,
         referenceId: meta.referenceId,
         correlationId: meta.correlationId,

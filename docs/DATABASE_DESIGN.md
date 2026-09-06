@@ -79,3 +79,13 @@ Return/refund/exchange entities (Phases 8 and 10) and any double-entry journal (
 Phase 5 migration `20260906043323_phase5_catalog_foundation` normalizes company-owned manufacturers, adds a separate sanitary profile, permits unit-bound barcodes, and enforces one active conversion per company/product/unit. Existing manufacturer text is migrated before its legacy column is removed. Commercial factors remain `numeric(24,10)`; money remains `numeric(19,4)`.
 
 Phase 6 migrations `20260906060435_phase6_inventory_engine` and `20260906062000_phase6_inventory_constraints` add idempotent posting and physical counts, then restore/extend PostgreSQL-only null-safe indexes and checks after generated-SQL inspection. A clean five-migration replay has no drift.
+
+## Phase 8 Purchasing Foundation
+
+`PurchaseOrder`, `GoodsReceipt`, `PurchaseInvoice`, `Payment`, and their line/allocation tables remain distinct aggregates. Receipt now owns its supplier snapshot; invoice owns optional PO/receipt references, actor, currency, notes, and line conversion snapshots. `PurchaseReturn` and `PurchaseReturnItem` link the exact receipt line, optional invoice line, product, batch, unit, conversion, cost, and proportional financial credit.
+
+`PurchaseDocumentSequence` has one row per company/document type. An atomic upsert/increment allocates `PO`, `GR`, `PI`, `SP`, and `PR` numbers without max-plus races. `PurchaseOperation` stores a company-unique idempotency key, SHA-256 payload identity, command type, actor, and committed response for receipt, invoice-post, supplier-payment, and return retries.
+
+Composite foreign keys enforce company/branch/warehouse/product/batch ownership. A partial unique index prevents duplicate active supplier invoice references. Positive quantity/conversion and non-negative monetary checks protect purchase-return data; PostgreSQL triggers make posted receipts, posted invoice amounts/lines, and posted returns immutable while still permitting invoice payment-status projection changes.
+
+The Phase 8 migrations are `20260906170000_phase8_purchasing_workflow` and `20260906171000_phase8_purchasing_constraints`. The second restores Phase 6 null-safe indexes that Prisma cannot express and replaces an inspected ambiguous generated invoice-item relation with the intended tenant-safe composite relationship.
