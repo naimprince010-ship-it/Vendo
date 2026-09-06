@@ -13,9 +13,11 @@ Transactional records use restrictive deletion. Cascades are limited to configur
 - `Company` owns branches, identity, catalog, parties, methods, categories, settings, and audit history.
 - `Branch` owns warehouses and registers. A warehouse belongs to exactly one branch.
 - `User`, `Role`, and global `Permission` are joined through tenant-safe `UserRole`, `RolePermission`, and `UserBranch` tables.
-- `AuthSession` stores one hash of a high-entropy opaque refresh credential per rotation, a family identifier, expiry, revocation state, replacement link, and request metadata. Rotation creates a successor row; reuse of a revoked credential revokes its active family.
-- `PasswordResetToken` stores only a SHA-256 token hash, expiry, use timestamp, and request IP. Reset completion consumes the token and revokes the user's sessions atomically.
+- `AuthSession` stores one keyed HMAC-SHA-256 fingerprint of a high-entropy opaque refresh credential per rotation, a family identifier, expiry, revocation state, replacement link, and request metadata. Rotation creates a successor row; reuse of a revoked credential revokes its active family.
+- `PasswordResetToken` stores only a keyed HMAC-SHA-256 token fingerprint, expiry, use timestamp, and request IP. Reset completion consumes the token and revokes the user's sessions atomically.
 - `User.credentialVersion` invalidates access tokens after credential administration; failed-login and temporary-lock fields support account-level abuse controls.
+
+Phase 4 uses this schema without a new migration. Branch, warehouse, and register codes are unique within a company; warehouse and register branch ownership is fixed by composite foreign keys. Organizational records are deactivated instead of deleted, so historical references remain readable. No default warehouse column is introduced until Phase 6 defines the real inventory selection workflow.
 
 ## Catalog and Tile Extension
 

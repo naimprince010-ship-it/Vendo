@@ -15,6 +15,8 @@ The browser never accesses the database. The API owns authorization, conversion,
 
 Identity, organization, catalog, inventory, parties, purchasing, sales, payments, cash, expenses, reporting, audit, and settings are explicit NestJS modules. Cross-module workflows use application services and database transactions rather than direct controller-to-table orchestration.
 
+The Phase 4 organization boundary is split into company, branch/access, warehouse, and register modules. All derive company scope from the authenticated principal. Later operational modules obtain a validated active branch through the reusable active-branch guard rather than reading raw request IDs directly.
+
 ## Transaction Boundaries
 
 Sale completion, goods receipt, returns, stock transfers, stock adjustments, and cash shift close are atomic database transactions. Critical rows are locked or updated conditionally to prevent overselling.

@@ -10,6 +10,15 @@ Phase 3 administrative keys are:
 - `role.create`, `role.view`, `role.update`, `role.assign_permission`
 - `permission.view`
 
+Phase 4 organization keys are:
+
+- `company.view`, `company.manage`
+- `branch.view`, `branch.create`, `branch.edit`, `branch.manage_access`, `branch.access_all`
+- `warehouse.view`, `warehouse.create`, `warehouse.edit`
+- `register.view`, `register.create`, `register.edit`
+
+`branch.access_all` grants implicit access to every active branch in the authenticated company. It is a permission, not a role-name shortcut. Other users require explicit `UserBranch` assignments. `branch.manage_access` controls grant/revoke administration but does not itself grant operational branch access.
+
 The permission catalog is centralized in `apps/api/src/authorization/permission-catalog.ts` and synchronized idempotently by the development seed/bootstrap commands. Controllers declare required keys with `@RequirePermissions(...)`; a global permission guard evaluates the current server-loaded permission set.
 
 Requests also enforce company and branch scope. UI visibility improves usability but never replaces API authorization.

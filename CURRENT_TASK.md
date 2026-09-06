@@ -1,50 +1,49 @@
 # Current Phase
 
-Phase 3 — Authentication, Users, Roles, and Permissions
+Phase 4 — Company, Branch, Warehouse, and Register
 
 # Current Task
 
-Implement and verify authentication, revocable rotating sessions, user administration, configurable roles, granular permissions, server-side authorization, and the minimum real frontend login/logout flow.
+Implement and verify company profile management, branches, user branch access, secure active-branch context, warehouses, registers, and the corresponding real management UI.
 
 # Objective
 
-Deliver the production-grade identity and access-control foundation without starting Phase 4 organization-management workflows.
+Deliver the production-grade organization and location foundation without starting catalog, inventory, purchasing, sales, cash-shift, or later-phase workflows.
 
 # Dependencies
 
-- Verified Phase 2 database foundation and PostgreSQL 17 development service
-- Existing company-scoped User/Role and global Permission relational model
-- AuditLog foundation
-- Environment-provided JWT secrets and explicit development bootstrap values
+- Verified Phase 3 authentication and permission guards
+- Existing composite Company/Branch/Warehouse/Register ownership constraints
+- Existing company-scoped UserBranch relation and AuditLog foundation
+- PostgreSQL 17 development service
 
 # Expected Files To Change
 
-- `apps/api/prisma/**`
-- `apps/api/src/auth/**`, `apps/api/src/users/**`, and shared authorization infrastructure
-- Minimal real auth routes/state under `apps/web/src/**`
-- Environment, API, security, permission, database, and decision documentation
+- Organization/location modules under `apps/api/src/**`
+- Active branch-context authorization infrastructure
+- Phase 4 management UI under `apps/web/src/**`
+- Permission, API, security, architecture, database, and decision documentation
 - Project-control files
 
 # Acceptance Criteria
 
-- Password login issues a short-lived access token and a rotating, revocable refresh credential whose raw value is never persisted.
-- Passwords use Argon2id; inactive users and revoked sessions are rejected.
-- Protected APIs derive company scope and current permissions from authenticated server-side state.
-- User, role, permission, session, password-change/reset, and administrative role APIs validate requests and never serialize credential fields.
-- Login/reset abuse controls and security-event audit records are active.
-- The web login, protected shell, session refresh, and logout use the real API.
+- Company profile reads/updates derive company scope only from the authenticated principal.
+- Branch, warehouse, and register management is tenant- and branch-safe, paginated, permission-protected, audited, and deactivation-based.
+- User branch grants verify both user and branch company ownership and cannot be self-expanded without authorization.
+- Active branch context accepts only an active company branch available through explicit assignment or `branch.access_all` permission.
+- Phase 4 frontend uses the real APIs and exposes actions only when useful to the authenticated permission set.
 
 # Verification Required
 
-- Additive auth migration application, status, catalog checks, and clean replay/drift
-- Auth/RBAC unit and live API integration tests covering the required security workflows
-- Swagger bearer security metadata
-- Rate limiting and startup environment validation
+- Company/location API integration tests, tenant/branch isolation tests, permission tests, audit checks, and active-context tests
+- Existing migration status and drift verification; new migration only if schema changes are genuinely required
+- Idempotent permission seed/bootstrap checks and Swagger metadata
+- Live browser workflows for company, branch access, warehouse, and register management
 - Repository lint, typecheck, tests, production builds, formatting, Compose, secret scan, and Git integrity
 
 # Status
 
-COMPLETE — Phase 3 gate passed on 2026-09-05. Authentication, session lifecycle, company-scoped user/RBAC APIs, minimal real web authentication, migration, tests, builds, Swagger metadata, and live browser workflows are verified.
+COMPLETE — Phase 4 gate passed on 2026-09-06. Organization/location APIs and UI, active-branch authorization, tenant isolation, audit behavior, database status, tests, production builds, Swagger, and live browser workflows are verified.
 
 # Blockers
 
@@ -52,4 +51,4 @@ None.
 
 # Next Approved Task
 
-Phase 4 — Company, branch, warehouse, and register. Begin by reading the governance and organization-domain documents, then implement company profile/settings, branches and user branch access before warehouses and registers.
+Phase 5 — Catalog, Units, Tile Domain, and Pricing. Begin by rereading governance and domain documentation, then implement categories/brands/manufacturers and the reusable product/unit foundation before tile profiles, controlled conversions, barcodes, and unit-specific pricing.

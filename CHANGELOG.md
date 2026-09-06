@@ -41,3 +41,15 @@ All meaningful project changes are recorded here. This project follows a phase-o
 - Verified two applied migrations with no drift, idempotent seed/bootstrap behavior, Swagger bearer/cookie metadata across 19 paths, and live browser login, reload restoration, logout, and anonymous redirect.
 - Fixed CommonJS dependency interop, React effect/session restoration lint behavior, and the Nest production output layout so consecutive builds always emit the current runnable `dist/main.js` (`BUG-005`, `BUG-006`, `BUG-007`).
 - Repository lint, typecheck, tests, Prisma checks, NestJS/Next.js production builds, formatting, Compose validation, secret scan, and Git integrity pass with no open Critical/High Phase 3 blocker.
+
+### Phase 4 — Company, Branch, Warehouse, and Register
+
+- Added permission-protected, company-scoped APIs for company profile management; branch creation, update, status, and pagination; user branch-access grants/revocations; and warehouse/register lifecycle management.
+- Added an explicit `x-branch-id` active-context guard that accepts only an active branch owned by the authenticated company and available through explicit assignment or the `branch.access_all` permission.
+- Preserved Phase 2 composite tenant/location foreign keys and deactivation-based history; no schema change or Phase 4 migration was required, and default-warehouse selection remains intentionally deferred to Phase 6.
+- Extended the centralized permission catalog from 35 to 48 keys without role-name authorization; the Owner bootstrap continues to receive the synchronized catalog through its existing policy.
+- Added audit records for company updates, branch/warehouse/register creation and changes, and user branch-access grants/revocations, including actor and relevant before/after state without secrets.
+- Replaced the protected placeholder with a real permission-aware organization console using TanStack Query, React Hook Form, and Zod against the production APIs.
+- Added nine Phase 4 integration cases within a 32-test API regression suite covering authorized and unauthorized operations, tenant/branch isolation, duplicate codes, active context, deactivation, and audit behavior.
+- Verified live production browser workflows for company, branches, user access, active branch context, warehouses, and registers; synthetic verification data and local-only credentials were removed afterward.
+- Prisma checks and drift comparison, idempotent 48-permission seed, repository lint/typecheck/tests/builds, Swagger, formatting, Compose, secret scan, Git integrity, and destination free-space checks pass with no open Critical/High Phase 4 blocker.

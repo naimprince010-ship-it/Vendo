@@ -95,3 +95,7 @@
 - **Actual:** Observed behavior
 - **Status:** Open | In Progress | Resolved | Deferred
 - **Related task:** Phase/task reference
+
+## Phase 4 Verification Note — 2026-09-06
+
+No new product defect remains open from Phase 4. An initial integration-fixture assertion expected HTTP `201` from the existing login endpoint, which correctly returns `200`; the test expectation was corrected before the complete 32-test regression and production gate passed. Existing `BUG-001` through `BUG-007` remain resolved.

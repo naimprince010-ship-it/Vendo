@@ -18,3 +18,11 @@ The NestJS REST API is versioned at `/api/v1`; Swagger/OpenAPI is exposed in non
 - Permission-protected administration: `/users`, `/roles`, and `/permissions` endpoints.
 - Access tokens use the OpenAPI bearer scheme. Refresh credentials use an HttpOnly cookie and are never included in response JSON.
 - Client-supplied company IDs are not accepted by protected administration endpoints; company scope comes from the authenticated principal.
+
+## Phase 4 Organization API
+
+- `GET/PATCH /company` reads and updates only the authenticated company profile.
+- `/branches` provides paginated create/read/update/status operations. `GET /branches/active-context` requires a validated `x-branch-id` header.
+- `/users/:userId/branches` lists, grants, and revokes explicit company-owned branch assignments.
+- `/warehouses` and `/registers` provide paginated create/read/update/status operations under immutable company/branch ownership.
+- All mutations are permission-protected and audited. Deactivation replaces destructive deletion; inactive parents cannot be selected for active operations or receive new active locations.

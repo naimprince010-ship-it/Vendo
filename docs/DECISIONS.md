@@ -103,7 +103,7 @@
 
 - **Date:** 2026-09-04
 - **Context:** Access tokens must be short-lived while browser sessions remain revocable and refresh-token reuse is detectable.
-- **Decision:** Use signed 15-minute JWT access tokens plus 256-bit opaque refresh credentials stored in HttpOnly cookies. Persist only SHA-256 credential hashes in versioned session-family rows; rotation revokes the predecessor and creates a successor atomically.
+- **Decision:** Use signed 15-minute JWT access tokens plus 256-bit opaque refresh credentials stored in HttpOnly cookies. Persist only keyed HMAC-SHA-256 credential fingerprints in versioned session-family rows; rotation revokes the predecessor and creates a successor atomically.
 - **Alternatives:** Long-lived access JWTs; stateless refresh JWTs; overwrite one refresh hash per user.
 - **Rationale:** Server-side session rows provide immediate revocation and family-wide response to replay without storing bearer secrets.
 - **Consequences:** Protected requests verify current user and session state, refresh requires a database transaction, and deployments must use HTTPS for secure cookies.
@@ -116,3 +116,21 @@
 - **Alternatives:** Embed permissions in JWTs; hardcode role names; repeat authorization queries in controllers.
 - **Rationale:** Centralized guards enforce current authorization and company scope consistently.
 - **Consequences:** Protected requests incur a database lookup; caching may be added later only with explicit invalidation guarantees.
+
+## ADR-014 — Permission-Based Active Branch Context
+
+- **Date:** 2026-09-06
+- **Context:** Later POS and inventory operations need an explicit active branch without trusting an arbitrary client-supplied branch ID or hardcoding Owner/Admin role names.
+- **Decision:** The client selects a branch with `x-branch-id`; a reusable API guard accepts it only when the branch belongs to the authenticated company, is active, and is either explicitly assigned through `UserBranch` or available through the `branch.access_all` permission.
+- **Alternatives:** Embed one permanent branch in the access token; trust request bodies; infer global access from role names.
+- **Rationale:** Current database state remains authoritative, permission changes take effect immediately, and configurable roles can safely represent company-wide operators.
+- **Consequences:** Operational endpoints that require branch context must use the active-branch guard; inactive or foreign branches fail closed. Users with `branch.access_all` do not require explicit assignment rows.
+
+## ADR-015 — Reuse the Phase 2 Organization Schema
+
+- **Date:** 2026-09-06
+- **Context:** Phase 2 already created Company, Branch, UserBranch, Warehouse, and Register with the required composite ownership and operational fields.
+- **Decision:** Phase 4 adds services, authorization, audit behavior, and UI without a schema migration. Branch, warehouse, and register codes remain unique per company. A default warehouse is deferred until Phase 6 inventory workflows establish the exact selection invariant.
+- **Alternatives:** Add speculative address/terminal/default flags now; make codes branch-scoped; create a migration solely for Phase 4.
+- **Rationale:** The existing model satisfies current workflows and avoids premature columns or conflicting default-warehouse semantics.
+- **Consequences:** Warehouse/register branch ownership remains immutable after creation. Phase 6 may add a constrained default warehouse only if its real transaction design requires one.

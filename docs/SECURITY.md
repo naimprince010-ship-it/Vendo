@@ -22,3 +22,7 @@ Reset requests always return the same accepted response. A short-lived, single-u
 ## Browser Session Boundary
 
 The browser keeps access tokens in memory and sends them as bearer credentials. It never writes access or refresh tokens to local storage. Page reload calls the refresh endpoint with credentials included, rotates the HttpOnly cookie, and restores public user state. Production cookies require HTTPS.
+
+## Company and Active Branch Boundary
+
+Company identity is always loaded from the authenticated user/session and is never accepted from organization-management request bodies. The active branch header is only a selection request: the API verifies company ownership, active status, and either an explicit current `UserBranch` assignment or the current `branch.access_all` permission before exposing branch context. Foreign, inactive, and unassigned branches fail closed.

@@ -35,12 +35,12 @@ Checkboxes are marked complete only after implementation and verification. Phase
 
 ## Phase 4 — Company, Branch, Warehouse, and Register
 
-- [ ] Company profile and settings
-- [ ] Branches and user branch access
-- [ ] Warehouses
-- [ ] POS registers and cash drawers
-- [ ] Location-context authorization tests
-- [ ] Complete Phase 4 gate
+- [x] Company profile and settings
+- [x] Branches and user branch access
+- [x] Warehouses
+- [x] POS register foundation (cash shifts and cash movements remain Phase 11)
+- [x] Location-context authorization tests
+- [x] Complete Phase 4 gate
 
 ## Phase 5 — Catalog, Units, Tile Domain, and Pricing
 
@@ -168,4 +168,19 @@ Checkboxes are marked complete only after implementation and verification. Phase
 - Swagger/OpenAPI authentication metadata: PASS (19 paths; bearer and refresh-cookie schemes)
 - Live browser login, protected route, refresh-on-reload, logout, and anonymous redirect: PASS
 - Prisma format/validation/generation, Prettier, Compose configuration, secret scan, Git diff check, and repository integrity: PASS
+- Blocking Critical/High bugs: none open
+
+### Phase 4 — PASS (2026-09-06)
+
+- Company profile, branch, user branch-access, warehouse, and POS register APIs: PASS
+- Permission-based active branch context: PASS (company ownership, user access, and active-state enforcement verified)
+- Tenant and branch isolation, permission enforcement, deactivation behavior, and audit creation: PASS
+- Phase 4 API integration and regression tests: PASS (6 suites, 32 tests)
+- Central permission seed: PASS and idempotent (48 permissions after two executions)
+- Prisma format, schema validation, client generation, migration status, and drift comparison: PASS (two migrations current; no difference detected; no Phase 4 migration required)
+- Repository lint and strict TypeScript checks: PASS (5/5 packages, uncached and sequential)
+- NestJS and Next.js production builds: PASS (5/5 packages; `/`, `/app`, and `/login` generated)
+- Swagger/OpenAPI Phase 4 routes and bearer/cookie security metadata: PASS (32 paths)
+- Live browser company update, branch creation and active-context selection, branch access, warehouse creation, register creation, and register deactivation: PASS
+- Prettier, Compose configuration, secret scan, API artifact, Git diff check, repository integrity, and destination free-space checks: PASS
 - Blocking Critical/High bugs: none open
