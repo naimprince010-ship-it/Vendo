@@ -111,3 +111,19 @@ No new product defect remains open from Phase 4. An initial integration-fixture 
 - **Actual:** Workflows complete successfully, but pg 8.23 logs a future-compatibility warning.
 - **Status:** Deferred — no correctness failure exists on the pinned pg 8 runtime; re-evaluate with a supported Prisma adapter upgrade before pg 9 adoption.
 - **Related task:** Phase 5 verification / production dependency maintenance
+
+## BUG-009 — Active batch filter rejected boolean query strings
+
+- **ID:** BUG-009
+- **Severity:** Medium
+- **Area:** Phase 6 inventory batch API / browser workflow
+- **Description:** The initial batch-list DTO validated `isActive` as a boolean without transforming HTTP query-string values, so `?isActive=true` returned validation failure and the stock-operation batch selector remained empty.
+- **Reproduction:** Open the production inventory operation form, select a batch-tracked product, and observe the active-batch request before the fix.
+- **Expected:** Active batches for the selected company/product appear for allocation.
+- **Actual:** The filter was rejected because the literal string `true` did not satisfy `@IsBoolean`.
+- **Status:** Resolved — added explicit query-string boolean transformation, rebuilt/restarted the API, and completed the opening-stock browser workflow with the selected batch/shade.
+- **Related task:** Phase 6 — optional batch/lot/shade allocation
+
+## Phase 6 Verification Note — 2026-09-06
+
+No Critical/High inventory blocker remains. `BUG-009` was found and resolved during the live browser gate. Deferred `BUG-008` remains a low-severity future pg@9 compatibility warning and did not affect correctness or verification on pinned pg 8.23.

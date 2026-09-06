@@ -4,6 +4,8 @@ Tiles are reusable core Products with an optional `TileProfile`. The profile own
 
 Batch tracking is optional. When enabled, allocation identifies batch/lot and shade. Receipt and return movements preserve those identities.
 
+Phase 6 enforces this option in every stock mutation: a batch-tracked tile requires an active batch belonging to the same company and product; other products reject batch IDs. Batch/lot/shade masters do not store stock counters. Their available boxes, pieces, and area are derived from the batch-keyed base balance and active product conversions.
+
 ## Invariants
 
 - Dimensions and coverage are positive decimal values.

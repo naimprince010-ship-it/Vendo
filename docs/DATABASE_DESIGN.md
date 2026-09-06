@@ -42,6 +42,10 @@ Phase 4 uses this schema without a new migration. Branch, warehouse, and registe
 
 There are no independent box, piece, square-foot, or square-metre stock columns. A PostgreSQL `NULLS NOT DISTINCT` unique index prevents duplicate unbatched balance rows.
 
+Phase 6 adds `InventoryOperation`, `PhysicalCount`, and `PhysicalCountItem`. `InventoryOperation` owns a company-unique idempotency key, payload hash, operation type, actor, and stored result. A count belongs to one company/branch/warehouse, follows `DRAFT → IN_REVIEW → POSTED`, and stores line snapshots of base quantity and balance version. Count items retain the entered transaction unit, quantity, and factor while `countedQuantity` is the resolved authoritative base quantity.
+
+Nullable batch identities for batches, balances, and count positions use PostgreSQL `NULLS NOT DISTINCT`. Composite foreign keys prevent cross-company product/unit/batch and cross-branch warehouse relationships. Check constraints enforce positive conversion/transaction quantities, non-negative counted quantities, valid snapshot versions, consistent count state timestamps/actors, and SHA-256 operation hashes.
+
 ## Cash, Expenses, Settings, and Audit
 
 - `CashShift` and `CashMovement` provide the monetary drawer foundation; one open shift per register is enforced by a partial unique index.
@@ -62,8 +66,12 @@ Composite indexes begin with `companyId`, followed by branch/warehouse or search
 
 Later application services must use database transactions for goods receipt, sale completion, returns, transfers, adjustments, payment allocation, and shift close. Inventory balance rows use a version column for optimistic concurrency and may additionally be locked with PostgreSQL row locks. A movement and its balance mutation must commit together.
 
+Implemented Phase 6 inventory workflows use transaction-scoped PostgreSQL advisory locks keyed by company/warehouse/product/batch. Locks are sorted for multi-line and transfer operations; a version-conditional balance update provides a second concurrency check. Negative-stock policy is read inside the same transaction. Transfers use one transaction and one correlation UUID for their paired movements. No default warehouse is stored; callers select an explicitly authorized active warehouse.
+
 ## Deferred Schema
 
 Return/refund/exchange entities (Phases 8 and 10) and any double-entry journal (future accounting scope) remain deliberately deferred so their lifecycle rules are designed with the implementing workflow rather than guessed early.
 
 Phase 5 migration `20260906043323_phase5_catalog_foundation` normalizes company-owned manufacturers, adds a separate sanitary profile, permits unit-bound barcodes, and enforces one active conversion per company/product/unit. Existing manufacturer text is migrated before its legacy column is removed. Commercial factors remain `numeric(24,10)`; money remains `numeric(19,4)`.
+
+Phase 6 migrations `20260906060435_phase6_inventory_engine` and `20260906062000_phase6_inventory_constraints` add idempotent posting and physical counts, then restore/extend PostgreSQL-only null-safe indexes and checks after generated-SQL inspection. A clean five-migration replay has no drift.

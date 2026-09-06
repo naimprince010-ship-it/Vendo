@@ -7,6 +7,7 @@ import { CompaniesModule } from './companies/companies.module';
 import { validateEnvironment } from './config/environment';
 import { DatabaseModule } from './database/database.module';
 import { HealthModule } from './health/health.module';
+import { InventoryModule } from './inventory/inventory.module';
 import { RegistersModule } from './registers/registers.module';
 import { RolesModule } from './roles/roles.module';
 import { UsersModule } from './users/users.module';
@@ -22,6 +23,7 @@ import { WarehousesModule } from './warehouses/warehouses.module';
     CompaniesModule,
     BranchesModule,
     CatalogModule,
+    InventoryModule,
     WarehousesModule,
     RegistersModule,
     HealthModule,

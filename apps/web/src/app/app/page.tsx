@@ -5,11 +5,12 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '../../auth/auth-context';
 import { OrganizationConsole } from './organization-console';
 import { CatalogConsole } from './catalog-console';
+import { InventoryConsole } from './inventory-console';
 
 export default function ProtectedAppPage() {
   const router = useRouter();
   const { user, status, logout } = useAuth();
-  const [area, setArea] = useState<'organization' | 'catalog'>('catalog');
+  const [area, setArea] = useState<'organization' | 'catalog' | 'inventory'>('inventory');
 
   useEffect(() => {
     if (status === 'anonymous') router.replace('/login');
@@ -43,7 +44,7 @@ export default function ProtectedAppPage() {
           </button>
         </header>
         <nav className="mb-5 flex gap-2" aria-label="Application sections">
-          {(['catalog', 'organization'] as const).map((item) => (
+          {(['inventory', 'catalog', 'organization'] as const).map((item) => (
             <button
               key={item}
               type="button"
@@ -54,7 +55,13 @@ export default function ProtectedAppPage() {
             </button>
           ))}
         </nav>
-        {area === 'catalog' ? <CatalogConsole /> : <OrganizationConsole />}
+        {area === 'inventory' ? (
+          <InventoryConsole />
+        ) : area === 'catalog' ? (
+          <CatalogConsole />
+        ) : (
+          <OrganizationConsole />
+        )}
       </div>
     </main>
   );

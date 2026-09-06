@@ -143,3 +143,21 @@
 - **Alternatives:** Derive all conversions from dimensions; duplicate coverage counters; store separate box/piece/area stock.
 - **Rationale:** Explicit factors support real package specifications and independent unit pricing without corrupting physical stock.
 - **Consequences:** One active conversion per product/unit is database-enforced, conversions traverse directly through base, and later transactions snapshot the applied factor.
+
+## ADR-017 — Serialized Inventory Positions and Idempotent Posting
+
+- **Date:** 2026-09-06
+- **Context:** Opening stock, deductions, counts, and transfers must update a movement journal and balance projection without duplicate posts, partial commits, or concurrent overselling.
+- **Decision:** Every mutating inventory request uses a company-scoped idempotency key and one database transaction. PostgreSQL transaction-scoped advisory locks serialize each `(company, warehouse, product, optional batch)` position; balance versions provide compare-and-swap protection. Multi-position and transfer locks are acquired in deterministic order. Physical counts snapshot both quantity and version and reject stale posting.
+- **Alternatives:** Application mutexes; balance reads followed by unguarded writes; serializable isolation for every request; independent tile-unit counters.
+- **Rationale:** Database locks work across API processes, retain high concurrency between unrelated positions, and preserve the immutable ledger/base-quantity decisions.
+- **Consequences:** A movement and balance change commit or roll back together; repeat keys return the stored result; reuse with another payload fails. Transfers create correlated OUT/IN movements. Count variance posts a reconciliation movement rather than rewriting history.
+
+## ADR-018 — Explicit Warehouse Selection in Phase 6
+
+- **Date:** 2026-09-06
+- **Context:** Phase 4 deferred default-warehouse semantics until real inventory workflows existed.
+- **Decision:** Phase 6 requires an explicit active, company-owned warehouse for every mutation and query filter. No default warehouse column is introduced yet.
+- **Alternatives:** Infer the first active warehouse; add a branch default immediately.
+- **Rationale:** Silent inference can put stock in the wrong location. Explicit selection is safe and sufficient until POS and receiving define their defaults.
+- **Consequences:** A constrained operational default may be added in Phase 8 or 9 if those workflows demonstrate need; it must never bypass branch access validation.

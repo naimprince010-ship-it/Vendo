@@ -84,6 +84,22 @@ enum InventoryMovementType {
   COUNT_RECONCILIATION
 }
 
+enum InventoryOperationType {
+  OPENING
+  ADJUSTMENT
+  DAMAGE
+  LOSS
+  TRANSFER
+  COUNT_RECONCILIATION
+}
+
+enum PhysicalCountStatus {
+  DRAFT
+  IN_REVIEW
+  POSTED
+  CANCELLED
+}
+
 enum CashShiftStatus {
   OPEN
   CLOSED
@@ -138,6 +154,8 @@ model Company {
   auditLogs           AuditLog[]
   authSessions        AuthSession[]
   passwordResetTokens PasswordResetToken[]
+  inventoryOperations InventoryOperation[]
+  physicalCounts      PhysicalCount[]
 
   @@unique([id, code])
 }
@@ -168,6 +186,7 @@ model Branch {
   inventoryMovements InventoryMovement[]
   settings           Setting[]
   auditLogs          AuditLog[]
+  physicalCounts     PhysicalCount[]
 
   @@unique([companyId, code])
   @@unique([id, companyId])
@@ -190,6 +209,7 @@ model Warehouse {
   sales              Sale[]
   inventoryMovements InventoryMovement[]
   inventoryBalances  InventoryBalance[]
+  physicalCounts     PhysicalCount[]
 
   @@unique([companyId, code])
   @@unique([id, companyId])
@@ -249,6 +269,10 @@ model User {
   auditLogs           AuditLog[]           @relation("AuditActor")
   authSessions        AuthSession[]
   passwordResetTokens PasswordResetToken[]
+  inventoryOperations InventoryOperation[] @relation("InventoryOperationCreatedBy")
+  physicalCounts      PhysicalCount[]      @relation("PhysicalCountCreatedBy")
+  reviewedCounts      PhysicalCount[]      @relation("PhysicalCountReviewedBy")
+  postedCounts        PhysicalCount[]      @relation("PhysicalCountPostedBy")
 
   @@unique([companyId, email])
   @@unique([id, companyId])
@@ -377,6 +401,7 @@ model Unit {
   purchaseInvoiceItems PurchaseInvoiceItem[]
   saleItems            SaleItem[]
   inventoryMovements   InventoryMovement[]
+  physicalCountItems   PhysicalCountItem[]
 
   @@unique([companyId, code])
   @@unique([id, companyId])
@@ -469,6 +494,7 @@ model Product {
   saleItems            SaleItem[]
   inventoryMovements   InventoryMovement[]
   inventoryBalances    InventoryBalance[]
+  physicalCountItems   PhysicalCountItem[]
 
   @@unique([companyId, sku])
   @@unique([id, companyId])
@@ -585,6 +611,7 @@ model ProductBatch {
   saleItems          SaleItem[]
   inventoryMovements InventoryMovement[]
   inventoryBalances  InventoryBalance[]
+  physicalCountItems PhysicalCountItem[]
 
   @@unique([id, companyId])
   @@unique([id, productId, companyId])
@@ -1005,6 +1032,73 @@ model InventoryBalance {
   @@unique([companyId, warehouseId, productId, batchId])
   @@index([companyId, branchId, productId])
   @@index([companyId, productId, baseQuantity])
+}
+
+model InventoryOperation {
+  id             String                 @id @default(uuid()) @db.Uuid
+  companyId      String                 @db.Uuid
+  createdById    String                 @db.Uuid
+  type           InventoryOperationType
+  idempotencyKey String                 @db.VarChar(120)
+  requestHash    String                 @db.Char(64)
+  result         Json?
+  createdAt      DateTime               @default(now()) @db.Timestamptz(3)
+  company        Company                @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  createdBy      User                   @relation("InventoryOperationCreatedBy", fields: [createdById, companyId], references: [id, companyId], onDelete: Restrict)
+
+  @@unique([companyId, idempotencyKey])
+  @@unique([id, companyId])
+  @@index([companyId, type, createdAt])
+}
+
+model PhysicalCount {
+  id           String              @id @default(uuid()) @db.Uuid
+  companyId    String              @db.Uuid
+  branchId     String              @db.Uuid
+  warehouseId  String              @db.Uuid
+  countNumber  String              @db.VarChar(60)
+  status       PhysicalCountStatus @default(DRAFT)
+  notes        String?
+  createdById  String              @db.Uuid
+  reviewedById String?             @db.Uuid
+  postedById   String?             @db.Uuid
+  reviewedAt   DateTime?           @db.Timestamptz(3)
+  postedAt     DateTime?           @db.Timestamptz(3)
+  createdAt    DateTime            @default(now()) @db.Timestamptz(3)
+  updatedAt    DateTime            @updatedAt @db.Timestamptz(3)
+  company      Company             @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  branch       Branch              @relation(fields: [branchId, companyId], references: [id, companyId], onDelete: Restrict)
+  warehouse    Warehouse           @relation(fields: [warehouseId, branchId, companyId], references: [id, branchId, companyId], onDelete: Restrict)
+  createdBy    User                @relation("PhysicalCountCreatedBy", fields: [createdById, companyId], references: [id, companyId], onDelete: Restrict)
+  reviewedBy   User?               @relation("PhysicalCountReviewedBy", fields: [reviewedById, companyId], references: [id, companyId], onDelete: Restrict)
+  postedBy     User?               @relation("PhysicalCountPostedBy", fields: [postedById, companyId], references: [id, companyId], onDelete: Restrict)
+  items        PhysicalCountItem[]
+
+  @@unique([companyId, countNumber])
+  @@unique([id, companyId])
+  @@index([companyId, branchId, warehouseId, status, createdAt])
+}
+
+model PhysicalCountItem {
+  id                  String        @id @default(uuid()) @db.Uuid
+  companyId           String        @db.Uuid
+  countId             String        @db.Uuid
+  productId           String        @db.Uuid
+  batchId             String?       @db.Uuid
+  countedQuantity     Decimal       @db.Decimal(20, 6)
+  snapshotQuantity    Decimal       @db.Decimal(20, 6)
+  snapshotVersion     Int
+  conversionFactor    Decimal       @db.Decimal(24, 10)
+  transactionQuantity Decimal       @db.Decimal(20, 6)
+  unitId              String        @db.Uuid
+  createdAt           DateTime      @default(now()) @db.Timestamptz(3)
+  updatedAt           DateTime      @updatedAt @db.Timestamptz(3)
+  count               PhysicalCount @relation(fields: [countId, companyId], references: [id, companyId], onDelete: Cascade)
+  product             Product       @relation(fields: [productId, companyId], references: [id, companyId], onDelete: Restrict)
+  batch               ProductBatch? @relation(fields: [batchId, productId, companyId], references: [id, productId, companyId], onDelete: Restrict)
+  unit                Unit          @relation(fields: [unitId, companyId], references: [id, companyId], onDelete: Restrict)
+
+  @@index([companyId, productId, batchId])
 }
 
 model CashShift {

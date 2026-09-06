@@ -24,3 +24,15 @@ The permission catalog is centralized in `apps/api/src/authorization/permission-
 Requests also enforce company and branch scope. UI visibility improves usability but never replaces API authorization.
 
 Phase 5 adds `category.view/create/edit`, `brand.view/create/edit`, `manufacturer.view/create/edit`, `unit.view/manage`, `product.view`, and `pricing.view/manage`. Existing `product.create`, `product.edit`, and `product.view_cost` remain in force.
+
+Phase 6 adds:
+
+- `inventory.opening_stock`
+- `inventory.damage`
+- `inventory.loss`
+- `inventory.count`
+- `inventory.reconcile`
+- `inventory.view_history`
+- `inventory.batch_manage`
+
+Existing `inventory.view`, `inventory.adjust`, and `inventory.transfer` remain. Every inventory controller also requires the Phase 4 active-branch guard; cross-branch transfers separately validate destination-branch access.

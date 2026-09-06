@@ -1,55 +1,53 @@
 # Current Phase
 
-Phase 5 — Catalog, Units, Tile Domain, and Pricing
+Phase 6 — Inventory and Batch/Lot/Shade
 
 # Current Task
 
-Implement and verify categories, brands, manufacturers, units, reusable products, tile/sanitary profiles, product-specific conversions, barcodes, unit pricing, search, and the corresponding real management UI.
+Complete and verify the transactional inventory engine, optional batches, physical counts, transfers, stock queries, permissions, audit, and management UI.
 
 # Objective
 
-Deliver the production-grade catalog and tile/sanitary configuration foundation without creating inventory movements, purchases, sales, parties, cash shifts, reports, or later-phase workflows.
+Deliver auditable, company- and location-safe inventory operations while preserving one authoritative product base quantity and preventing concurrent overselling. Do not start parties, purchasing, sales/POS, payments, cash, or reports.
 
 # Dependencies
 
-- Verified Phase 4 company and location authorization foundation
-- Existing Phase 2 catalog, Decimal, and composite tenant models
-- Existing Phase 3 permission and audit infrastructure
+- Verified Phase 5 catalog, product conversion, and pricing foundation
+- Phase 2 immutable inventory movement and balance models
+- Phase 4 active-branch authorization and warehouse ownership
 - PostgreSQL 17 development service
 
 # Expected Files To Change
 
-- Catalog/domain modules under `apps/api/src/**`
-- Additive Prisma migration only for genuinely required Phase 5 integrity
-- Phase 5 catalog management UI under `apps/web/src/**`
-- Catalog, conversion, API, permission, architecture, database, and decision documentation
-- Project-control files
+- Inventory domain/API module under `apps/api/src/inventory/**`
+- Additive Prisma migrations for idempotent operations and physical counts
+- Central permission catalog and API module wiring
+- Real Phase 6 inventory UI under `apps/web/src/**`
+- Inventory/database/permission/decision documentation and project-control files
 
 # Acceptance Criteria
 
-- Catalog master data and products are tenant-scoped, permission-protected, paginated, audited, and deactivation-based.
-- Product core remains industry-neutral while TILE and SANITARY details use separate one-to-one profiles.
-- Decimal conversion logic preserves one authoritative base inventory unit and deterministic product/unit paths.
-- Barcodes and prices resolve without ambiguity and enforce product/company/unit ownership.
-- Product search is indexed, server-side, paginated, and reusable by later POS work.
-- Phase 5 frontend uses real APIs and adapts product configuration to product type without fake stock.
+- Every stock mutation atomically writes immutable movement history and updates one base-unit balance projection.
+- Decimal product conversions are snapshotted; batch-required products cannot bypass batch allocation.
+- Tenant, branch, warehouse, product, unit, and batch ownership are enforced by API and database relationships.
+- Idempotency, negative-stock policy, deterministic locking, and stale physical-count protection prevent duplicate or unsafe stock changes.
+- Opening, adjustment, damage, loss, count/reconciliation, transfer, balance, low-stock, batch, and history workflows use real APIs and UI.
 
 # Verification Required
 
-- Catalog/conversion/pricing API integration tests, Decimal-domain tests, tenant isolation, permission, and audit checks
-- Additive migration inspection, application, status, catalog checks, and clean replay/drift
-- Idempotent permission seed/bootstrap checks and Swagger metadata
-- Live browser workflows for master data, tile and sanitary products, conversions, barcodes, pricing, and search
-- Repository lint, typecheck, tests, production builds, formatting, Compose, secret scan, and Git integrity
+- Inventory integration tests including concurrency, rollback, idempotency, tenant/branch isolation, negative policy, batches, counts, and transfers
+- Migration inspection/application/status and clean replay/drift verification
+- Permission seed idempotency, Swagger, and live browser workflows
+- Prisma checks, repository lint/typecheck/tests/builds, formatting, Compose, secret scan, and Git integrity
 
 # Status
 
-COMPLETE — Phase 5 gate passed on 2026-09-06. Catalog APIs/UI, tile and sanitary profiles, Decimal conversions, unit barcodes/prices, search, migration, isolation, audit, tests, builds, Swagger, and live browser workflows are verified.
+COMPLETE — Phase 6 gate passed on 2026-09-06. Transactional inventory, optional batch/lot/shade, count reconciliation, transfers, queries, permissions, audit, migrations, concurrency tests, production builds, Swagger, and live browser workflows are verified.
 
 # Blockers
 
-None.
+None. `BUG-008` remains a low-severity deferred pg@9 compatibility warning on the pinned pg 8 runtime and does not block Phase 6.
 
 # Next Approved Task
 
-Phase 6 — Inventory and Batch/Lot/Shade. Begin by rereading governance and inventory/conversion documentation, then implement transactional opening stock and movement/balance invariants before adjustments, batches, counts, and transfers.
+Phase 7 — Customers and Suppliers. Begin by rereading governance, database, permission, and relevant financial-foundation documentation; do not start purchasing or sales workflows.

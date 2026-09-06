@@ -54,13 +54,13 @@ Checkboxes are marked complete only after implementation and verification. Phase
 
 ## Phase 6 — Inventory and Batch/Lot/Shade
 
-- [ ] Auditable inventory movement ledger
-- [ ] Transactional inventory balances and stock policy
-- [ ] Optional product batch, lot, and shade tracking
-- [ ] Adjustments, damage, loss, counts, and reconciliation
-- [ ] Warehouse and branch transfers
-- [ ] Concurrency and inventory invariant tests
-- [ ] Complete Phase 6 gate
+- [x] Auditable inventory movement ledger
+- [x] Transactional inventory balances and stock policy
+- [x] Optional product batch, lot, and shade tracking
+- [x] Adjustments, damage, loss, counts, and reconciliation
+- [x] Warehouse and branch transfers
+- [x] Concurrency and inventory invariant tests
+- [x] Complete Phase 6 gate
 
 ## Phase 7 — Customers and Suppliers
 
@@ -202,3 +202,20 @@ Checkboxes are marked complete only after implementation and verification. Phase
 - Live browser master-data, tile, conversion, barcode, pricing, search, and sanitary workflows: PASS
 - Prettier, Compose, API artifact, secret scan, Git diff, and repository integrity: PASS
 - Blocking Critical/High bugs: none open
+
+### Phase 6 — PASS (2026-09-06)
+
+- Opening, adjustment, damage, loss, transfer, batch/shade, balance, low-stock, count, and immutable-history APIs/UI: PASS
+- One authoritative Decimal base quantity plus snapshotted transaction quantity/unit/factor and derived equivalents: PASS
+- Atomic movement/balance/audit transactions, company negative-stock policy, idempotent retry, advisory position locks, version CAS, and deterministic transfer locks: PASS
+- Optional company/product batch enforcement and PostgreSQL null-safe batch/balance/count identities: PASS
+- Physical count draft, edit API, review, reopen API, stale-snapshot rejection, variance reconciliation, and posted immutability foundation: PASS
+- Migrations `20260906060435_phase6_inventory_engine` and `20260906062000_phase6_inventory_constraints`: PASS (five migrations current; clean replay and live database report no difference)
+- PostgreSQL catalog verification: PASS (50 public tables; 3 Phase 6 checks; 3 required null-safe indexes; 2 immutable movement triggers)
+- Central permission seed: PASS and idempotent (69 permissions after two executions)
+- API integration/regression tests: PASS (8 suites, 48 tests; concurrent deduction permits one commit and rejects one oversell)
+- Repository uncached sequential lint, strict TypeScript, tests, and production builds: PASS (20/20 tasks across 5 packages)
+- Swagger/OpenAPI: PASS (71 paths; 16 inventory paths; bearer and refresh-cookie schemes; critical idempotency headers declared)
+- Live production browser batch/shade, opening, derived quantity, adjustment, count reconciliation, balance, and history workflows: PASS; console clean
+- Prettier, Compose, Prisma format/validation/generation/status, drift, secret scan, Git diff/integrity, and 68.41 GiB destination free space: PASS
+- Blocking Critical/High bugs: none open; browser-discovered `BUG-009` resolved

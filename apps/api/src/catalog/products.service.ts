@@ -84,6 +84,7 @@ export class ProductsService {
           model: true,
           isActive: true,
           trackInventory: true,
+          batchTracking: true,
           category: { select: { id: true, name: true } },
           brand: { select: { id: true, name: true } },
           manufacturer: { select: { id: true, name: true } },

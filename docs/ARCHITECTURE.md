@@ -26,3 +26,5 @@ Sale completion, goods receipt, returns, stock transfers, stock adjustments, and
 Transport/UI → application services → domain rules → persistence/infrastructure. Tile-specific services extend catalog and inventory behavior; reusable core modules do not depend on tile UI concepts.
 
 Phase 5 adds a catalog module for company-scoped master data, products, separate tile/sanitary profiles, Decimal conversions, unit barcodes, independent prices, and paginated search. It does not mutate or display inventory.
+
+Phase 6 adds the inventory application boundary. Controllers require a validated active branch and explicit warehouse; services resolve Decimal product conversions, optional batch identity, negative-stock policy, idempotency, deterministic database locks, immutable movements, balance projection updates, counts, and transfers inside PostgreSQL transactions. The inventory UI consumes these APIs and never calculates authoritative stock.

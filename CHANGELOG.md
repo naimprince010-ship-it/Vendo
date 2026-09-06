@@ -64,3 +64,14 @@ All meaningful project changes are recorded here. This project follows a phase-o
 - Added a real permission-aware catalog console with adaptive tile/sanitary product creation and management for master data, conversions, barcodes, pricing, search, and product lifecycle; it deliberately shows no fake inventory.
 - Extended the idempotent permission catalog from 48 to 62 keys and added eight Phase 5 integration workflows within the 40-test regression suite, including dedicated price/cost authorization checks.
 - Verified three migrations with no replay drift, required database constraints/indexes, production browser workflows, 55-path Swagger metadata, all repository checks/builds, and no Critical/High blocker.
+
+### Phase 6 — Inventory and Batch/Lot/Shade
+
+- Added an inventory application module for opening stock, adjustments, damage, loss, warehouse/branch transfers, optional batches, balances, low-stock queries, immutable movement history, and physical counts.
+- Preserved a single `numeric(20,6)` base inventory quantity; operational unit factors are Decimal-validated and snapshotted as `numeric(24,10)` on movements and count items.
+- Added company-scoped idempotent command records, transaction-scoped advisory position locks, version-conditional balance updates, negative-stock enforcement, deterministic multi-position locking, and correlated atomic transfer movements.
+- Added draft/review/reopen/post physical-count workflow with captured quantity/version snapshots and stale-post rejection; reconciliation records only the signed variance.
+- Added migrations `20260906060435_phase6_inventory_engine` and `20260906062000_phase6_inventory_constraints`; generated SQL inspection caught and corrected restoration of PostgreSQL-only null-safe batch identity and added count/hash/state checks.
+- Added seven inventory integration workflows within the 47-test API regression suite, covering conversion snapshots, batch enforcement, idempotency, rollback, concurrent deductions, transfers, counts, tenant/branch/permission isolation, derived stock, and ledger immutability.
+- Added seven fine-grained inventory permissions to the idempotent catalog and a real authenticated inventory console for branch stock, derived tile quantities, operations, batch/shade management, counts, low stock, and history.
+- Fixed active-batch query boolean parsing (`BUG-009`) during production browser verification and reverified batch selection, opening, adjustment, reconciliation, derived Box/PCS display, and clean browser console behavior.

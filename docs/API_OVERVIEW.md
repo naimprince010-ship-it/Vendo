@@ -33,3 +33,11 @@ The NestJS REST API is versioned at `/api/v1`; Swagger/OpenAPI is exposed in non
 - `/products` provides company-scoped paginated search, detail, creation, update, and status.
 - Product-scoped endpoints configure tile/sanitary profiles, direct conversions and previews, unit barcodes, and unit prices.
 - `GET /products/barcode/:barcode` resolves one active company product for later POS reuse.
+
+## Phase 6 Inventory API
+
+- `POST /inventory/opening`, `/adjustments`, `/damage`, `/loss`, and `/transfers` require an `Idempotency-Key`, `x-branch-id`, explicit warehouse(s), reason, and Decimal quantity lines.
+- `/inventory/batches` manages optional company/product batch, lot, and shade identity without a separate stock counter.
+- `GET /inventory/balances`, `/low-stock`, and `/movements` expose bounded active-branch stock projections and immutable history with base and derived quantities.
+- `/inventory/counts` supports create/list/detail, draft item replacement, review, reopen, and idempotent reconciliation posting.
+- All mutations load company ownership, active location, product tracking state, unit conversion, batch requirement, permission, and negative-stock policy on the backend. Transfers additionally verify destination-branch access.
