@@ -64,10 +64,10 @@ Checkboxes are marked complete only after implementation and verification. Phase
 
 ## Phase 7 — Customers and Suppliers
 
-- [ ] Customers, groups, walk-in customer, credit limits
-- [ ] Suppliers
-- [ ] Customer and supplier ledger foundation
-- [ ] Complete Phase 7 gate
+- [x] Customers, groups, walk-in customer, credit limits
+- [x] Suppliers
+- [x] Customer and supplier ledger foundation
+- [x] Complete Phase 7 gate
 
 ## Phase 8 — Purchasing and Supplier Dues
 
@@ -219,3 +219,21 @@ Checkboxes are marked complete only after implementation and verification. Phase
 - Live production browser batch/shade, opening, derived quantity, adjustment, count reconciliation, balance, and history workflows: PASS; console clean
 - Prettier, Compose, Prisma format/validation/generation/status, drift, secret scan, Git diff/integrity, and 68.41 GiB destination free space: PASS
 - Blocking Critical/High bugs: none open; browser-discovered `BUG-009` resolved
+
+### Phase 7 — PASS (2026-09-06)
+
+- Customer groups, customers, suppliers, lifecycle, indexed paginated search, and company sharing across authorized branches: PASS
+- Exactly one database-provisioned company-local walk-in customer with protected identity and idempotent bootstrap: PASS
+- Decimal credit-limit foundation and dedicated credit administration permission/audit: PASS
+- Separate immutable customer receivable and supplier payable ledgers with signed opening, correction, adjustment, history, and derived balances: PASS
+- Transactional idempotency, request-hash conflict detection, one-opening constraints, advisory party locks, and concurrent posting: PASS
+- Tenant ownership, inactive-group rejection, permission enforcement, audit behavior, and no fake sale/purchase/payment entries: PASS
+- Migrations `20260906153000_phase7_parties_ledgers`, `20260906154500_phase7_walkin_provision`, and `20260906155500_phase7_walkin_timestamp_fix`: PASS (eight migrations current; clean replay and live database report no difference)
+- PostgreSQL verification: PASS (4 composite foreign keys per ledger, 6 ledger unique indexes, 4 immutability triggers, and zero companies missing a walk-in)
+- Central permission seed and Owner bootstrap: PASS and idempotent (78 permissions; one company/walk-in/owner on two bootstrap runs)
+- API integration/regression tests: PASS (9 suites, 55 tests; Phase 7 suite 6/6 including concurrent opening)
+- Repository sequential lint, strict TypeScript, tests, and production builds: PASS across 5 packages
+- Swagger/OpenAPI: PASS (89 paths; 18 Phase 7 paths; bearer/cookie schemes; 6 idempotency-declared ledger operations)
+- Live production browser customer group, customer, walk-in, supplier, opening, correction, ledger, signed balance, and honest empty-history workflows: PASS; console clean
+- Prettier, Compose, Prisma format/validation/generation/status, replay/drift, secret scan, Git whitespace/integrity, and 68.38 GiB destination free space: PASS
+- Blocking Critical/High bugs: none open; `BUG-010` and `BUG-011` found and resolved during verification

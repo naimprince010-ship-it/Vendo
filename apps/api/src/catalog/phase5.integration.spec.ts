@@ -114,6 +114,7 @@ describe('Phase 5 catalog API', () => {
         db.rolePermission.deleteMany({ where: { companyId: id } }),
       ]);
       await db.$transaction([
+        db.customer.deleteMany({ where: { companyId: id } }),
         db.user.deleteMany({ where: { companyId: id } }),
         db.role.deleteMany({ where: { companyId: id } }),
       ]);

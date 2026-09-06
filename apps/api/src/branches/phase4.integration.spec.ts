@@ -112,6 +112,7 @@ describe('Phase 4 organization and location API', () => {
         database.rolePermission.deleteMany({ where: { companyId } }),
       ]);
       await database.$transaction([
+        database.customer.deleteMany({ where: { companyId } }),
         database.user.deleteMany({ where: { companyId } }),
         database.role.deleteMany({ where: { companyId } }),
       ]);
@@ -119,6 +120,7 @@ describe('Phase 4 organization and location API', () => {
     }
     if (foreignCompanyId) {
       await database.branch.deleteMany({ where: { companyId: foreignCompanyId } });
+      await database.customer.deleteMany({ where: { companyId: foreignCompanyId } });
       await database.company.delete({ where: { id: foreignCompanyId } });
     }
     await app?.close();

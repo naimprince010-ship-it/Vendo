@@ -75,3 +75,16 @@ All meaningful project changes are recorded here. This project follows a phase-o
 - Added seven inventory integration workflows within the 48-test API regression suite, covering conversion snapshots, batch enforcement, idempotency, rollback, concurrent deductions, transfers, counts, tenant/branch/permission isolation, derived stock, and ledger immutability.
 - Added seven fine-grained inventory permissions to the idempotent catalog and a real authenticated inventory console for branch stock, derived tile quantities, operations, batch/shade management, counts, low stock, and history.
 - Fixed active-batch query boolean parsing (`BUG-009`) during production browser verification and reverified batch selection, opening, adjustment, reconciliation, derived Box/PCS display, and clean browser console behavior.
+
+### Phase 7 — Customers and Suppliers
+
+- Added company-scoped customer-group, customer, and supplier APIs with explicit company-local codes, server-side search/pagination, active/inactive lifecycle, inactive-group assignment protection, and audit records.
+- Added protected company-local walk-in provisioning at the database boundary and idempotent bootstrap handling; operators cannot rename, deactivate, or duplicate the system walk-in identity.
+- Replaced mutable customer/supplier opening-balance columns with separate immutable signed `numeric(19,4)` ledgers, preserving non-zero legacy values through migration backfill.
+- Added transactional, idempotent opening balance, correction-delta, and adjustment workflows with request hashes, party locks, one-opening constraints, ledger-derived balances, debit/credit presentation, and database mutation triggers.
+- Added dedicated customer credit, party ledger, customer group, and supplier permissions while keeping master data company-scoped rather than incorrectly branch-isolated.
+- Added real authenticated customer, customer-group, customer-detail/ledger, supplier, and supplier-detail/ledger UI with deliberate balance posting and no fake sales, purchase, or payment history.
+- Added Phase 7 integration and database-foundation coverage for walk-in provisioning/protection, lifecycle, search, inactive references, Decimal precision, idempotency, corrections, immutability, tenant isolation, and permission enforcement.
+- Added migrations `20260906153000_phase7_parties_ledgers`, `20260906154500_phase7_walkin_provision`, and corrective `20260906155500_phase7_walkin_timestamp_fix`; `BUG-010` records the caught and resolved trigger timestamp defect.
+- Added concurrent opening-post coverage and resolved the serializable-snapshot/advisory-lock conflict (`BUG-011`) so one request commits and the competing post returns a deterministic conflict without duplicate history.
+- Verified eight-migration clean replay/zero drift, 78-permission and Owner-bootstrap idempotency, 55 API tests, all repository lint/type/build gates, 89-path Swagger metadata, database constraints/triggers, and live production browser customer/supplier ledger workflows with a clean console.

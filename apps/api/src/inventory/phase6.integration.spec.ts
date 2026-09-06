@@ -187,6 +187,7 @@ describe('Phase 6 inventory API', () => {
         db.rolePermission.deleteMany({ where: { companyId } }),
       ]);
       await db.$transaction([
+        db.customer.deleteMany({ where: { companyId } }),
         db.warehouse.deleteMany({ where: { companyId } }),
         db.branch.deleteMany({ where: { companyId } }),
         db.user.deleteMany({ where: { companyId } }),
@@ -194,7 +195,10 @@ describe('Phase 6 inventory API', () => {
       ]);
       await db.company.delete({ where: { id: companyId } });
     }
-    if (foreignCompanyId) await db.company.delete({ where: { id: foreignCompanyId } });
+    if (foreignCompanyId) {
+      await db.customer.deleteMany({ where: { companyId: foreignCompanyId } });
+      await db.company.delete({ where: { id: foreignCompanyId } });
+    }
     await app?.close();
   });
 

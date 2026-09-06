@@ -1,53 +1,55 @@
 # Current Phase
 
-Phase 6 — Inventory and Batch/Lot/Shade
+Phase 7 — Customers and Suppliers
 
 # Current Task
 
-Complete and verify the transactional inventory engine, optional batches, physical counts, transfers, stock queries, permissions, audit, and management UI.
+Implement and verify company-scoped customer groups, customers, the protected walk-in customer, suppliers, and immutable opening-balance/ledger foundations.
 
 # Objective
 
-Deliver auditable, company- and location-safe inventory operations while preserving one authoritative product base quantity and preventing concurrent overselling. Do not start parties, purchasing, sales/POS, payments, cash, or reports.
+Deliver production-grade customer and supplier master data with permission enforcement, tenant isolation, search, lifecycle controls, deterministic ledger-derived balances, audited opening-balance correction, and real management UI. Do not start purchasing, sales/POS, payments, returns, cash, reports, or later phases.
 
 # Dependencies
 
-- Verified Phase 5 catalog, product conversion, and pricing foundation
-- Phase 2 immutable inventory movement and balance models
-- Phase 4 active-branch authorization and warehouse ownership
+- Verified Phase 6 inventory and batch/lot/shade foundation
+- Phase 2 customer, supplier, payment, audit, and monetary schema foundation
+- Phase 3 authenticated company context and permission enforcement
+- Phase 4 branch context for optional future transaction-origin attribution
 - PostgreSQL 17 development service
 
 # Expected Files To Change
 
-- Inventory domain/API module under `apps/api/src/inventory/**`
-- Additive Prisma migrations for idempotent operations and physical counts
-- Central permission catalog and API module wiring
-- Real Phase 6 inventory UI under `apps/web/src/**`
-- Inventory/database/permission/decision documentation and project-control files
+- Additive Phase 7 Prisma migration and schema relations
+- Customer/supplier API modules, DTOs, services, controllers, and tests
+- Central permission catalog and bootstrap behavior
+- Real customer/supplier management UI under `apps/web/src/**`
+- Database, permissions, decisions, security, and governance documentation
 
 # Acceptance Criteria
 
-- Every stock mutation atomically writes immutable movement history and updates one base-unit balance projection.
-- Decimal product conversions are snapshotted; batch-required products cannot bypass batch allocation.
-- Tenant, branch, warehouse, product, unit, and batch ownership are enforced by API and database relationships.
-- Idempotency, negative-stock policy, deterministic locking, and stale physical-count protection prevent duplicate or unsafe stock changes.
-- Opening, adjustment, damage, loss, count/reconciliation, transfer, balance, low-stock, batch, and history workflows use real APIs and UI.
+- Customer groups, customers, and suppliers provide company-scoped CRUD lifecycle and paginated search.
+- Every company has exactly one protected, idempotently provisioned walk-in customer.
+- Credit limits use Decimal and changes require the dedicated permission and audit trail.
+- Customer and supplier opening balances and corrections post immutable, idempotent ledger entries transactionally.
+- Current balances and history are derived from ledger entries with documented signed conventions; no editable balance counter is authoritative.
+- Tenant isolation, permission enforcement, audit behavior, Decimal precision, and honest Phase 7 UI are verified.
 
 # Verification Required
 
-- Inventory integration tests including concurrency, rollback, idempotency, tenant/branch isolation, negative policy, batches, counts, and transfers
-- Migration inspection/application/status and clean replay/drift verification
+- Phase 7 API/integration tests including lifecycle, search, walk-in, idempotency, correction, precision, isolation, and permissions
+- Migration SQL inspection/application/status plus clean replay and zero drift
 - Permission seed idempotency, Swagger, and live browser workflows
 - Prisma checks, repository lint/typecheck/tests/builds, formatting, Compose, secret scan, and Git integrity
 
 # Status
 
-COMPLETE — Phase 6 gate passed on 2026-09-06. Transactional inventory, optional batch/lot/shade, count reconciliation, transfers, queries, permissions, audit, migrations, concurrency tests, production builds, Swagger, and live browser workflows are verified.
+COMPLETE — Phase 7 gate passed on 2026-09-06. Customer groups, protected company-local walk-in customers, customer/supplier masters, Decimal credit foundation, immutable signed ledgers, idempotent opening/correction/adjustment posting, secured APIs, real UI, migrations, concurrency, builds, and browser workflows are verified.
 
 # Blockers
 
-None. `BUG-008` remains a low-severity deferred pg@9 compatibility warning on the pinned pg 8 runtime and does not block Phase 6.
+None. `BUG-010` and `BUG-011` were resolved before the gate. `BUG-008` remains a low-severity deferred pg@9 compatibility warning on the pinned pg 8 runtime.
 
 # Next Approved Task
 
-Phase 7 — Customers and Suppliers. Begin by rereading governance, database, permission, and relevant financial-foundation documentation; do not start purchasing or sales workflows.
+Phase 8 — Purchasing and Supplier Dues. Begin by rereading governance, database, inventory, unit-conversion, permission, and Phase 7 supplier-ledger documentation; implement purchase order → goods receipt → supplier invoice → payment/return only according to the approved Phase 8 plan.

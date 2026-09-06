@@ -161,3 +161,21 @@
 - **Alternatives:** Infer the first active warehouse; add a branch default immediately.
 - **Rationale:** Silent inference can put stock in the wrong location. Explicit selection is safe and sufficient until POS and receiving define their defaults.
 - **Consequences:** A constrained operational default may be added in Phase 8 or 9 if those workflows demonstrate need; it must never bypass branch access validation.
+
+## ADR-019 — Separate Immutable Party Ledgers
+
+- **Date:** 2026-09-06
+- **Context:** Customer receivables and supplier payables need auditable opening positions now and real sale, purchase, return, and payment entries later, without introducing a general ledger or a polymorphic party model.
+- **Decision:** Use separate `CustomerLedgerEntry` and `SupplierLedgerEntry` models with one signed `numeric(19,4)` impact per immutable entry. Customer positive means receivable and negative means customer advance; supplier positive means payable and negative means supplier advance. Current balances are derived by summing entries. Opening corrections add an explicit delta instead of mutating history.
+- **Alternatives:** Editable balance columns; one generic polymorphic party ledger; premature double-entry accounting tables.
+- **Rationale:** Explicit foreign keys and services keep normal queries clear, enforce tenant ownership, and leave future transactional phases able to post atomic entries without pretending Phase 7 implements accounting.
+- **Consequences:** Posting requires a company-scoped idempotency key, request hash, permission, reason, and transaction. PostgreSQL advisory locks serialize corrections per party; partial unique indexes allow one original opening entry; database triggers reject ledger updates/deletes. Branch is optional until a real branch-originating transaction supplies it.
+
+## ADR-020 — Company-Local Walk-In Customer and Explicit Party Codes
+
+- **Date:** 2026-09-06
+- **Context:** Future anonymous POS sales require a stable default customer, while normal customer and supplier codes must be predictable without unsafe max-plus generation.
+- **Decision:** A PostgreSQL company-insert trigger provisions exactly one active system walk-in customer per company, reinforced by the existing partial unique index. Bootstrap remains idempotent. Normal customer and supplier codes are caller-assigned, normalized uppercase, and unique only within the authenticated company; `WALK-IN` is reserved.
+- **Alternatives:** One global walk-in record; lazy POS creation; automatic max-plus codes; globally unique party codes.
+- **Rationale:** Database provisioning covers every company creation path and avoids concurrency collisions. Explicit company-local codes fit established business numbering without inventing an unapproved sequence policy.
+- **Consequences:** The walk-in identity cannot be renamed or deactivated through the API. Phone and email remain searchable but intentionally non-unique so legitimate shared contacts are not blocked.

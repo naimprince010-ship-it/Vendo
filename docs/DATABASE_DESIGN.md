@@ -30,11 +30,15 @@ Phase 4 uses this schema without a new migration. Branch, warehouse, and registe
 
 ## Parties and Transaction Foundations
 
-- `CustomerGroup`, `Customer`, and `Supplier` carry opening balances and credit metadata; current due/payable is derived from posted transactions and allocations, not a mutable frontend counter.
+- `CustomerGroup` has a company-unique code, descriptive lifecycle fields, and restrictive customer references. Inactive groups remain readable but cannot be assigned to new customer configuration.
+- `Customer` and `Supplier` are company-owned reusable masters with company-unique explicit codes, indexed name/contact search fields, and active/inactive lifecycle. Phone and email are not forced unique. Customer credit limits are `numeric(19,4)` and non-negative.
+- `CustomerLedgerEntry` and `SupplierLedgerEntry` are separate immutable signed journals. Customer positive values increase receivable and negative values represent credits/advances; supplier positive values increase payable and negative values represent supplier advances. Balance queries sum ledger entries rather than reading a mutable party balance column.
+- Each party permits one original opening entry; corrections and adjustments are new entries. Company-scoped idempotency keys and SHA-256 request hashes prevent duplicate/reinterpreted posts. Advisory transaction locks serialize opening corrections, and composite foreign keys constrain party, optional branch, and actor ownership.
+- A database trigger provisions exactly one active walk-in customer whenever a company is inserted. The existing partial unique index prevents a second system walk-in for the same company.
 - Purchasing separates `PurchaseOrder`, `GoodsReceipt`, and `PurchaseInvoice`. Their item tables snapshot transaction unit, base quantity, factor, cost, discount, tax, and totals as applicable.
 - `Sale` and `SaleItem` retain branch/register/warehouse/customer/user context and Decimal totals. Completion logic is deferred to Phase 9.
 - `Payment` is a direction-aware monetary event linked to one method and optional customer or supplier. `SalePayment` and `PurchasePayment` support split payments and allocations without conflating payment with invoice/receipt creation.
-- Returns, refunds, exchanges, purchase returns, and ledger postings are deferred to their approved workflow phases; their eventual records will reference these immutable foundations.
+- Sale, purchase, payment, return, and credit-note ledger types are reserved for their approved workflow phases. Phase 7 posts only legitimate opening balances, corrections, and explicit adjustments; it creates no fabricated operational entries.
 
 ## Inventory
 

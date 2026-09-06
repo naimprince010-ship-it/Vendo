@@ -127,3 +127,31 @@ No new product defect remains open from Phase 4. An initial integration-fixture 
 ## Phase 6 Verification Note — 2026-09-06
 
 No Critical/High inventory blocker remains. `BUG-009` was found and resolved during the live browser gate. Deferred `BUG-008` remains a low-severity future pg@9 compatibility warning and did not affect correctness or verification on pinned pg 8.23.
+
+## BUG-010 — Walk-in provisioning trigger omitted Prisma-managed timestamp
+
+- **ID:** BUG-010
+- **Severity:** High
+- **Area:** Phase 7 database migration / company bootstrap
+- **Description:** The first company-insert trigger attempted to create the required walk-in customer without supplying `updatedAt`, which Prisma manages in application writes but PostgreSQL does not default.
+- **Reproduction:** Apply the initial Phase 7 migrations and insert a new `Company` directly or through bootstrap.
+- **Expected:** Company creation atomically provisions one active company-local walk-in customer.
+- **Actual:** PostgreSQL rejected the trigger insert with a not-null violation and rolled back company creation.
+- **Status:** Resolved — additive migration `20260906155500_phase7_walkin_timestamp_fix` supplies `CURRENT_TIMESTAMP`; the original applied migration was not edited, and the Phase 7 integration test now verifies provisioning and protection.
+- **Related task:** Phase 7 — walk-in customer foundation
+
+## BUG-011 — Serializable party posting returned a write conflict under concurrency
+
+- **ID:** BUG-011
+- **Severity:** High
+- **Area:** Phase 7 customer/supplier ledger concurrency
+- **Description:** The initial ledger transaction combined PostgreSQL serializable isolation with a transaction-scoped party advisory lock. A waiting concurrent request established its serializable snapshot before obtaining the lock and could fail with `P2034` instead of returning the deterministic opening-balance conflict.
+- **Reproduction:** Submit two different idempotency keys concurrently to the same customer's opening-balance endpoint.
+- **Expected:** Exactly one immutable opening entry is committed; the competing request receives HTTP `409`.
+- **Actual:** One request committed and the other returned HTTP `500` from a serialization conflict.
+- **Status:** Resolved — retained the per-party advisory lock and used PostgreSQL read-committed transaction semantics so the waiter observes the committed entry after acquiring the lock. The dedicated concurrent-posting integration test passes.
+- **Related task:** Phase 7 — ledger transaction safety
+
+## Phase 7 Verification Note — 2026-09-06
+
+No Critical/High customer, supplier, tenant, financial-foundation, migration, API, or UI blocker remains. `BUG-010` and `BUG-011` were found by migration/integration gates and resolved with additive migration and transaction changes before final verification. Deferred `BUG-008` remains a low-severity future pg@9 compatibility warning on the pinned pg 8.23 runtime.

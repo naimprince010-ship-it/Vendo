@@ -120,6 +120,25 @@ enum SettingScope {
   BRANCH
 }
 
+enum CustomerLedgerEntryType {
+  OPENING_BALANCE
+  OPENING_CORRECTION
+  ADJUSTMENT
+  SALE_INVOICE
+  PAYMENT
+  SALE_RETURN
+  CREDIT_NOTE
+}
+
+enum SupplierLedgerEntryType {
+  OPENING_BALANCE
+  OPENING_CORRECTION
+  ADJUSTMENT
+  PURCHASE_INVOICE
+  PAYMENT
+  PURCHASE_RETURN
+}
+
 model Company {
   id                   String   @id @default(uuid()) @db.Uuid
   code                 String   @unique @db.VarChar(40)
@@ -137,25 +156,27 @@ model Company {
   createdAt            DateTime @default(now()) @db.Timestamptz(3)
   updatedAt            DateTime @updatedAt @db.Timestamptz(3)
 
-  branches            Branch[]
-  users               User[]
-  roles               Role[]
-  units               Unit[]
-  categories          Category[]
-  brands              Brand[]
-  manufacturers       Manufacturer[]
-  products            Product[]
-  customerGroups      CustomerGroup[]
-  customers           Customer[]
-  suppliers           Supplier[]
-  paymentMethods      PaymentMethod[]
-  expenseCategories   ExpenseCategory[]
-  settings            Setting[]
-  auditLogs           AuditLog[]
-  authSessions        AuthSession[]
-  passwordResetTokens PasswordResetToken[]
-  inventoryOperations InventoryOperation[]
-  physicalCounts      PhysicalCount[]
+  branches              Branch[]
+  users                 User[]
+  roles                 Role[]
+  units                 Unit[]
+  categories            Category[]
+  brands                Brand[]
+  manufacturers         Manufacturer[]
+  products              Product[]
+  customerGroups        CustomerGroup[]
+  customers             Customer[]
+  suppliers             Supplier[]
+  paymentMethods        PaymentMethod[]
+  expenseCategories     ExpenseCategory[]
+  settings              Setting[]
+  auditLogs             AuditLog[]
+  authSessions          AuthSession[]
+  passwordResetTokens   PasswordResetToken[]
+  inventoryOperations   InventoryOperation[]
+  physicalCounts        PhysicalCount[]
+  customerLedgerEntries CustomerLedgerEntry[]
+  supplierLedgerEntries SupplierLedgerEntry[]
 
   @@unique([id, code])
 }
@@ -171,22 +192,24 @@ model Branch {
   createdAt DateTime @default(now()) @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @db.Timestamptz(3)
 
-  company            Company             @relation(fields: [companyId], references: [id], onDelete: Restrict)
-  warehouses         Warehouse[]
-  registers          Register[]
-  userBranches       UserBranch[]
-  purchaseOrders     PurchaseOrder[]
-  goodsReceipts      GoodsReceipt[]
-  purchaseInvoices   PurchaseInvoice[]
-  sales              Sale[]
-  payments           Payment[]
-  cashShifts         CashShift[]
-  cashMovements      CashMovement[]
-  expenses           Expense[]
-  inventoryMovements InventoryMovement[]
-  settings           Setting[]
-  auditLogs          AuditLog[]
-  physicalCounts     PhysicalCount[]
+  company               Company               @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  warehouses            Warehouse[]
+  registers             Register[]
+  userBranches          UserBranch[]
+  purchaseOrders        PurchaseOrder[]
+  goodsReceipts         GoodsReceipt[]
+  purchaseInvoices      PurchaseInvoice[]
+  sales                 Sale[]
+  payments              Payment[]
+  cashShifts            CashShift[]
+  cashMovements         CashMovement[]
+  expenses              Expense[]
+  inventoryMovements    InventoryMovement[]
+  settings              Setting[]
+  auditLogs             AuditLog[]
+  physicalCounts        PhysicalCount[]
+  customerLedgerEntries CustomerLedgerEntry[]
+  supplierLedgerEntries SupplierLedgerEntry[]
 
   @@unique([companyId, code])
   @@unique([id, companyId])
@@ -255,24 +278,26 @@ model User {
   createdAt         DateTime   @default(now()) @db.Timestamptz(3)
   updatedAt         DateTime   @updatedAt @db.Timestamptz(3)
 
-  company             Company              @relation(fields: [companyId], references: [id], onDelete: Restrict)
-  userRoles           UserRole[]
-  userBranches        UserBranch[]
-  purchaseOrders      PurchaseOrder[]      @relation("PurchaseOrderCreatedBy")
-  goodsReceipts       GoodsReceipt[]       @relation("GoodsReceiptReceivedBy")
-  sales               Sale[]               @relation("SaleCreatedBy")
-  payments            Payment[]            @relation("PaymentRecordedBy")
-  cashShifts          CashShift[]          @relation("CashShiftCashier")
-  cashMovements       CashMovement[]       @relation("CashMovementRecordedBy")
-  expenses            Expense[]            @relation("ExpenseCreatedBy")
-  inventoryMovements  InventoryMovement[]  @relation("InventoryMovementCreatedBy")
-  auditLogs           AuditLog[]           @relation("AuditActor")
-  authSessions        AuthSession[]
-  passwordResetTokens PasswordResetToken[]
-  inventoryOperations InventoryOperation[] @relation("InventoryOperationCreatedBy")
-  physicalCounts      PhysicalCount[]      @relation("PhysicalCountCreatedBy")
-  reviewedCounts      PhysicalCount[]      @relation("PhysicalCountReviewedBy")
-  postedCounts        PhysicalCount[]      @relation("PhysicalCountPostedBy")
+  company               Company               @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  userRoles             UserRole[]
+  userBranches          UserBranch[]
+  purchaseOrders        PurchaseOrder[]       @relation("PurchaseOrderCreatedBy")
+  goodsReceipts         GoodsReceipt[]        @relation("GoodsReceiptReceivedBy")
+  sales                 Sale[]                @relation("SaleCreatedBy")
+  payments              Payment[]             @relation("PaymentRecordedBy")
+  cashShifts            CashShift[]           @relation("CashShiftCashier")
+  cashMovements         CashMovement[]        @relation("CashMovementRecordedBy")
+  expenses              Expense[]             @relation("ExpenseCreatedBy")
+  inventoryMovements    InventoryMovement[]   @relation("InventoryMovementCreatedBy")
+  auditLogs             AuditLog[]            @relation("AuditActor")
+  authSessions          AuthSession[]
+  passwordResetTokens   PasswordResetToken[]
+  inventoryOperations   InventoryOperation[]  @relation("InventoryOperationCreatedBy")
+  physicalCounts        PhysicalCount[]       @relation("PhysicalCountCreatedBy")
+  reviewedCounts        PhysicalCount[]       @relation("PhysicalCountReviewedBy")
+  postedCounts          PhysicalCount[]       @relation("PhysicalCountPostedBy")
+  customerLedgerEntries CustomerLedgerEntry[] @relation("CustomerLedgerCreatedBy")
+  supplierLedgerEntries SupplierLedgerEntry[] @relation("SupplierLedgerCreatedBy")
 
   @@unique([companyId, email])
   @@unique([id, companyId])
@@ -620,67 +645,135 @@ model ProductBatch {
 }
 
 model CustomerGroup {
-  id        String     @id @default(uuid()) @db.Uuid
-  companyId String     @db.Uuid
-  name      String     @db.VarChar(120)
-  createdAt DateTime   @default(now()) @db.Timestamptz(3)
-  updatedAt DateTime   @updatedAt @db.Timestamptz(3)
-  company   Company    @relation(fields: [companyId], references: [id], onDelete: Restrict)
-  customers Customer[]
+  id          String     @id @default(uuid()) @db.Uuid
+  companyId   String     @db.Uuid
+  code        String     @db.VarChar(40)
+  name        String     @db.VarChar(120)
+  description String?
+  isActive    Boolean    @default(true)
+  createdAt   DateTime   @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime   @updatedAt @db.Timestamptz(3)
+  company     Company    @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  customers   Customer[]
 
-  @@unique([companyId, name])
+  @@unique([companyId, code])
   @@unique([id, companyId])
+  @@index([companyId, name])
+  @@index([companyId, isActive])
 }
 
 model Customer {
-  id             String         @id @default(uuid()) @db.Uuid
-  companyId      String         @db.Uuid
-  groupId        String?        @db.Uuid
-  code           String         @db.VarChar(50)
-  name           String         @db.VarChar(160)
-  phone          String?        @db.VarChar(40)
-  email          String?        @db.VarChar(254)
-  address        String?
-  creditLimit    Decimal        @default(0) @db.Decimal(19, 4)
-  openingBalance Decimal        @default(0) @db.Decimal(19, 4)
-  isWalkIn       Boolean        @default(false)
-  isActive       Boolean        @default(true)
-  createdAt      DateTime       @default(now()) @db.Timestamptz(3)
-  updatedAt      DateTime       @updatedAt @db.Timestamptz(3)
-  company        Company        @relation(fields: [companyId], references: [id], onDelete: Restrict)
-  group          CustomerGroup? @relation(fields: [groupId, companyId], references: [id, companyId], onDelete: Restrict)
-  sales          Sale[]
-  payments       Payment[]
+  id            String                @id @default(uuid()) @db.Uuid
+  companyId     String                @db.Uuid
+  groupId       String?               @db.Uuid
+  code          String                @db.VarChar(50)
+  name          String                @db.VarChar(160)
+  phone         String?               @db.VarChar(40)
+  email         String?               @db.VarChar(254)
+  address       String?
+  taxIdentifier String?               @db.VarChar(80)
+  notes         String?
+  creditLimit   Decimal               @default(0) @db.Decimal(19, 4)
+  isWalkIn      Boolean               @default(false)
+  isActive      Boolean               @default(true)
+  createdAt     DateTime              @default(now()) @db.Timestamptz(3)
+  updatedAt     DateTime              @updatedAt @db.Timestamptz(3)
+  company       Company               @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  group         CustomerGroup?        @relation(fields: [groupId, companyId], references: [id, companyId], onDelete: Restrict)
+  sales         Sale[]
+  payments      Payment[]
+  ledgerEntries CustomerLedgerEntry[]
 
   @@unique([companyId, code])
   @@unique([id, companyId])
   @@index([companyId, phone])
+  @@index([companyId, email])
   @@index([companyId, name])
+  @@index([companyId, isActive])
 }
 
 model Supplier {
-  id               String            @id @default(uuid()) @db.Uuid
-  companyId        String            @db.Uuid
-  code             String            @db.VarChar(50)
-  name             String            @db.VarChar(160)
-  contactName      String?           @db.VarChar(120)
-  phone            String?           @db.VarChar(40)
-  email            String?           @db.VarChar(254)
+  id               String                @id @default(uuid()) @db.Uuid
+  companyId        String                @db.Uuid
+  code             String                @db.VarChar(50)
+  name             String                @db.VarChar(160)
+  contactName      String?               @db.VarChar(120)
+  phone            String?               @db.VarChar(40)
+  email            String?               @db.VarChar(254)
   address          String?
-  openingBalance   Decimal           @default(0) @db.Decimal(19, 4)
-  isActive         Boolean           @default(true)
-  createdAt        DateTime          @default(now()) @db.Timestamptz(3)
-  updatedAt        DateTime          @updatedAt @db.Timestamptz(3)
-  company          Company           @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  taxIdentifier    String?               @db.VarChar(80)
+  notes            String?
+  isActive         Boolean               @default(true)
+  createdAt        DateTime              @default(now()) @db.Timestamptz(3)
+  updatedAt        DateTime              @updatedAt @db.Timestamptz(3)
+  company          Company               @relation(fields: [companyId], references: [id], onDelete: Restrict)
   batches          ProductBatch[]
   purchaseOrders   PurchaseOrder[]
   purchaseInvoices PurchaseInvoice[]
   payments         Payment[]
+  ledgerEntries    SupplierLedgerEntry[]
 
   @@unique([companyId, code])
   @@unique([id, companyId])
   @@index([companyId, phone])
+  @@index([companyId, email])
+  @@index([companyId, contactName])
   @@index([companyId, name])
+  @@index([companyId, isActive])
+}
+
+model CustomerLedgerEntry {
+  id             String                  @id @default(uuid()) @db.Uuid
+  companyId      String                  @db.Uuid
+  branchId       String?                 @db.Uuid
+  customerId     String                  @db.Uuid
+  createdById    String?                 @db.Uuid
+  type           CustomerLedgerEntryType
+  amount         Decimal                 @db.Decimal(19, 4)
+  effectiveAt    DateTime                @db.Timestamptz(3)
+  referenceType  String?                 @db.VarChar(60)
+  referenceId    String?                 @db.Uuid
+  description    String                  @db.VarChar(1000)
+  idempotencyKey String                  @db.VarChar(100)
+  requestHash    String                  @db.Char(64)
+  createdAt      DateTime                @default(now()) @db.Timestamptz(3)
+
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  branch    Branch?  @relation(fields: [branchId, companyId], references: [id, companyId], onDelete: Restrict)
+  customer  Customer @relation(fields: [customerId, companyId], references: [id, companyId], onDelete: Restrict)
+  createdBy User?    @relation("CustomerLedgerCreatedBy", fields: [createdById, companyId], references: [id, companyId], onDelete: Restrict)
+
+  @@unique([companyId, idempotencyKey])
+  @@index([companyId, customerId, effectiveAt, id])
+  @@index([companyId, customerId, type])
+  @@index([companyId, branchId, effectiveAt])
+}
+
+model SupplierLedgerEntry {
+  id             String                  @id @default(uuid()) @db.Uuid
+  companyId      String                  @db.Uuid
+  branchId       String?                 @db.Uuid
+  supplierId     String                  @db.Uuid
+  createdById    String?                 @db.Uuid
+  type           SupplierLedgerEntryType
+  amount         Decimal                 @db.Decimal(19, 4)
+  effectiveAt    DateTime                @db.Timestamptz(3)
+  referenceType  String?                 @db.VarChar(60)
+  referenceId    String?                 @db.Uuid
+  description    String                  @db.VarChar(1000)
+  idempotencyKey String                  @db.VarChar(100)
+  requestHash    String                  @db.Char(64)
+  createdAt      DateTime                @default(now()) @db.Timestamptz(3)
+
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  branch    Branch?  @relation(fields: [branchId, companyId], references: [id, companyId], onDelete: Restrict)
+  supplier  Supplier @relation(fields: [supplierId, companyId], references: [id, companyId], onDelete: Restrict)
+  createdBy User?    @relation("SupplierLedgerCreatedBy", fields: [createdById, companyId], references: [id, companyId], onDelete: Restrict)
+
+  @@unique([companyId, idempotencyKey])
+  @@index([companyId, supplierId, effectiveAt, id])
+  @@index([companyId, supplierId, type])
+  @@index([companyId, branchId, effectiveAt])
 }
 
 model PurchaseOrder {

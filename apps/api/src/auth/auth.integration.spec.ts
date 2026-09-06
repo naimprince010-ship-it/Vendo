@@ -136,6 +136,9 @@ describe('Phase 3 authentication and authorization API', () => {
       });
       await database.user.deleteMany({ where: { companyId: { in: [companyId, otherCompanyId] } } });
       await database.role.deleteMany({ where: { companyId: { in: [companyId, otherCompanyId] } } });
+      await database.customer.deleteMany({
+        where: { companyId: { in: [companyId, otherCompanyId] } },
+      });
       await database.company.deleteMany({ where: { id: { in: [companyId, otherCompanyId] } } });
     }
     await app?.close();

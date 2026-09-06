@@ -46,6 +46,26 @@ async function main(): Promise<void> {
       create: { code: companyCode, name: companyName },
       update: { name: companyName },
     });
+    const walkIn = await tx.customer.findFirst({
+      where: { companyId: company.id, isWalkIn: true },
+      select: { id: true },
+    });
+    if (!walkIn) {
+      const reservedCode = await tx.customer.findUnique({
+        where: { companyId_code: { companyId: company.id, code: 'WALK-IN' } },
+        select: { id: true },
+      });
+      await tx.customer.create({
+        data: {
+          companyId: company.id,
+          code: reservedCode
+            ? `WALK-IN-${company.id.replaceAll('-', '').slice(0, 8).toUpperCase()}`
+            : 'WALK-IN',
+          name: 'Walk-in Customer',
+          isWalkIn: true,
+        },
+      });
+    }
     for (const key of PERMISSION_CATALOG) {
       await tx.permission.upsert({ where: { key }, create: { key }, update: {} });
     }

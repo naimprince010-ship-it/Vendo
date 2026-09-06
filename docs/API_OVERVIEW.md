@@ -2,6 +2,8 @@
 
 The NestJS REST API is versioned at `/api/v1`; Swagger/OpenAPI is exposed in non-production environments and can be separately protected in production.
 
+Phase 7 exposes authenticated company-scoped `/customer-groups`, `/customers`, and `/suppliers` resources with server-side pagination/search and lifecycle endpoints. Customer credit limits have a dedicated permission endpoint. Customer and supplier ledger routes provide real balance/history queries plus idempotent opening, correction, and adjustment posting. Party master routes do not require `x-branch-id`; optional branch attribution belongs to future operational transaction origins.
+
 ## Conventions
 
 - JSON request/response bodies with Zod/shared schemas where practical and Nest validation at the transport boundary.

@@ -26,6 +26,26 @@ const phase6Constraints = readFileSync(
   ),
   'utf8',
 );
+const phase7Migration = readFileSync(
+  join(
+    process.cwd(),
+    'prisma',
+    'migrations',
+    '20260906153000_phase7_parties_ledgers',
+    'migration.sql',
+  ),
+  'utf8',
+);
+const phase7WalkIn = readFileSync(
+  join(
+    process.cwd(),
+    'prisma',
+    'migrations',
+    '20260906154500_phase7_walkin_provision',
+    'migration.sql',
+  ),
+  'utf8',
+);
 
 describe('database foundation', () => {
   it('uses Decimal database fields rather than unsafe floating point fields', () => {
@@ -66,5 +86,16 @@ describe('database foundation', () => {
     expect(phase6Constraints).toContain('PhysicalCountItem_values_check');
     expect(phase6Constraints).toContain('PhysicalCount_state_check');
     expect(phase6Constraints).toContain('ProductBatch_identity_key');
+  });
+
+  it('adds immutable party ledgers and company-local walk-in provisioning', () => {
+    expect(phase7Migration).toContain('CustomerLedgerEntry_one_opening_key');
+    expect(phase7Migration).toContain('SupplierLedgerEntry_one_opening_key');
+    expect(phase7Migration).toContain('CustomerLedgerEntry_amount_check');
+    expect(phase7Migration).toContain('SupplierLedgerEntry_amount_check');
+    expect(phase7Migration).toContain('CustomerLedgerEntry_immutable_update');
+    expect(phase7Migration).toContain('SupplierLedgerEntry_immutable_delete');
+    expect(phase7Migration).toContain('Migrated opening balance');
+    expect(phase7WalkIn).toContain('Company_provision_walk_in_customer');
   });
 });

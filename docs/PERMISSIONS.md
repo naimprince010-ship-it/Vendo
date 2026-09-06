@@ -36,3 +36,11 @@ Phase 6 adds:
 - `inventory.batch_manage`
 
 Existing `inventory.view`, `inventory.adjust`, and `inventory.transfer` remain. Every inventory controller also requires the Phase 4 active-branch guard; cross-branch transfers separately validate destination-branch access.
+
+Phase 7 adds:
+
+- `customer.view`, `customer.create`, `customer.edit`, `customer.manage_credit`, `customer.view_ledger`, `customer.adjust_balance`
+- `customer_group.view`, `customer_group.manage`
+- `supplier.view`, `supplier.create`, `supplier.edit`, `supplier.view_ledger`, `supplier.adjust_balance`
+
+Customer and supplier masters are company-scoped, not branch-scoped. Ledger viewing and signed balance posting are intentionally separate permissions from ordinary master-data editing. API ownership checks use the authenticated company and never accept a client company ID.
