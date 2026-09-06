@@ -99,3 +99,15 @@
 ## Phase 4 Verification Note — 2026-09-06
 
 No new product defect remains open from Phase 4. An initial integration-fixture assertion expected HTTP `201` from the existing login endpoint, which correctly returns `200`; the test expectation was corrected before the complete 32-test regression and production gate passed. Existing `BUG-001` through `BUG-007` remain resolved.
+
+## BUG-008 — PostgreSQL driver emits a pg@9 compatibility warning
+
+- **ID:** BUG-008
+- **Severity:** Low
+- **Area:** Prisma PostgreSQL adapter / test and concurrent API query runtime
+- **Description:** The current Prisma 7.10 PostgreSQL driver adapter can emit a deprecation warning that calling `client.query()` while the client is already executing will be unsupported in pg 9.
+- **Reproduction:** Run the database-backed API suite or load several catalog queries concurrently in the authenticated catalog UI.
+- **Expected:** Supported concurrent adapter queries run without dependency deprecation output.
+- **Actual:** Workflows complete successfully, but pg 8.23 logs a future-compatibility warning.
+- **Status:** Deferred — no correctness failure exists on the pinned pg 8 runtime; re-evaluate with a supported Prisma adapter upgrade before pg 9 adoption.
+- **Related task:** Phase 5 verification / production dependency maintenance

@@ -53,3 +53,14 @@ All meaningful project changes are recorded here. This project follows a phase-o
 - Added nine Phase 4 integration cases within a 32-test API regression suite covering authorized and unauthorized operations, tenant/branch isolation, duplicate codes, active context, deactivation, and audit behavior.
 - Verified live production browser workflows for company, branches, user access, active branch context, warehouses, and registers; synthetic verification data and local-only credentials were removed afterward.
 - Prisma checks and drift comparison, idempotent 48-permission seed, repository lint/typecheck/tests/builds, Swagger, formatting, Compose, secret scan, Git integrity, and destination free-space checks pass with no open Critical/High Phase 4 blocker.
+
+### Phase 5 — Catalog, Units, Tile Domain, and Pricing
+
+- Added company-scoped lifecycle APIs for category hierarchies, brands, normalized manufacturers, reusable units, and products with active-master-data validation and audit records.
+- Added migration `20260906043323_phase5_catalog_foundation`, preserving legacy manufacturer values while adding normalized ownership, sanitary profiles, unit-bound barcodes, and deterministic active-conversion integrity.
+- Implemented separate tile and sanitary profiles; nominal tile dimensions use Decimal millimetres while configured commercial factors remain authoritative for packaging/area conversion.
+- Added direct unit-to-base conversion and preview logic, company-unique multiple barcodes, one primary barcode, and independent retail/wholesale/minimum unit prices.
+- Added company-scoped, paginated server-side search across barcode, SKU, name, brand, manufacturer, model, and tile size.
+- Added a real permission-aware catalog console with adaptive tile/sanitary product creation and management for master data, conversions, barcodes, pricing, search, and product lifecycle; it deliberately shows no fake inventory.
+- Extended the idempotent permission catalog from 48 to 62 keys and added eight Phase 5 integration workflows within the 40-test regression suite, including dedicated price/cost authorization checks.
+- Verified three migrations with no replay drift, required database constraints/indexes, production browser workflows, 55-path Swagger metadata, all repository checks/builds, and no Critical/High blocker.

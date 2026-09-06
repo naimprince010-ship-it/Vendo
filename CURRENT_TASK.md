@@ -1,49 +1,50 @@
 # Current Phase
 
-Phase 4 — Company, Branch, Warehouse, and Register
+Phase 5 — Catalog, Units, Tile Domain, and Pricing
 
 # Current Task
 
-Implement and verify company profile management, branches, user branch access, secure active-branch context, warehouses, registers, and the corresponding real management UI.
+Implement and verify categories, brands, manufacturers, units, reusable products, tile/sanitary profiles, product-specific conversions, barcodes, unit pricing, search, and the corresponding real management UI.
 
 # Objective
 
-Deliver the production-grade organization and location foundation without starting catalog, inventory, purchasing, sales, cash-shift, or later-phase workflows.
+Deliver the production-grade catalog and tile/sanitary configuration foundation without creating inventory movements, purchases, sales, parties, cash shifts, reports, or later-phase workflows.
 
 # Dependencies
 
-- Verified Phase 3 authentication and permission guards
-- Existing composite Company/Branch/Warehouse/Register ownership constraints
-- Existing company-scoped UserBranch relation and AuditLog foundation
+- Verified Phase 4 company and location authorization foundation
+- Existing Phase 2 catalog, Decimal, and composite tenant models
+- Existing Phase 3 permission and audit infrastructure
 - PostgreSQL 17 development service
 
 # Expected Files To Change
 
-- Organization/location modules under `apps/api/src/**`
-- Active branch-context authorization infrastructure
-- Phase 4 management UI under `apps/web/src/**`
-- Permission, API, security, architecture, database, and decision documentation
+- Catalog/domain modules under `apps/api/src/**`
+- Additive Prisma migration only for genuinely required Phase 5 integrity
+- Phase 5 catalog management UI under `apps/web/src/**`
+- Catalog, conversion, API, permission, architecture, database, and decision documentation
 - Project-control files
 
 # Acceptance Criteria
 
-- Company profile reads/updates derive company scope only from the authenticated principal.
-- Branch, warehouse, and register management is tenant- and branch-safe, paginated, permission-protected, audited, and deactivation-based.
-- User branch grants verify both user and branch company ownership and cannot be self-expanded without authorization.
-- Active branch context accepts only an active company branch available through explicit assignment or `branch.access_all` permission.
-- Phase 4 frontend uses the real APIs and exposes actions only when useful to the authenticated permission set.
+- Catalog master data and products are tenant-scoped, permission-protected, paginated, audited, and deactivation-based.
+- Product core remains industry-neutral while TILE and SANITARY details use separate one-to-one profiles.
+- Decimal conversion logic preserves one authoritative base inventory unit and deterministic product/unit paths.
+- Barcodes and prices resolve without ambiguity and enforce product/company/unit ownership.
+- Product search is indexed, server-side, paginated, and reusable by later POS work.
+- Phase 5 frontend uses real APIs and adapts product configuration to product type without fake stock.
 
 # Verification Required
 
-- Company/location API integration tests, tenant/branch isolation tests, permission tests, audit checks, and active-context tests
-- Existing migration status and drift verification; new migration only if schema changes are genuinely required
+- Catalog/conversion/pricing API integration tests, Decimal-domain tests, tenant isolation, permission, and audit checks
+- Additive migration inspection, application, status, catalog checks, and clean replay/drift
 - Idempotent permission seed/bootstrap checks and Swagger metadata
-- Live browser workflows for company, branch access, warehouse, and register management
+- Live browser workflows for master data, tile and sanitary products, conversions, barcodes, pricing, and search
 - Repository lint, typecheck, tests, production builds, formatting, Compose, secret scan, and Git integrity
 
 # Status
 
-COMPLETE — Phase 4 gate passed on 2026-09-06. Organization/location APIs and UI, active-branch authorization, tenant isolation, audit behavior, database status, tests, production builds, Swagger, and live browser workflows are verified.
+COMPLETE — Phase 5 gate passed on 2026-09-06. Catalog APIs/UI, tile and sanitary profiles, Decimal conversions, unit barcodes/prices, search, migration, isolation, audit, tests, builds, Swagger, and live browser workflows are verified.
 
 # Blockers
 
@@ -51,4 +52,4 @@ None.
 
 # Next Approved Task
 
-Phase 5 — Catalog, Units, Tile Domain, and Pricing. Begin by rereading governance and domain documentation, then implement categories/brands/manufacturers and the reusable product/unit foundation before tile profiles, controlled conversions, barcodes, and unit-specific pricing.
+Phase 6 — Inventory and Batch/Lot/Shade. Begin by rereading governance and inventory/conversion documentation, then implement transactional opening stock and movement/balance invariants before adjustments, batches, counts, and transfers.

@@ -134,3 +134,12 @@
 - **Alternatives:** Add speculative address/terminal/default flags now; make codes branch-scoped; create a migration solely for Phase 4.
 - **Rationale:** The existing model satisfies current workflows and avoids premature columns or conflicting default-warehouse semantics.
 - **Consequences:** Warehouse/register branch ownership remains immutable after creation. Phase 6 may add a constrained default warehouse only if its real transaction design requires one.
+
+## ADR-016 — Catalog Conversion and Coverage Authority
+
+- **Date:** 2026-09-06
+- **Context:** Nominal tile dimensions and commercial packaging coverage can differ.
+- **Decision:** Persist nominal dimensions in millimetres and calculate informational area with Decimal arithmetic. Product-specific `factorToBase` conversions are the commercial authority, while the base unit remains the sole future inventory quantity. Manufacturers and tile/sanitary profiles are normalized extensions of Product.
+- **Alternatives:** Derive all conversions from dimensions; duplicate coverage counters; store separate box/piece/area stock.
+- **Rationale:** Explicit factors support real package specifications and independent unit pricing without corrupting physical stock.
+- **Consequences:** One active conversion per product/unit is database-enforced, conversions traverse directly through base, and later transactions snapshot the applied factor.

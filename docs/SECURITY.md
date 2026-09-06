@@ -26,3 +26,5 @@ The browser keeps access tokens in memory and sends them as bearer credentials. 
 ## Company and Active Branch Boundary
 
 Company identity is always loaded from the authenticated user/session and is never accepted from organization-management request bodies. The active branch header is only a selection request: the API verifies company ownership, active status, and either an explicit current `UserBranch` assignment or the current `branch.access_all` permission before exposing branch context. Foreign, inactive, and unassigned branches fail closed.
+
+Catalog services constrain category, brand, manufacturer, unit, product, barcode, conversion, and price identifiers to the authenticated company. New product configuration requires active master data, and composite foreign keys reject cross-company relationships at the database boundary.

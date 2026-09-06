@@ -65,3 +65,5 @@ Later application services must use database transactions for goods receipt, sal
 ## Deferred Schema
 
 Return/refund/exchange entities (Phases 8 and 10) and any double-entry journal (future accounting scope) remain deliberately deferred so their lifecycle rules are designed with the implementing workflow rather than guessed early.
+
+Phase 5 migration `20260906043323_phase5_catalog_foundation` normalizes company-owned manufacturers, adds a separate sanitary profile, permits unit-bound barcodes, and enforces one active conversion per company/product/unit. Existing manufacturer text is migrated before its legacy column is removed. Commercial factors remain `numeric(24,10)`; money remains `numeric(19,4)`.

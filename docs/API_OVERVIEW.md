@@ -26,3 +26,10 @@ The NestJS REST API is versioned at `/api/v1`; Swagger/OpenAPI is exposed in non
 - `/users/:userId/branches` lists, grants, and revokes explicit company-owned branch assignments.
 - `/warehouses` and `/registers` provide paginated create/read/update/status operations under immutable company/branch ownership.
 - All mutations are permission-protected and audited. Deactivation replaces destructive deletion; inactive parents cannot be selected for active operations or receive new active locations.
+
+## Phase 5 Catalog API
+
+- `/categories`, `/brands`, `/manufacturers`, and `/units` provide paginated create/read/update/status operations.
+- `/products` provides company-scoped paginated search, detail, creation, update, and status.
+- Product-scoped endpoints configure tile/sanitary profiles, direct conversions and previews, unit barcodes, and unit prices.
+- `GET /products/barcode/:barcode` resolves one active company product for later POS reuse.

@@ -44,13 +44,13 @@ Checkboxes are marked complete only after implementation and verification. Phase
 
 ## Phase 5 — Catalog, Units, Tile Domain, and Pricing
 
-- [ ] Categories, subcategories, brands, and manufacturers
-- [ ] Reusable product catalog and searchable barcodes
-- [ ] Units and backend-validated conversions
-- [ ] Tile and sanitary profiles
-- [ ] Unit-specific product pricing
-- [ ] Catalog, conversion, and pricing tests
-- [ ] Complete Phase 5 gate
+- [x] Categories, subcategories, brands, and manufacturers
+- [x] Reusable product catalog and searchable barcodes
+- [x] Units and backend-validated conversions
+- [x] Tile and sanitary profiles
+- [x] Unit-specific product pricing
+- [x] Catalog, conversion, and pricing tests
+- [x] Complete Phase 5 gate
 
 ## Phase 6 — Inventory and Batch/Lot/Shade
 
@@ -183,4 +183,22 @@ Checkboxes are marked complete only after implementation and verification. Phase
 - Swagger/OpenAPI Phase 4 routes and bearer/cookie security metadata: PASS (32 paths)
 - Live browser company update, branch creation and active-context selection, branch access, warehouse creation, register creation, and register deactivation: PASS
 - Prettier, Compose configuration, secret scan, API artifact, Git diff check, repository integrity, and destination free-space checks: PASS
+- Blocking Critical/High bugs: none open
+
+### Phase 5 — PASS (2026-09-06)
+
+- Categories, hierarchy-cycle protection, brands, normalized manufacturers, and units: PASS
+- Reusable Product core plus separate tile and sanitary profiles: PASS
+- Direct Decimal factor-to-base conversions and one authoritative base quantity: PASS
+- 24×24 inch nominal area, commercial Box/PCS/Sq.ft/Sq.m equivalence, and precision checks: PASS
+- Company-unique unit barcodes, deterministic unit prices, and paginated indexed product search: PASS
+- Tenant isolation, inactive-reference rejection, permission enforcement, and audit behavior: PASS
+- Migration `20260906043323_phase5_catalog_foundation`: PASS (three migrations current; clean replay/drift reports no difference)
+- PostgreSQL catalog constraints/indexes: PASS (manufacturer ownership, sanitary warranty, barcode unit ownership, one primary barcode, and one active conversion verified)
+- Central permission seed: PASS and idempotent (62 permissions after two executions)
+- API integration/regression tests: PASS (7 suites, 40 tests)
+- Repository lint, strict TypeScript, and production builds: PASS (5/5 packages, uncached and sequential)
+- Swagger/OpenAPI: PASS (55 paths; Phase 5 route groups present; bearer and cookie schemes)
+- Live browser master-data, tile, conversion, barcode, pricing, search, and sanitary workflows: PASS
+- Prettier, Compose, API artifact, secret scan, Git diff, and repository integrity: PASS
 - Blocking Critical/High bugs: none open

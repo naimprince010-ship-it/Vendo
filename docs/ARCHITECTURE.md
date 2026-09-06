@@ -24,3 +24,5 @@ Sale completion, goods receipt, returns, stock transfers, stock adjustments, and
 ## Dependency Direction
 
 Transport/UI → application services → domain rules → persistence/infrastructure. Tile-specific services extend catalog and inventory behavior; reusable core modules do not depend on tile UI concepts.
+
+Phase 5 adds a catalog module for company-scoped master data, products, separate tile/sanitary profiles, Decimal conversions, unit barcodes, independent prices, and paginated search. It does not mutate or display inventory.

@@ -22,3 +22,5 @@ Phase 4 organization keys are:
 The permission catalog is centralized in `apps/api/src/authorization/permission-catalog.ts` and synchronized idempotently by the development seed/bootstrap commands. Controllers declare required keys with `@RequirePermissions(...)`; a global permission guard evaluates the current server-loaded permission set.
 
 Requests also enforce company and branch scope. UI visibility improves usability but never replaces API authorization.
+
+Phase 5 adds `category.view/create/edit`, `brand.view/create/edit`, `manufacturer.view/create/edit`, `unit.view/manage`, `product.view`, and `pricing.view/manage`. Existing `product.create`, `product.edit`, and `product.view_cost` remain in force.

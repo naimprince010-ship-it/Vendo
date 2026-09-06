@@ -11,3 +11,9 @@ Batch tracking is optional. When enabled, allocation identifies batch/lot and sh
 - One product has one authoritative inventory base unit.
 - Boxes, pieces, square feet, and square metres are derived representations of that one quantity.
 - Pricing units are independent price records; promotional box price need not equal area price multiplied by coverage.
+
+## Dimensions and Commercial Coverage
+
+The API accepts millimetres, centimetres, or inches and stores width/height in millimetres using Prisma Decimal. Informational nominal area uses `mm² / 92,903.04` for square feet and `mm² / 1,000,000` for square metres, rounded to 10 decimal places.
+
+Nominal area does not control commercial conversion. Active product conversion factors do. With PCS as base, `BOX = 4` and `SQFT = 0.25` means one box is four pieces and one piece represents four commercial square feet.

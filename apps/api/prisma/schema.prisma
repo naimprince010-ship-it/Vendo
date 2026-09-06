@@ -127,6 +127,7 @@ model Company {
   units               Unit[]
   categories          Category[]
   brands              Brand[]
+  manufacturers       Manufacturer[]
   products            Product[]
   customerGroups      CustomerGroup[]
   customers           Customer[]
@@ -370,6 +371,7 @@ model Unit {
   products             Product[]             @relation("ProductBaseUnit")
   conversions          UnitConversion[]
   prices               ProductPrice[]
+  barcodes             ProductBarcode[]
   purchaseOrderItems   PurchaseOrderItem[]
   goodsReceiptItems    GoodsReceiptItem[]
   purchaseInvoiceItems PurchaseInvoiceItem[]
@@ -412,32 +414,51 @@ model Brand {
 
   @@unique([companyId, slug])
   @@unique([id, companyId])
+  @@index([companyId, name, isActive])
+}
+
+model Manufacturer {
+  id        String    @id @default(uuid()) @db.Uuid
+  companyId String    @db.Uuid
+  name      String    @db.VarChar(160)
+  slug      String    @db.VarChar(180)
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime  @updatedAt @db.Timestamptz(3)
+  company   Company   @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  products  Product[]
+
+  @@unique([companyId, slug])
+  @@unique([id, companyId])
+  @@index([companyId, name, isActive])
 }
 
 model Product {
-  id                   String                @id @default(uuid()) @db.Uuid
-  companyId            String                @db.Uuid
-  categoryId           String?               @db.Uuid
-  brandId              String?               @db.Uuid
-  baseUnitId           String                @db.Uuid
+  id                   String                  @id @default(uuid()) @db.Uuid
+  companyId            String                  @db.Uuid
+  categoryId           String?                 @db.Uuid
+  brandId              String?                 @db.Uuid
+  manufacturerId       String?                 @db.Uuid
+  baseUnitId           String                  @db.Uuid
   type                 ProductType
-  sku                  String                @db.VarChar(80)
-  name                 String                @db.VarChar(200)
-  model                String?               @db.VarChar(120)
-  manufacturer         String?               @db.VarChar(160)
+  sku                  String                  @db.VarChar(80)
+  name                 String                  @db.VarChar(200)
+  model                String?                 @db.VarChar(120)
   description          String?
-  standardCost         Decimal?              @db.Decimal(19, 4)
-  reorderLevel         Decimal?              @db.Decimal(20, 6)
-  trackInventory       Boolean               @default(true)
-  batchTracking        Boolean               @default(false)
-  isActive             Boolean               @default(true)
-  createdAt            DateTime              @default(now()) @db.Timestamptz(3)
-  updatedAt            DateTime              @updatedAt @db.Timestamptz(3)
-  company              Company               @relation(fields: [companyId], references: [id], onDelete: Restrict)
-  category             Category?             @relation(fields: [categoryId, companyId], references: [id, companyId], onDelete: Restrict)
-  brand                Brand?                @relation(fields: [brandId, companyId], references: [id, companyId], onDelete: Restrict)
-  baseUnit             Unit                  @relation("ProductBaseUnit", fields: [baseUnitId, companyId], references: [id, companyId], onDelete: Restrict)
+  standardCost         Decimal?                @db.Decimal(19, 4)
+  reorderLevel         Decimal?                @db.Decimal(20, 6)
+  trackInventory       Boolean                 @default(true)
+  batchTracking        Boolean                 @default(false)
+  isActive             Boolean                 @default(true)
+  createdAt            DateTime                @default(now()) @db.Timestamptz(3)
+  updatedAt            DateTime                @updatedAt @db.Timestamptz(3)
+  company              Company                 @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  category             Category?               @relation(fields: [categoryId, companyId], references: [id, companyId], onDelete: Restrict)
+  brand                Brand?                  @relation(fields: [brandId, companyId], references: [id, companyId], onDelete: Restrict)
+  manufacturer         Manufacturer?           @relation(fields: [manufacturerId, companyId], references: [id, companyId], onDelete: Restrict)
+  baseUnit             Unit                    @relation("ProductBaseUnit", fields: [baseUnitId, companyId], references: [id, companyId], onDelete: Restrict)
   tileProfile          ProductTileProfile?
+  sanitaryProfile      ProductSanitaryProfile?
   barcodes             ProductBarcode[]
   conversions          UnitConversion[]
   prices               ProductPrice[]
@@ -454,6 +475,7 @@ model Product {
   @@index([companyId, name])
   @@index([companyId, model])
   @@index([companyId, brandId, isActive])
+  @@index([companyId, manufacturerId, isActive])
   @@index([companyId, categoryId, isActive])
 }
 
@@ -479,14 +501,33 @@ model ProductTileProfile {
   @@index([companyId, series])
 }
 
+model ProductSanitaryProfile {
+  productId       String   @id @db.Uuid
+  companyId       String   @db.Uuid
+  size            String?  @db.VarChar(100)
+  color           String?  @db.VarChar(80)
+  material        String?  @db.VarChar(100)
+  finish          String?  @db.VarChar(80)
+  warrantyMonths  Int?
+  warrantyDetails String?  @db.VarChar(500)
+  createdAt       DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt       DateTime @updatedAt @db.Timestamptz(3)
+  product         Product  @relation(fields: [productId, companyId], references: [id, companyId], onDelete: Restrict)
+
+  @@unique([productId, companyId])
+  @@index([companyId, material])
+}
+
 model ProductBarcode {
   id        String   @id @default(uuid()) @db.Uuid
   companyId String   @db.Uuid
   productId String   @db.Uuid
+  unitId    String?  @db.Uuid
   barcode   String   @db.VarChar(120)
   isPrimary Boolean  @default(false)
   createdAt DateTime @default(now()) @db.Timestamptz(3)
   product   Product  @relation(fields: [productId, companyId], references: [id, companyId], onDelete: Cascade)
+  unit      Unit?    @relation(fields: [unitId, companyId], references: [id, companyId], onDelete: Restrict)
 
   @@unique([companyId, barcode])
   @@index([productId])
