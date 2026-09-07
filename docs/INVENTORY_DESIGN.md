@@ -37,3 +37,7 @@ All quantities enter as decimal strings, convert through the active product fact
 Phase 8 does not implement a second stock updater. Goods receipt and purchase return call the Phase 6 transaction-owned movement primitive, which retains warehouse authorization, product conversion, batch policy, advisory position locking, negative-stock enforcement, balance version CAS, movement creation, and balance update.
 
 A receipt movement is positive `PURCHASE_RECEIPT`; a return movement is negative `PURCHASE_RETURN`. Both retain the document UUID, entered unit/quantity, factor, cost snapshot, warehouse, and exact tile batch/shade. Remaining PO and returnable receipt quantities are compared in six-decimal base units. Boxes, PCS, sq.ft, and sq.m remain representations of the same balance.
+
+## Sales Integration
+
+Phase 9 sale completion reuses the same transaction-owned posting primitive. Each sellable line becomes a negative `SALE` movement with the completed sale UUID, entered sale unit/quantity, factor snapshot, cost snapshot, warehouse, and explicit tile batch/shade. Draft and held sales never call inventory. Lines are sorted before position locking so simultaneous multi-line sales cannot acquire the same stock positions in conflicting order. A stock failure rolls back the sale, payment, customer receivable, movements, balance projections, and audit record together.

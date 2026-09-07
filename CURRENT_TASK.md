@@ -1,56 +1,57 @@
 # Current Phase
 
-Phase 8 — Purchasing and Supplier Dues
+Phase 9 — POS and Sales
 
 # Current Task
 
-Implement and verify Purchase Order → Goods Receipt → Supplier Invoice → Supplier Payment → Purchase Return as separate, transactional workflows.
+Implement and verify cashier POS search/cart, draft/hold/resume, and atomic sale completion through inventory, payment, customer receivable, invoice, and audit journals.
 
 # Objective
 
-Deliver production-grade purchasing with Decimal totals, partial receiving/invoicing, inventory and tile batch integration, immutable supplier payable effects, allocation-safe payments, auditable returns, idempotency, concurrency protection, and real management UI. Do not start sales/POS, customer payments, cash shifts, dashboard, reports, or later phases.
+Deliver a production-grade cashier workflow with fast indexed product/barcode search, explicit tile unit/batch selection, retail/wholesale pricing, permissioned fixed discounts and price overrides, safe customer credit, minimal sale-time settlement, and all-or-nothing stock/payment/receivable posting. Do not start due collection, returns/refunds/exchanges, cash shifts, expenses, dashboard, reports, or later phases.
 
 # Dependencies
 
-- Verified Phase 6 inventory movement, balance, batch, idempotency, and concurrency primitives
-- Verified Phase 7 supplier master and immutable signed supplier ledger
-- Existing Phase 2 purchase, payment, and location relational foundations
-- Authenticated company and active-branch authorization context
+- Verified Phase 5 indexed catalog, direct unit conversions, barcodes, and unit pricing
+- Verified Phase 6 stock movement, balance, batch, negative-stock, idempotency, and locking primitives
+- Verified Phase 7 customers, walk-in policy, credit limits, and immutable customer ledger
+- Verified Phase 8 transaction-owned inventory integration, document sequencing, and idempotency patterns
+- Existing Sale, SaleItem, SalePayment, Payment, Register, Warehouse, and active-branch foundations
 - PostgreSQL 17 development service
 
 # Expected Files To Change
 
-- Additive Phase 8 Prisma migration and purchase-domain relations/constraints
-- Purchasing API module, DTOs, services, controllers, and integration tests
-- Reusable inventory transaction boundary for purchase receipt/return posting
-- Permission catalog and idempotent seed
-- Real purchasing management UI under `apps/web/src/**`
-- Database, inventory, permissions, decisions, and governance documentation
+- Additive Phase 9 Prisma migration and sale lifecycle/snapshot/idempotency constraints
+- Sales/POS API module, DTOs, service, controller, and critical integration tests
+- Reusable inventory transaction boundary for sale deduction
+- Central permission catalog and idempotent seed
+- Desktop-first authenticated POS and sales-history UI under `apps/web/src/**`
+- Sales, database, inventory, permissions, decisions, and governance documentation
 
 # Acceptance Criteria
 
-- PO lifecycle and concurrency-safe company numbering work without stock/payable effects.
-- Posted receipts atomically create receipt lines, batch identities, inventory movements/balances, and audit records; partial and over-receipt rules are enforced.
-- Posted supplier invoices use backend Decimal totals and atomically increase the immutable supplier ledger.
-- Supplier payments and allocations atomically reduce payable; over-allocation is rejected and unapplied advance is explicit.
-- Purchase returns atomically reverse correct receipt inventory/batch and create a financial ledger reduction only for legitimately invoiced goods.
-- Critical posts are idempotent, concurrency-safe, tenant/location/permission scoped, searchable, and exposed through real UI.
+- Draft/held sales have no physical or financial effects and are revalidated at completion.
+- Completed sales bind an active company branch, register, warehouse, customer, products, units, and explicit batch positions.
+- Backend-authoritative Decimal pricing, fixed discounts, tax, minimum price, settlement, change, and credit limits are enforced.
+- One transaction creates the immutable completed sale/items, inbound payment/allocation, unpaid customer receivable, inventory movements/balances, and audit history.
+- Duplicate completion and simultaneous overselling are safe; walk-in due is rejected and fully paid sales create no receivable.
+- POS search, barcode handling, hold/resume, receipt-ready detail, and sales history are real, paginated, secured workflows.
 
 # Verification Required
 
-- Phase 8 integration tests for lifecycle, partials, conversion, batch, inventory/ledger invariants, returns, idempotency, concurrency, isolation, permissions, and Decimal precision
+- Phase 9 integration tests for POS search, pricing, conversion, batch, discounts/override, credit, settlement, atomicity, idempotency, overselling, isolation, permissions, and immutability
 - Migration SQL inspection/application/status plus clean replay and zero drift
 - Permission seed idempotency, Swagger, and live browser workflows
 - Prisma checks, repository lint/typecheck/tests/builds, formatting, Compose, secret scan, and Git integrity
 
 # Status
 
-COMPLETE — Phase 8 is implemented, migration-replayed, database/API/browser verified, and all repository gates pass. No Critical/High purchasing blocker remains.
+COMPLETE — Phase 9 implementation, 11-migration replay/parity, 66 API tests, 20/20 uncached repository tasks, production builds, Swagger, bootstrap idempotency, secret scan, live production API verification, and the complete production browser workflow all pass. The browser verified tile and sanitary barcode entry, BOX unit conversion, exact batch/shade, hold/resume, BDT 150 cash change, invoice/history, stock deduction, and a named-customer BDT 300 credit receivable with a clean console.
 
 # Blockers
 
-None. `BUG-008` remains a low-severity deferred pg@9 compatibility warning on the pinned pg 8 runtime.
+None for Phase 9. `BUG-019` is resolved after the Codex browser-control runtime initialized successfully and the required workflow passed. `BUG-008` remains a low-severity deferred pg@9 compatibility warning on the pinned pg 8 runtime.
 
 # Next Approved Task
 
-Phase 9 — implement the cashier-optimized POS and sales workflow: product search/cart, draft/hold/resume, atomic sale completion, authoritative pricing/discount/tax calculation, stock deduction, invoice creation, and concurrent overselling protection. Phase 10 payment/return scope remains deferred.
+Phase 10 — implement split payments, customer due collection, full and partial sale returns, refunds, and exchange workflows using immutable reversals and the verified Phase 9 sale foundation. Phase 10 has not started.

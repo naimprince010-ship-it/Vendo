@@ -8,13 +8,14 @@ import { CatalogConsole } from './catalog-console';
 import { InventoryConsole } from './inventory-console';
 import { PartiesConsole } from './parties-console';
 import { PurchasingConsole } from './purchasing-console';
+import { PosConsole } from './pos-console';
 
 export default function ProtectedAppPage() {
   const router = useRouter();
   const { user, status, logout } = useAuth();
   const [area, setArea] = useState<
-    'organization' | 'catalog' | 'inventory' | 'parties' | 'purchasing'
-  >('purchasing');
+    'pos' | 'organization' | 'catalog' | 'inventory' | 'parties' | 'purchasing'
+  >('pos');
 
   useEffect(() => {
     if (status === 'anonymous') router.replace('/login');
@@ -48,7 +49,7 @@ export default function ProtectedAppPage() {
           </button>
         </header>
         <nav className="mb-5 flex gap-2" aria-label="Application sections">
-          {(['purchasing', 'parties', 'inventory', 'catalog', 'organization'] as const).map(
+          {(['pos', 'purchasing', 'parties', 'inventory', 'catalog', 'organization'] as const).map(
             (item) => (
               <button
                 key={item}
@@ -61,7 +62,9 @@ export default function ProtectedAppPage() {
             ),
           )}
         </nav>
-        {area === 'purchasing' ? (
+        {area === 'pos' ? (
+          <PosConsole />
+        ) : area === 'purchasing' ? (
           <PurchasingConsole />
         ) : area === 'parties' ? (
           <PartiesConsole />

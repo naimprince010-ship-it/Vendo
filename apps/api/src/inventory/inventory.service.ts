@@ -55,6 +55,8 @@ export type PurchasingStockLine = {
   quantity: string;
 };
 
+export type SalesStockLine = PurchasingStockLine;
+
 type DecimalValue = string | number | Prisma.Decimal;
 const q6 = (value: DecimalValue) => new Prisma.Decimal(value).toDecimalPlaces(6);
 const factor10 = (value: DecimalValue) => new Prisma.Decimal(value).toDecimalPlaces(10);
@@ -97,6 +99,28 @@ export class InventoryService {
       direction === 'IN' ? 1 : -1,
       meta,
     );
+    return { position, ...result };
+  }
+
+  /** Phase 9 transaction-owned sale deduction through the Phase 6 authority. */
+  async postSaleMovement(
+    tx: Tx,
+    principal: AuthPrincipal,
+    branchId: string,
+    warehouseId: string,
+    line: SalesStockLine,
+    saleId: string,
+    unitCost?: Prisma.Decimal,
+  ) {
+    await this.requireWarehouse(tx, principal.companyId, branchId, warehouseId);
+    const position = await this.resolvePosition(tx, principal.companyId, line);
+    const result = await this.applyMovement(tx, principal, branchId, warehouseId, position, -1, {
+      type: InventoryMovementType.SALE,
+      referenceType: 'SALE',
+      referenceId: saleId,
+      reason: 'Completed sale',
+      unitCost,
+    });
     return { position, ...result };
   }
 

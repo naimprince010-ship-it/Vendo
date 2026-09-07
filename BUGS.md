@@ -192,6 +192,66 @@ No Critical/High customer, supplier, tenant, financial-foundation, migration, AP
 - **Status:** Resolved — PO detail now includes the authoritative batch-tracking flag; production UI/browser receiving is reverified with explicit batch, lot, and shade.
 - **Related task:** Phase 8 — tile batch receiving browser gate
 
+## BUG-015 — Initial Phase 9 migration collided with existing sale check names
+
+- **ID:** BUG-015
+- **Severity:** High
+- **Area:** Database migration / sales foundation
+- **Description:** The first development deployment attempted to add Phase 9 sale checks using names already created by Phase 2. Because earlier migration statements had committed, retrying also encountered newly created indexes.
+- **Reproduction:** Deploy the initially generated Phase 9 SQL against the migrated Phase 8 development database.
+- **Expected:** The additive migration replaces the intended legacy checks and applies atomically/retry-safely.
+- **Actual:** PostgreSQL rejected the duplicate constraint name after some additive DDL had run.
+- **Related task:** Phase 9 — sale lifecycle migration
+- **Status:** Resolved — inspected the partial state, removed only empty Phase 9 objects, restored retained Phase 6 identities, marked the failed attempt rolled back, and corrected the unapplied migration to drop/recreate the named checks. Deployment, 11-migration clean replay, and normalized live/replay schema hash now pass.
+
+## BUG-016 — Nested sale-item create supplied a relation-owned company field
+
+- **ID:** BUG-016
+- **Severity:** High
+- **Area:** Sales completion / Prisma persistence
+- **Description:** The first sale integration run supplied `companyId` inside a nested `Sale.items.create`, which Prisma rejects for the relation-aware nested create shape.
+- **Reproduction:** Complete a valid sale through `POST /sales/complete` using the initial implementation.
+- **Expected:** Sale header and lines persist in the same transaction.
+- **Actual:** Prisma validation rejected the nested line payload and rolled back the transaction.
+- **Related task:** Phase 9 — atomic sale completion
+- **Status:** Resolved — the nested create now derives tenant ownership through its parent sale relation while line product/unit/batch ownership remains explicitly revalidated. The 66-test regression suite passes.
+
+## BUG-017 — POS context defaults violated React effect lint policy
+
+- **ID:** BUG-017
+- **Severity:** Medium
+- **Area:** POS frontend / quality gate
+- **Description:** Initial warehouse, register, customer, and payment-method defaults were synchronously copied from query data into component state inside an effect.
+- **Reproduction:** Run the web ESLint gate against the initial Phase 9 POS console.
+- **Expected:** Server-derived defaults do not cause effect-driven state cascades.
+- **Actual:** `react-hooks/set-state-in-effect` failed the build gate.
+- **Related task:** Phase 9 — desktop cashier UI
+- **Status:** Resolved — defaults are derived from query data and local explicit overrides; web lint and typecheck pass.
+
+## BUG-018 — Bootstrapped Cash method was not classified as cash
+
+- **ID:** BUG-018
+- **Severity:** High
+- **Area:** Company bootstrap / POS settlement
+- **Description:** The Phase 8 default payment-method bootstrap created `CASH` without setting `isCash`, leaving its database default false.
+- **Reproduction:** Bootstrap a company, then complete a sale with the default Cash method and a tendered amount.
+- **Expected:** Cash accepts tendered amount and calculates change; non-cash methods reject tendered cash.
+- **Actual:** The API correctly rejected tendered amount because the bootstrapped method was misclassified as non-cash.
+- **Related task:** Phase 9 — live sale settlement verification
+- **Status:** Resolved — bootstrap definitions now explicitly synchronize `isCash=true` only for Cash and false for Bank/Card/MFS. Bootstrap idempotency and the live cash/change workflow are reverified.
+
+## BUG-019 — Browser verification runtime cannot initialize
+
+- **ID:** BUG-019
+- **Severity:** Medium (phase-gate blocker)
+- **Area:** Verification environment / Phase 9 browser workflow
+- **Description:** The app-provided browser control runtime fails before executing any browser command with `failed to write kernel assets: The system cannot find the path specified. (os error 3)`.
+- **Reproduction:** Initialize the required browser-control runtime, including after resetting it and retrying against `http://localhost:3000/login`.
+- **Expected:** The production Next.js app opens so login, barcode/search, cart, hold/resume, completion, history, invoice detail, and console state can be verified interactively.
+- **Actual:** The initial attempts failed before browser selection or navigation. On 2026-09-07 the runtime initialized successfully and allowed the complete production workflow to run.
+- **Related task:** Phase 9 — production browser gate
+- **Status:** Resolved — the runtime initialized on retry; login/context, barcode tile and sanitary cart, BOX conversion, batch/shade, hold/resume, cash change, completion, invoice/history, inventory deduction, named-customer credit ledger, and clean-console checks all passed.
+
 ## Phase 8 Verification Note — 2026-09-06
 
 No Critical/High purchasing, inventory-integration, supplier-ledger, migration, API, or UI blocker remains. `BUG-012`, `BUG-013`, and `BUG-014` were found and resolved before the final gate. One parallel Turbo lint attempt exhausted the local Node worker heap while production verification servers were still resident; after those servers were stopped, the required uncached sequential lint run passed 5/5 with a 4096 MiB worker ceiling. This was an execution-resource failure, not a source defect. The guarded seed also correctly refused an invocation without `ALLOW_DEV_SEED=true`, then passed twice when explicitly authorized. Deferred `BUG-008` remains the only known issue and is a low-severity future pg@9 compatibility warning on the pinned pg 8.23 runtime.

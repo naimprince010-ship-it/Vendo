@@ -188,3 +188,12 @@
 - **Alternatives:** One purchase transaction; stock updates embedded in purchasing; mutable supplier due columns; `MAX(number)+1` numbering.
 - **Rationale:** Separate aggregates match real operations while shared journals preserve one physical and one payable authority. Database sequencing and locks work across API instances.
 - **Consequences:** POs never affect stock/payable. Receipt conversion factors and costs are snapshots. Unallocated payment is a supplier advance. A received-only return has no financial effect; an invoiced return credits the proportional stored invoice-line amount. Automatic landed-cost allocation and Phase 11 cash-drawer effects remain explicitly deferred.
+
+## ADR-022 — Effect-Free Drafts and Atomic Sales Completion
+
+- **Date:** 2026-09-07
+- **Context:** A cashier sale combines volatile catalog pricing, product conversion, exact tile stock, customer credit, payment, and audit effects; drafts and held carts must not reserve or mutate those authorities.
+- **Decision:** Keep `DRAFT`/`HELD` sales effect-free and revalidate every dependency at completion. One PostgreSQL transaction creates immutable sale snapshots, calls the shared Phase 6 inventory primitive, records at most one Phase 9 payment, posts only the unpaid amount to the Phase 7 customer ledger, and writes audit history. Company-local sequence rows allocate invoice/payment numbers, and `SalesOperation` provides request-hash idempotency. Completed rows are mutation-protected until later linked reversal models are implemented.
+- **Alternatives:** Reserve stock on hold; trust browser totals; maintain mutable customer due and stock fields; reuse purchase idempotency polymorphically; permit edits to completed invoices.
+- **Rationale:** Revalidation prevents stale held carts, shared journals preserve physical/financial authority, and one transaction prevents partial sales under failures or concurrent overselling.
+- **Consequences:** Walk-in sales must be fully settled; named-customer dues respect ledger-derived balance and credit limit. Phase 9 supports zero/one payment only. Split settlement/due collection, linked returns/refunds/exchanges, cash shifts, and receipt printing remain Phase 10–12 work.

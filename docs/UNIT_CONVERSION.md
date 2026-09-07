@@ -19,3 +19,5 @@ Phase 5 supports direct unit-to-base factors only. Conversion from A to B is `qu
 API quantities are decimal strings. Base preview results retain up to 10 decimal places for coherent equivalence; target displays use the unit scale. Phase 6 must enforce operational quantity policy and snapshot each factor.
 
 Phase 6 now resolves every operational input through the same direct factor-to-base model, rounds the persisted base delta to six decimal places, rejects zero after rounding, and snapshots the ten-decimal factor and positive transaction quantity on the immutable movement. Balance responses derive all configured units from the one stored base quantity; they never persist display equivalents.
+
+Phase 9 uses that identical conversion authority for sales. The selected sale unit must be the base unit or have one active product-specific direct factor. Both `SaleItem` and its `SALE` movement snapshot the transaction quantity, unit, factor, and six-decimal base quantity. A later catalog conversion change therefore cannot reinterpret historical Box, PCS, Sq.ft, or Sq.m sales.

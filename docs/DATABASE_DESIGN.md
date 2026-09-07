@@ -80,6 +80,10 @@ Phase 5 migration `20260906043323_phase5_catalog_foundation` normalizes company-
 
 Phase 6 migrations `20260906060435_phase6_inventory_engine` and `20260906062000_phase6_inventory_constraints` add idempotent posting and physical counts, then restore/extend PostgreSQL-only null-safe indexes and checks after generated-SQL inspection. A clean five-migration replay has no drift.
 
+Phase 9 migration `20260906220000_phase9_sales_pos` extends the existing sale aggregate with salesperson, pricing mode, configured-price snapshot, and override reason. `SalesDocumentSequence` allocates company-local invoice/payment numbers atomically; `SalesOperation` stores company-scoped completion idempotency keys, request hashes, and committed sale references. Composite register/cashier/salesperson indexes support branch history and operator reporting. PostgreSQL checks enforce completed-header settlement arithmetic and line snapshot arithmetic, while triggers reject completed `Sale`/`SaleItem` update or deletion.
+
+Sale money remains `numeric(19,4)`, quantities remain `numeric(20,6)`, and conversion snapshots remain `numeric(24,10)`. A completed sale links the existing `Payment`/`SalePayment`, immutable customer ledger, and inventory movement journal rather than introducing mutable paid, due, or stock authorities.
+
 ## Phase 8 Purchasing Foundation
 
 `PurchaseOrder`, `GoodsReceipt`, `PurchaseInvoice`, `Payment`, and their line/allocation tables remain distinct aggregates. Receipt now owns its supplier snapshot; invoice owns optional PO/receipt references, actor, currency, notes, and line conversion snapshots. `PurchaseReturn` and `PurchaseReturnItem` link the exact receipt line, optional invoice line, product, batch, unit, conversion, cost, and proportional financial credit.

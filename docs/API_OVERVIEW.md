@@ -6,6 +6,8 @@ Phase 7 exposes authenticated company-scoped `/customer-groups`, `/customers`, a
 
 Phase 8 exposes active-branch-scoped `/purchases` resources for purchase orders, goods receipts, supplier invoices, outbound supplier payments, purchase returns, payment methods, and supplier due queries. The API owns lifecycle transitions, Decimal calculations, company/location ownership, inventory/supplier-ledger effects, allocation limits, and duplicate-submit protection.
 
+Phase 9 exposes active-branch-scoped `/sales` resources for bounded POS context/customer/product discovery, exact barcode lookup, effect-free drafts/hold/resume, idempotent atomic completion, and paginated invoice history/detail. Completion owns price/discount/tax/settlement/credit validation and commits the sale, inventory, payment, optional customer receivable, and audit effects together.
+
 ## Conventions
 
 - JSON request/response bodies with Zod/shared schemas where practical and Nest validation at the transport boundary.
@@ -54,3 +56,11 @@ Phase 8 exposes active-branch-scoped `/purchases` resources for purchase orders,
 - `/purchases/payments` records idempotent outbound supplier payments, partial invoice allocations, or explicit unapplied advances. `/purchases/suppliers/:supplierId/due` derives payable and invoice outstanding values from authoritative records.
 - `POST /purchases/returns` atomically returns exact received stock and creates a supplier credit only when the return references legitimately invoiced quantity. Received-only returns create no fake financial event.
 - All purchasing collection APIs are bounded/paginated and active-branch/company scoped. Critical posting endpoints declare and enforce `Idempotency-Key` request-hash semantics.
+
+## Phase 9 Sales API
+
+- `GET /sales/pos/context` returns only the active-branch warehouses/registers, active payment methods, and company-local walk-in identity needed by the cashier.
+- `GET /sales/pos/customers` is bounded company-local customer lookup. `GET /sales/pos/products` accepts an explicit warehouse plus search or exact barcode and returns reusable sale units, retail/wholesale/minimum prices, current base availability, tile batches/shades, and no cost unless authorized.
+- `/sales/drafts` plus hold/resume transitions persist an effect-free working sale. Completion revalidates current catalog, price, customer, credit, and stock state.
+- `POST /sales/complete` requires `Idempotency-Key`; a single transaction creates an immutable completed invoice and lines, optional payment/allocation, optional customer receivable, inventory movements/balances, and audit event.
+- `GET /sales` and `GET /sales/:id` provide bounded company/active-branch history and receipt-ready detail. Phase 10 will add linked return/refund/exchange and broader settlement APIs.

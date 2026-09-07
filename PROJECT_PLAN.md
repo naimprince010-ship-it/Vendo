@@ -80,12 +80,12 @@ Checkboxes are marked complete only after implementation and verification. Phase
 
 ## Phase 9 — POS and Sales
 
-- [ ] Cashier-optimized product search and cart
-- [ ] Draft, hold, and resume sales
-- [ ] Atomic sale completion workflow
-- [ ] Stock deduction, pricing, discounts, tax, and invoice
-- [ ] Critical sale and concurrent overselling tests
-- [ ] Complete Phase 9 gate
+- [x] Cashier-optimized product search and cart
+- [x] Draft, hold, and resume sales
+- [x] Atomic sale completion workflow
+- [x] Stock deduction, pricing, discounts, tax, and invoice
+- [x] Critical sale and concurrent overselling tests
+- [x] Complete Phase 9 gate
 
 ## Phase 10 — Payments, Dues, Returns, Refunds, and Exchange
 
@@ -254,3 +254,12 @@ Checkboxes are marked complete only after implementation and verification. Phase
 - Live production browser PO, partial batch/shade receipt, invoice, partial payment, financial return, inventory, and supplier-ledger workflows: PASS; console clean
 - Prisma format/validation/generation/status, Prettier, Compose, API artifact, secret scan, Git whitespace/integrity, and destination free-space checks: PASS
 - Blocking Critical/High bugs: none open; `BUG-012`, `BUG-013`, and `BUG-014` found and resolved before the final gate
+
+### Phase 9 — PASS (2026-09-07)
+
+- POS/sales implementation, migration, database parity, backend workflows, tests, production builds, Swagger, permission/bootstrap idempotency, secret scan, and live production API verification: PASS
+- API integration/regression tests: PASS (11 suites, 66 tests; Phase 9 suite 6/6 including pricing, conversion, batch, credit, idempotency, immutability, isolation, permissions, and concurrent overselling)
+- Repository uncached sequential lint, strict TypeScript, tests, and production builds: PASS (20/20 tasks across 5 packages)
+- Interactive production browser login/context, barcode tile and sanitary cart, BOX unit, batch/shade, hold/resume, cash payment/change, completion, invoice/history, inventory deduction, and named-customer credit ledger workflow: PASS; browser console clean
+- Eleven-migration clean replay and normalized live/replay schema equality, Prisma validation/generation/status, formatting, Compose, Git integrity, and remote integrity: PASS
+- Blocking Critical/High bugs: none open; browser-runtime gate blocker `BUG-019` resolved on retry

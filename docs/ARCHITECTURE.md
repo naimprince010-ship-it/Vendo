@@ -27,6 +27,8 @@ Transport/UI → application services → domain rules → persistence/infrastru
 
 Phase 5 adds a catalog module for company-scoped master data, products, separate tile/sanitary profiles, Decimal conversions, unit barcodes, independent prices, and paginated search. It does not mutate or display inventory.
 
+Phase 9 adds a Sales module that composes, but does not duplicate, the catalog, inventory, party-ledger, payment, branch, and audit foundations. Drafts remain effect-free. A single completion transaction owns authoritative Decimal calculation, inventory deduction, minimal settlement, optional customer receivable, and audit persistence. The desktop POS consumes bounded APIs rather than loading the catalog.
+
 Phase 6 adds the inventory application boundary. Controllers require a validated active branch and explicit warehouse; services resolve Decimal product conversions, optional batch identity, negative-stock policy, idempotency, deterministic database locks, immutable movements, balance projection updates, counts, and transfers inside PostgreSQL transactions. The inventory UI consumes these APIs and never calculates authoritative stock.
 
 Phase 8 adds a purchasing application boundary while preserving PO, receipt, invoice, payment, and return as distinct business events. Receipt and return stock effects call the Phase 6 transaction-owned posting primitive; invoice/payment/financial-return effects append to the Phase 7 supplier ledger. Company-scoped atomic document sequences, advisory capacity locks, and request-hash idempotency protect critical mutations. Cash-drawer integration and landed-cost allocation remain deferred to their approved phases.

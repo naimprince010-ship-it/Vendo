@@ -70,15 +70,15 @@ async function main(): Promise<void> {
       await tx.permission.upsert({ where: { key }, create: { key }, update: {} });
     }
     for (const method of [
-      { code: 'CASH', name: 'Cash' },
-      { code: 'BANK', name: 'Bank transfer' },
-      { code: 'CARD', name: 'Card' },
-      { code: 'MFS', name: 'Mobile financial service' },
+      { code: 'CASH', name: 'Cash', isCash: true },
+      { code: 'BANK', name: 'Bank transfer', isCash: false },
+      { code: 'CARD', name: 'Card', isCash: false },
+      { code: 'MFS', name: 'Mobile financial service', isCash: false },
     ]) {
       await tx.paymentMethod.upsert({
         where: { companyId_code: { companyId: company.id, code: method.code } },
         create: { companyId: company.id, ...method },
-        update: { name: method.name, isActive: true },
+        update: { name: method.name, isCash: method.isCash, isActive: true },
       });
     }
     const ownerRole = await tx.role.upsert({
