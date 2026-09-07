@@ -89,12 +89,14 @@ Checkboxes are marked complete only after implementation and verification. Phase
 
 ## Phase 10 — Payments, Dues, Returns, Refunds, and Exchange
 
-- [ ] Split payments and change calculation
-- [ ] Customer credit and due collection
-- [ ] Full and partial returns
-- [ ] Refund and exchange workflows
-- [ ] Reversal and ledger tests
-- [ ] Complete Phase 10 gate
+- [x] Split payments and change calculation
+- [x] Customer credit and due collection
+- [x] Full and partial returns
+- [x] Refund and exchange workflows
+- [x] Reversal and ledger tests
+- [x] Complete Phase 10 gate
+
+Gate evidence: 12-migration clean replay with normalized live/replay schema equality, 88-permission seed idempotency, 119-path Swagger verification, 12 API suites/75 tests, uncached 5-package lint/typecheck/build gates, Prisma/format/Compose/security/Git checks, and production browser collection/partial exact-batch return/fully-paid refund/exchange/inventory/ledger/clean-console workflows.
 
 ## Phase 11 — Cash Shifts and Expenses
 

@@ -88,11 +88,30 @@ enum PricingMode {
 
 enum SalesOperationType {
   COMPLETE_SALE
+  CUSTOMER_COLLECTION
+  SALE_RETURN
+  SALE_REFUND
+  EXCHANGE
+  VOID_SALE
 }
 
 enum SalesDocumentType {
   SALE_INVOICE
   SALE_PAYMENT
+  CUSTOMER_COLLECTION
+  SALE_RETURN
+  SALE_REFUND
+  EXCHANGE
+}
+
+enum SaleReturnKind {
+  RETURN
+  VOID
+}
+
+enum ReturnDisposition {
+  RESTOCK
+  NON_RESELLABLE
 }
 
 enum PaymentDirection {
@@ -218,6 +237,8 @@ model Company {
   salesOperations        SalesOperation[]
   salesDocumentSequences SalesDocumentSequence[]
   purchaseReturns        PurchaseReturn[]
+  saleReturns            SaleReturn[]
+  saleExchanges          SaleExchange[]
 
   @@unique([id, code])
 }
@@ -252,6 +273,8 @@ model Branch {
   customerLedgerEntries CustomerLedgerEntry[]
   supplierLedgerEntries SupplierLedgerEntry[]
   purchaseReturns       PurchaseReturn[]
+  saleReturns           SaleReturn[]
+  saleExchanges         SaleExchange[]
 
   @@unique([companyId, code])
   @@unique([id, companyId])
@@ -276,6 +299,7 @@ model Warehouse {
   inventoryBalances  InventoryBalance[]
   physicalCounts     PhysicalCount[]
   purchaseReturns    PurchaseReturn[]
+  saleReturns        SaleReturn[]
 
   @@unique([companyId, code])
   @@unique([id, companyId])
@@ -346,6 +370,8 @@ model User {
   purchaseReturns       PurchaseReturn[]      @relation("PurchaseReturnCreatedBy")
   purchaseOperations    PurchaseOperation[]   @relation("PurchaseOperationCreatedBy")
   salesOperations       SalesOperation[]      @relation("SalesOperationCreatedBy")
+  saleReturns           SaleReturn[]          @relation("SaleReturnCreatedBy")
+  saleExchanges         SaleExchange[]        @relation("SaleExchangeCreatedBy")
 
   @@unique([companyId, email])
   @@unique([id, companyId])
@@ -473,6 +499,7 @@ model Unit {
   goodsReceiptItems    GoodsReceiptItem[]
   purchaseInvoiceItems PurchaseInvoiceItem[]
   saleItems            SaleItem[]
+  saleReturnItems      SaleReturnItem[]
   inventoryMovements   InventoryMovement[]
   physicalCountItems   PhysicalCountItem[]
   purchaseReturnItems  PurchaseReturnItem[]
@@ -570,6 +597,7 @@ model Product {
   inventoryBalances    InventoryBalance[]
   physicalCountItems   PhysicalCountItem[]
   purchaseReturnItems  PurchaseReturnItem[]
+  saleReturnItems      SaleReturnItem[]
 
   @@unique([companyId, sku])
   @@unique([id, companyId])
@@ -684,6 +712,7 @@ model ProductBatch {
   supplier            Supplier?            @relation(fields: [supplierId, companyId], references: [id, companyId], onDelete: Restrict)
   goodsReceiptItems   GoodsReceiptItem[]
   saleItems           SaleItem[]
+  saleReturnItems     SaleReturnItem[]
   inventoryMovements  InventoryMovement[]
   inventoryBalances   InventoryBalance[]
   physicalCountItems  PhysicalCountItem[]
@@ -734,6 +763,7 @@ model Customer {
   sales         Sale[]
   payments      Payment[]
   ledgerEntries CustomerLedgerEntry[]
+  saleReturns   SaleReturn[]
 
   @@unique([companyId, code])
   @@unique([id, companyId])
@@ -1010,37 +1040,40 @@ model PurchaseInvoiceItem {
 }
 
 model Sale {
-  id                 String        @id @default(uuid()) @db.Uuid
-  companyId          String        @db.Uuid
-  branchId           String        @db.Uuid
-  warehouseId        String        @db.Uuid
-  registerId         String        @db.Uuid
-  customerId         String        @db.Uuid
-  createdById        String        @db.Uuid
-  salespersonId      String?       @db.Uuid
-  invoiceNumber      String        @db.VarChar(60)
-  status             SaleStatus    @default(DRAFT)
-  pricingMode        PricingMode   @default(RETAIL)
-  saleDate           DateTime      @default(now()) @db.Timestamptz(3)
-  subtotal           Decimal       @default(0) @db.Decimal(19, 4)
-  discount           Decimal       @default(0) @db.Decimal(19, 4)
-  tax                Decimal       @default(0) @db.Decimal(19, 4)
-  total              Decimal       @default(0) @db.Decimal(19, 4)
-  paid               Decimal       @default(0) @db.Decimal(19, 4)
-  due                Decimal       @default(0) @db.Decimal(19, 4)
-  change             Decimal       @default(0) @db.Decimal(19, 4)
-  notes              String?
-  completedAt        DateTime?     @db.Timestamptz(3)
-  createdAt          DateTime      @default(now()) @db.Timestamptz(3)
-  updatedAt          DateTime      @updatedAt @db.Timestamptz(3)
-  branch             Branch        @relation(fields: [branchId, companyId], references: [id, companyId], onDelete: Restrict)
-  warehouse          Warehouse     @relation(fields: [warehouseId, branchId, companyId], references: [id, branchId, companyId], onDelete: Restrict)
-  register           Register      @relation(fields: [registerId, branchId, companyId], references: [id, branchId, companyId], onDelete: Restrict)
-  customer           Customer      @relation(fields: [customerId, companyId], references: [id, companyId], onDelete: Restrict)
-  createdBy          User          @relation("SaleCreatedBy", fields: [createdById, companyId], references: [id, companyId], onDelete: Restrict)
-  salesperson        User?         @relation("SaleSalesperson", fields: [salespersonId, companyId], references: [id, companyId], onDelete: Restrict)
-  items              SaleItem[]
-  paymentAllocations SalePayment[]
+  id                   String         @id @default(uuid()) @db.Uuid
+  companyId            String         @db.Uuid
+  branchId             String         @db.Uuid
+  warehouseId          String         @db.Uuid
+  registerId           String         @db.Uuid
+  customerId           String         @db.Uuid
+  createdById          String         @db.Uuid
+  salespersonId        String?        @db.Uuid
+  invoiceNumber        String         @db.VarChar(60)
+  status               SaleStatus     @default(DRAFT)
+  pricingMode          PricingMode    @default(RETAIL)
+  saleDate             DateTime       @default(now()) @db.Timestamptz(3)
+  subtotal             Decimal        @default(0) @db.Decimal(19, 4)
+  discount             Decimal        @default(0) @db.Decimal(19, 4)
+  tax                  Decimal        @default(0) @db.Decimal(19, 4)
+  total                Decimal        @default(0) @db.Decimal(19, 4)
+  paid                 Decimal        @default(0) @db.Decimal(19, 4)
+  due                  Decimal        @default(0) @db.Decimal(19, 4)
+  change               Decimal        @default(0) @db.Decimal(19, 4)
+  notes                String?
+  completedAt          DateTime?      @db.Timestamptz(3)
+  createdAt            DateTime       @default(now()) @db.Timestamptz(3)
+  updatedAt            DateTime       @updatedAt @db.Timestamptz(3)
+  branch               Branch         @relation(fields: [branchId, companyId], references: [id, companyId], onDelete: Restrict)
+  warehouse            Warehouse      @relation(fields: [warehouseId, branchId, companyId], references: [id, branchId, companyId], onDelete: Restrict)
+  register             Register       @relation(fields: [registerId, branchId, companyId], references: [id, branchId, companyId], onDelete: Restrict)
+  customer             Customer       @relation(fields: [customerId, companyId], references: [id, companyId], onDelete: Restrict)
+  createdBy            User           @relation("SaleCreatedBy", fields: [createdById, companyId], references: [id, companyId], onDelete: Restrict)
+  salesperson          User?          @relation("SaleSalesperson", fields: [salespersonId, companyId], references: [id, companyId], onDelete: Restrict)
+  items                SaleItem[]
+  paymentAllocations   SalePayment[]
+  returns              SaleReturn[]
+  originalExchanges    SaleExchange[] @relation("ExchangeOriginalSale")
+  replacementExchanges SaleExchange[] @relation("ExchangeReplacementSale")
 
   @@unique([companyId, invoiceNumber])
   @@unique([id, companyId])
@@ -1052,27 +1085,28 @@ model Sale {
 }
 
 model SaleItem {
-  id                  String        @id @default(uuid()) @db.Uuid
-  companyId           String        @db.Uuid
-  saleId              String        @db.Uuid
-  productId           String        @db.Uuid
-  unitId              String        @db.Uuid
-  batchId             String?       @db.Uuid
-  quantity            Decimal       @db.Decimal(20, 6)
-  baseQuantity        Decimal       @db.Decimal(20, 6)
-  conversionFactor    Decimal       @db.Decimal(24, 10)
-  configuredPrice     Decimal       @db.Decimal(19, 4)
-  unitPrice           Decimal       @db.Decimal(19, 4)
-  unitCost            Decimal       @db.Decimal(19, 4)
-  discount            Decimal       @default(0) @db.Decimal(19, 4)
-  tax                 Decimal       @default(0) @db.Decimal(19, 4)
-  lineTotal           Decimal       @db.Decimal(19, 4)
-  priceOverrideReason String?       @db.VarChar(500)
-  createdAt           DateTime      @default(now()) @db.Timestamptz(3)
-  sale                Sale          @relation(fields: [saleId, companyId], references: [id, companyId], onDelete: Restrict)
-  product             Product       @relation(fields: [productId, companyId], references: [id, companyId], onDelete: Restrict)
-  unit                Unit          @relation(fields: [unitId, companyId], references: [id, companyId], onDelete: Restrict)
-  batch               ProductBatch? @relation(fields: [batchId, productId, companyId], references: [id, productId, companyId], onDelete: Restrict)
+  id                  String           @id @default(uuid()) @db.Uuid
+  companyId           String           @db.Uuid
+  saleId              String           @db.Uuid
+  productId           String           @db.Uuid
+  unitId              String           @db.Uuid
+  batchId             String?          @db.Uuid
+  quantity            Decimal          @db.Decimal(20, 6)
+  baseQuantity        Decimal          @db.Decimal(20, 6)
+  conversionFactor    Decimal          @db.Decimal(24, 10)
+  configuredPrice     Decimal          @db.Decimal(19, 4)
+  unitPrice           Decimal          @db.Decimal(19, 4)
+  unitCost            Decimal          @db.Decimal(19, 4)
+  discount            Decimal          @default(0) @db.Decimal(19, 4)
+  tax                 Decimal          @default(0) @db.Decimal(19, 4)
+  lineTotal           Decimal          @db.Decimal(19, 4)
+  priceOverrideReason String?          @db.VarChar(500)
+  createdAt           DateTime         @default(now()) @db.Timestamptz(3)
+  sale                Sale             @relation(fields: [saleId, companyId], references: [id, companyId], onDelete: Restrict)
+  product             Product          @relation(fields: [productId, companyId], references: [id, companyId], onDelete: Restrict)
+  unit                Unit             @relation(fields: [unitId, companyId], references: [id, companyId], onDelete: Restrict)
+  batch               ProductBatch?    @relation(fields: [batchId, productId, companyId], references: [id, productId, companyId], onDelete: Restrict)
+  returnItems         SaleReturnItem[]
 
   @@unique([id, companyId])
   @@index([companyId, saleId])
@@ -1146,6 +1180,7 @@ model Payment {
   saleAllocations     SalePayment[]
   purchaseAllocations PurchasePayment[]
   cashMovements       CashMovement[]
+  saleRefunds         SaleRefund[]
 
   @@unique([companyId, paymentNumber])
   @@unique([id, companyId])
@@ -1178,6 +1213,109 @@ model PurchasePayment {
 
   @@id([invoiceId, paymentId])
   @@index([companyId, paymentId])
+}
+
+model SaleReturn {
+  id                String         @id @default(uuid()) @db.Uuid
+  companyId         String         @db.Uuid
+  branchId          String         @db.Uuid
+  warehouseId       String         @db.Uuid
+  saleId            String         @db.Uuid
+  customerId        String         @db.Uuid
+  createdById       String         @db.Uuid
+  returnNumber      String         @db.VarChar(60)
+  kind              SaleReturnKind @default(RETURN)
+  totalCredit       Decimal        @db.Decimal(19, 4)
+  receivableApplied Decimal        @default(0) @db.Decimal(19, 4)
+  reason            String         @db.VarChar(1000)
+  returnedAt        DateTime       @default(now()) @db.Timestamptz(3)
+  createdAt         DateTime       @default(now()) @db.Timestamptz(3)
+
+  company   Company          @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  branch    Branch           @relation(fields: [branchId, companyId], references: [id, companyId], onDelete: Restrict)
+  warehouse Warehouse        @relation(fields: [warehouseId, branchId, companyId], references: [id, branchId, companyId], onDelete: Restrict)
+  sale      Sale             @relation(fields: [saleId, companyId], references: [id, companyId], onDelete: Restrict)
+  customer  Customer         @relation(fields: [customerId, companyId], references: [id, companyId], onDelete: Restrict)
+  createdBy User             @relation("SaleReturnCreatedBy", fields: [createdById, companyId], references: [id, companyId], onDelete: Restrict)
+  items     SaleReturnItem[]
+  refunds   SaleRefund[]
+  exchange  SaleExchange?
+
+  @@unique([companyId, returnNumber])
+  @@unique([id, companyId])
+  @@index([companyId, branchId, returnedAt])
+  @@index([companyId, saleId, returnedAt])
+  @@index([companyId, customerId, returnedAt])
+}
+
+model SaleReturnItem {
+  id               String            @id @default(uuid()) @db.Uuid
+  companyId        String            @db.Uuid
+  returnId         String            @db.Uuid
+  saleItemId       String            @db.Uuid
+  productId        String            @db.Uuid
+  unitId           String            @db.Uuid
+  batchId          String?           @db.Uuid
+  quantity         Decimal           @db.Decimal(20, 6)
+  baseQuantity     Decimal           @db.Decimal(20, 6)
+  conversionFactor Decimal           @db.Decimal(24, 10)
+  creditAmount     Decimal           @db.Decimal(19, 4)
+  disposition      ReturnDisposition @default(RESTOCK)
+  createdAt        DateTime          @default(now()) @db.Timestamptz(3)
+
+  saleReturn SaleReturn    @relation(fields: [returnId, companyId], references: [id, companyId], onDelete: Restrict)
+  saleItem   SaleItem      @relation(fields: [saleItemId, companyId], references: [id, companyId], onDelete: Restrict)
+  product    Product       @relation(fields: [productId, companyId], references: [id, companyId], onDelete: Restrict)
+  unit       Unit          @relation(fields: [unitId, companyId], references: [id, companyId], onDelete: Restrict)
+  batch      ProductBatch? @relation(fields: [batchId, productId, companyId], references: [id, productId, companyId], onDelete: Restrict)
+
+  @@unique([id, companyId])
+  @@index([companyId, returnId])
+  @@index([companyId, saleItemId])
+  @@index([companyId, productId, batchId])
+}
+
+model SaleRefund {
+  companyId String   @db.Uuid
+  returnId  String   @db.Uuid
+  paymentId String   @db.Uuid
+  amount    Decimal  @db.Decimal(19, 4)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+
+  saleReturn SaleReturn @relation(fields: [returnId, companyId], references: [id, companyId], onDelete: Restrict)
+  payment    Payment    @relation(fields: [paymentId, companyId], references: [id, companyId], onDelete: Restrict)
+
+  @@id([returnId, paymentId])
+  @@index([companyId, paymentId])
+}
+
+model SaleExchange {
+  id                String   @id @default(uuid()) @db.Uuid
+  companyId         String   @db.Uuid
+  branchId          String   @db.Uuid
+  originalSaleId    String   @db.Uuid
+  returnId          String   @unique @db.Uuid
+  replacementSaleId String   @unique @db.Uuid
+  createdById       String   @db.Uuid
+  exchangeNumber    String   @db.VarChar(60)
+  creditApplied     Decimal  @db.Decimal(19, 4)
+  difference        Decimal  @db.Decimal(19, 4)
+  reason            String   @db.VarChar(1000)
+  createdAt         DateTime @default(now()) @db.Timestamptz(3)
+
+  company         Company    @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  branch          Branch     @relation(fields: [branchId, companyId], references: [id, companyId], onDelete: Restrict)
+  originalSale    Sale       @relation("ExchangeOriginalSale", fields: [originalSaleId, companyId], references: [id, companyId], onDelete: Restrict)
+  saleReturn      SaleReturn @relation(fields: [returnId, companyId], references: [id, companyId], onDelete: Restrict)
+  replacementSale Sale       @relation("ExchangeReplacementSale", fields: [replacementSaleId, companyId], references: [id, companyId], onDelete: Restrict)
+  createdBy       User       @relation("SaleExchangeCreatedBy", fields: [createdById, companyId], references: [id, companyId], onDelete: Restrict)
+
+  @@unique([companyId, exchangeNumber])
+  @@unique([id, companyId])
+  @@unique([returnId, companyId])
+  @@unique([replacementSaleId, companyId])
+  @@index([companyId, branchId, createdAt])
+  @@index([companyId, originalSaleId])
 }
 
 model PurchaseDocumentSequence {

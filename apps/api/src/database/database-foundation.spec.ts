@@ -46,6 +46,16 @@ const phase7WalkIn = readFileSync(
   ),
   'utf8',
 );
+const phase10Migration = readFileSync(
+  join(
+    process.cwd(),
+    'prisma',
+    'migrations',
+    '20260907140329_phase10_payments_returns_exchange',
+    'migration.sql',
+  ),
+  'utf8',
+);
 
 describe('database foundation', () => {
   it('uses Decimal database fields rather than unsafe floating point fields', () => {
@@ -97,5 +107,19 @@ describe('database foundation', () => {
     expect(phase7Migration).toContain('SupplierLedgerEntry_immutable_delete');
     expect(phase7Migration).toContain('Migrated opening balance');
     expect(phase7WalkIn).toContain('Company_provision_walk_in_customer');
+  });
+
+  it('adds tenant-safe immutable return/refund/exchange records without weakening inventory keys', () => {
+    expect(phase10Migration).toContain('SaleReturn_saleId_companyId_fkey');
+    expect(phase10Migration).toContain('SaleReturnItem_saleItemId_companyId_fkey');
+    expect(phase10Migration).toContain('SaleReturnItem_batchId_productId_companyId_fkey');
+    expect(phase10Migration).toContain('SaleRefund_paymentId_companyId_fkey');
+    expect(phase10Migration).toContain('SaleExchange_replacementSaleId_companyId_fkey');
+    expect(phase10Migration).toContain('SaleReturnItem_values_check');
+    expect(phase10Migration).toContain('SaleReturn_immutable');
+    expect(phase10Migration).toContain('SalePayment_immutable');
+    expect(phase10Migration).toContain('Payment_completed_immutable');
+    expect(phase10Migration).toContain('ProductBatch_identity_key');
+    expect(phase10Migration).toContain('PhysicalCountItem_position_key');
   });
 });

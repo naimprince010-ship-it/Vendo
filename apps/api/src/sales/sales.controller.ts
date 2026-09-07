@@ -20,10 +20,16 @@ import { ActiveBranch } from '../branches/active-branch.decorator';
 import { ActiveBranchGuard } from '../branches/active-branch.guard';
 import {
   CompleteSaleDto,
+  CollectCustomerPaymentDto,
+  PostSaleExchangeDto,
+  PostSaleRefundDto,
+  PostSaleReturnDto,
   PosCustomerQueryDto,
   PosSearchQueryDto,
   SaleListQueryDto,
+  SaleFinancialListQueryDto,
   SaveSaleDto,
+  VoidSaleDto,
 } from './dto/sales.dto';
 import { SalesService } from './sales.service';
 
@@ -108,6 +114,97 @@ export class SalesController {
     @Body() dto: CompleteSaleDto,
   ) {
     return this.sales.complete(principal, branch, key, dto);
+  }
+
+  @RequirePermissions(PERMISSIONS.CUSTOMER_COLLECT_PAYMENT)
+  @ApiHeader({ name: 'Idempotency-Key', required: true })
+  @Post('collections')
+  collection(
+    @CurrentUser() principal: AuthPrincipal,
+    @ActiveBranch() branch: ActiveBranchContext,
+    @Headers('idempotency-key') key: string,
+    @Body() dto: CollectCustomerPaymentDto,
+  ) {
+    return this.sales.collectCustomerPayment(principal, branch, key, dto);
+  }
+
+  @RequirePermissions(PERMISSIONS.CUSTOMER_VIEW_PAYMENTS)
+  @Get('collections')
+  collections(
+    @CurrentUser() principal: AuthPrincipal,
+    @ActiveBranch() branch: ActiveBranchContext,
+    @Query() query: SaleFinancialListQueryDto,
+  ) {
+    return this.sales.listCollections(principal, branch, query);
+  }
+
+  @RequirePermissions(PERMISSIONS.SALE_RETURN)
+  @ApiHeader({ name: 'Idempotency-Key', required: true })
+  @Post('returns')
+  saleReturn(
+    @CurrentUser() principal: AuthPrincipal,
+    @ActiveBranch() branch: ActiveBranchContext,
+    @Headers('idempotency-key') key: string,
+    @Body() dto: PostSaleReturnDto,
+  ) {
+    return this.sales.postReturn(principal, branch, key, dto);
+  }
+
+  @RequirePermissions(PERMISSIONS.SALE_VIEW)
+  @Get('returns')
+  returns(
+    @CurrentUser() principal: AuthPrincipal,
+    @ActiveBranch() branch: ActiveBranchContext,
+    @Query() query: SaleFinancialListQueryDto,
+  ) {
+    return this.sales.listReturns(principal, branch, query);
+  }
+
+  @RequirePermissions(PERMISSIONS.SALE_REFUND)
+  @ApiHeader({ name: 'Idempotency-Key', required: true })
+  @Post('refunds')
+  refund(
+    @CurrentUser() principal: AuthPrincipal,
+    @ActiveBranch() branch: ActiveBranchContext,
+    @Headers('idempotency-key') key: string,
+    @Body() dto: PostSaleRefundDto,
+  ) {
+    return this.sales.postRefund(principal, branch, key, dto);
+  }
+
+  @RequirePermissions(PERMISSIONS.CUSTOMER_VIEW_PAYMENTS)
+  @Get('refunds')
+  refunds(
+    @CurrentUser() principal: AuthPrincipal,
+    @ActiveBranch() branch: ActiveBranchContext,
+    @Query() query: SaleFinancialListQueryDto,
+  ) {
+    return this.sales.listRefunds(principal, branch, query);
+  }
+
+  @RequirePermissions(PERMISSIONS.SALE_EXCHANGE)
+  @ApiHeader({ name: 'Idempotency-Key', required: true })
+  @Post('exchanges')
+  exchange(
+    @CurrentUser() principal: AuthPrincipal,
+    @ActiveBranch() branch: ActiveBranchContext,
+    @Headers('idempotency-key') key: string,
+    @Body() dto: PostSaleExchangeDto,
+  ) {
+    return this.sales.postExchange(principal, branch, key, dto);
+  }
+
+  @RequirePermissions(PERMISSIONS.SALE_VOID)
+  @ApiHeader({ name: 'Idempotency-Key', required: true })
+  @Post(':id/void')
+  voidSale(
+    @CurrentUser() principal: AuthPrincipal,
+    @ActiveBranch() branch: ActiveBranchContext,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Headers('idempotency-key') key: string,
+    @Body() dto: VoidSaleDto,
+  ) {
+    return this.sales.voidSale(principal, branch, id, key, dto.reason, dto.refunds);
   }
 
   @RequirePermissions(PERMISSIONS.SALE_VIEW)

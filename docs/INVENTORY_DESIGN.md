@@ -41,3 +41,7 @@ A receipt movement is positive `PURCHASE_RECEIPT`; a return movement is negative
 ## Sales Integration
 
 Phase 9 sale completion reuses the same transaction-owned posting primitive. Each sellable line becomes a negative `SALE` movement with the completed sale UUID, entered sale unit/quantity, factor snapshot, cost snapshot, warehouse, and explicit tile batch/shade. Draft and held sales never call inventory. Lines are sorted before position locking so simultaneous multi-line sales cannot acquire the same stock positions in conflicting order. A stock failure rolls back the sale, payment, customer receivable, movements, balance projections, and audit record together.
+
+## Sales Return and Exchange Integration
+
+Phase 10 restockable returns call the same transaction-owned primitive with positive `SALE_RETURN` movements. The transaction unit, conversion factor, base quantity, warehouse, unit-cost snapshot, and batch/shade come from the immutable original sale line, not current catalog configuration. Cumulative returned base quantity is locked and may not exceed sold base quantity. Non-resellable disposition records the return without adding normal sellable stock. Exchanges atomically combine this return posting with the existing Phase 9 outbound sale posting, so either both inventory effects commit or neither does.

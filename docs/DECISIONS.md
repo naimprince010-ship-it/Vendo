@@ -197,3 +197,12 @@
 - **Alternatives:** Reserve stock on hold; trust browser totals; maintain mutable customer due and stock fields; reuse purchase idempotency polymorphically; permit edits to completed invoices.
 - **Rationale:** Revalidation prevents stale held carts, shared journals preserve physical/financial authority, and one transaction prevents partial sales under failures or concurrent overselling.
 - **Consequences:** Walk-in sales must be fully settled; named-customer dues respect ledger-derived balance and credit limit. Phase 9 supports zero/one payment only. Split settlement/due collection, linked returns/refunds/exchanges, cash shifts, and receipt printing remain Phase 10–12 work.
+
+## ADR-023 — Immutable Compensating Sales Documents
+
+- **Date:** 2026-09-07
+- **Context:** Collections, partial returns, refunds, exchanges, and voids must change inventory and customer financial state without corrupting a completed invoice or its historical price/conversion snapshots.
+- **Decision:** Keep completed sales and payments immutable. Represent returns, refunds, exchanges, and voids as linked aggregates with compensating inventory and customer-ledger entries. Allocate return credit from the original invoice total proportionally, apply credit to current receivable first, and allow only the residual to be refunded, exchanged, or retained as named-customer advance. Exchange is one atomic linked return plus a replacement sale through the existing engine.
+- **Alternatives:** Edit completed sale lines/payments; calculate returns at current prices; refund every return in cash; model exchange by replacing original items.
+- **Rationale:** Linked immutable documents preserve historical truth, prevent excess refunds, and reuse the established inventory, sale, payment, ledger, idempotency, and locking authorities.
+- **Consequences:** Original `Sale.due` is only a completion snapshot; current outstanding is derived. Exact batch/shade is restored using the original conversion. Walk-in returns require immediate refund because anonymous advance pooling is unsafe. Phase 11 will add cash-drawer movements without changing Phase 10 financial records.

@@ -9,6 +9,7 @@ import { InventoryConsole } from './inventory-console';
 import { PartiesConsole } from './parties-console';
 import { PurchasingConsole } from './purchasing-console';
 import { PosConsole } from './pos-console';
+import { Phase10Console } from './phase10-console';
 
 export default function ProtectedAppPage() {
   const router = useRouter();
@@ -63,7 +64,10 @@ export default function ProtectedAppPage() {
           )}
         </nav>
         {area === 'pos' ? (
-          <PosConsole />
+          <div className="space-y-6">
+            <PosConsole />
+            <Phase10Console />
+          </div>
         ) : area === 'purchasing' ? (
           <PurchasingConsole />
         ) : area === 'parties' ? (

@@ -57,6 +57,15 @@ export type PurchasingStockLine = {
 
 export type SalesStockLine = PurchasingStockLine;
 
+export type SaleReturnStockLine = {
+  productId: string;
+  unitId: string;
+  batchId?: string;
+  quantity: Prisma.Decimal;
+  baseQuantity: Prisma.Decimal;
+  conversionFactor: Prisma.Decimal;
+};
+
 type DecimalValue = string | number | Prisma.Decimal;
 const q6 = (value: DecimalValue) => new Prisma.Decimal(value).toDecimalPlaces(6);
 const factor10 = (value: DecimalValue) => new Prisma.Decimal(value).toDecimalPlaces(10);
@@ -119,6 +128,52 @@ export class InventoryService {
       referenceType: 'SALE',
       referenceId: saleId,
       reason: 'Completed sale',
+      unitCost,
+    });
+    return { position, ...result };
+  }
+
+  /** Phase 10 restock using the immutable original sale conversion snapshot. */
+  async postSaleReturnMovement(
+    tx: Tx,
+    principal: AuthPrincipal,
+    branchId: string,
+    warehouseId: string,
+    line: SaleReturnStockLine,
+    returnId: string,
+    unitCost?: Prisma.Decimal,
+  ) {
+    await this.requireWarehouse(tx, principal.companyId, branchId, warehouseId);
+    const product = await tx.product.findFirst({
+      where: { id: line.productId, companyId: principal.companyId, trackInventory: true },
+      select: { id: true, name: true, sku: true, baseUnitId: true, batchTracking: true },
+    });
+    if (!product) throw new BadRequestException('Returned stock product is unavailable');
+    if (product.batchTracking) {
+      if (!line.batchId) throw new BadRequestException('Original sale batch is required');
+      const batch = await tx.productBatch.findFirst({
+        where: { id: line.batchId, productId: product.id, companyId: principal.companyId },
+      });
+      if (!batch) throw new BadRequestException('Original sale batch is unavailable');
+    } else if (line.batchId) {
+      throw new BadRequestException('Batch cannot be restored for a non-batch product');
+    }
+    const position: Position = {
+      productId: line.productId,
+      unitId: line.unitId,
+      batchId: line.batchId,
+      transactionQuantity: q6(line.quantity),
+      baseQuantity: q6(line.baseQuantity),
+      conversionFactor: factor10(line.conversionFactor),
+      product,
+    };
+    if (!position.transactionQuantity.isPositive() || !position.baseQuantity.isPositive())
+      throw new BadRequestException('Return quantity must be positive');
+    const result = await this.applyMovement(tx, principal, branchId, warehouseId, position, 1, {
+      type: InventoryMovementType.SALE_RETURN,
+      referenceType: 'SALE_RETURN',
+      referenceId: returnId,
+      reason: 'Restockable sale return',
       unitCost,
     });
     return { position, ...result };

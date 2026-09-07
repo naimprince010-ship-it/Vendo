@@ -255,3 +255,19 @@ No Critical/High customer, supplier, tenant, financial-foundation, migration, AP
 ## Phase 8 Verification Note — 2026-09-06
 
 No Critical/High purchasing, inventory-integration, supplier-ledger, migration, API, or UI blocker remains. `BUG-012`, `BUG-013`, and `BUG-014` were found and resolved before the final gate. One parallel Turbo lint attempt exhausted the local Node worker heap while production verification servers were still resident; after those servers were stopped, the required uncached sequential lint run passed 5/5 with a 4096 MiB worker ceiling. This was an execution-resource failure, not a source defect. The guarded seed also correctly refused an invocation without `ALLOW_DEV_SEED=true`, then passed twice when explicitly authorized. Deferred `BUG-008` remains the only known issue and is a low-severity future pg@9 compatibility warning on the pinned pg 8.23 runtime.
+
+## BUG-020 — Nested Phase 10 writes supplied relation-owned tenant fields
+
+- **ID:** BUG-020
+- **Severity:** High
+- **Area:** Sale return/refund and customer collection persistence
+- **Description:** Initial Phase 10 nested Prisma creates supplied `companyId` on relation-owned return lines and payment allocations, which Prisma's checked nested-write shape rejects.
+- **Reproduction:** Run the first Phase 10 integration suite against valid collection and return requests.
+- **Expected:** Parent-owned tenant identity is derived by the checked relation while all referenced IDs are company-revalidated before persistence.
+- **Actual:** Prisma rejected the nested input and the transaction rolled back.
+- **Status:** Resolved — relation-owned tenant fields were removed only from nested create payloads; company/product/unit/batch/customer/sale ownership remains explicitly validated and composite foreign keys remain authoritative. All 12 suites/75 tests pass.
+- **Related task:** Phase 10 — customer collection and sale return persistence
+
+## Phase 10 Verification Note — 2026-09-07
+
+No Critical/High payment, collection, customer-ledger, return/refund/exchange, inventory, migration, API, security, or UI blocker remains. `BUG-020` and one stale Phase 7 ledger caption were found and resolved before the final gate. The production browser verified all required flows and a clean console. Temporary verification credentials and their local auth/audit rows were removed after use; transactional browser evidence remains as development data. Deferred `BUG-008` remains the only known issue and is a low-severity future pg@9 compatibility warning on pinned pg 8.23.

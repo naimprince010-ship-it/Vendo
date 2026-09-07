@@ -1,47 +1,39 @@
-# Sales and POS Design
+# Sales, Settlement, Return, and Exchange Design
 
-## Phase 9 boundary
+## Completed-sale authority
 
-Phase 9 implements product discovery, drafts/holds, and atomic sale completion. Split payments, due collection, returns, refunds, exchanges, cash-shift enforcement, and printable report layouts remain Phase 10–12 work. A completed sale is immutable; later phases must add linked reversal records instead of editing it.
+A completed `Sale` and its `SaleItem` snapshots are immutable. Prices, conversion factors, quantities, discounts, tax, customer, payments, and inventory history are never rewritten to represent later events. Linked documents and compensating journal entries express collections, returns, refunds, exchanges, and voids.
 
-## Aggregate and lifecycle
+## Settlement
 
-`Sale` is the invoice header and `SaleItem` stores historical product, unit, conversion, cost, configured price, charged price, discount, tax, and batch snapshots. `DRAFT` and `HELD` records have no stock, payment, customer-ledger, or cash effects. Completion reloads every dependency and recalculates all authoritative amounts before transitioning to `COMPLETED`.
+Sale completion accepts up to ten distinct configured payment methods. Each real payment creates an inbound `Payment` plus `SalePayment` allocation. Cash may record tendered money and change; non-cash methods cannot. Due is the backend-calculated remainder and is represented by a positive customer-ledger receivable, never by a fake payment method.
 
-Invoice numbers use a company/document row in `SalesDocumentSequence`. PostgreSQL `INSERT ... ON CONFLICT ... DO UPDATE RETURNING` allocates monotonically increasing company-local values without `MAX + 1` races. Phase 9 formats them as `INV-000001`; payment references use the same strategy as `PAY-000001`.
+Later collections create a new inbound `Payment`, optional allocations to one or more completed invoices, one negative customer-ledger entry, and audit history atomically. Allocations cannot exceed the payment or current invoice outstanding. An unallocated remainder is an explicit customer advance; by convention a negative customer balance means the company holds customer credit.
 
-## Pricing and totals
+Invoice outstanding is derived as original total less completed inbound payment allocations, posted return credit, and exchange credit applied to a replacement invoice. It is not copied from the original `Sale.due` snapshot.
 
-Retail or wholesale mode is explicit. The backend resolves one active price for the selected product unit. A different requested price requires `sale.override_price`, a reason, and cannot be below the configured minimum. Fixed line and invoice discounts require `sale.discount`. Tax inputs are fixed, tax-exclusive amounts in Phase 9.
+## Returns and return value
 
-All authoritative arithmetic uses Prisma Decimal backed by PostgreSQL `numeric(19,4)`. For each line:
+Each `SaleReturnItem` references an original `SaleItem`. Return quantity is accepted in the original transaction unit and converted with the immutable original conversion snapshot. Cumulative returned base quantity may never exceed the original sold base quantity; a transaction-scoped advisory lock serializes competing returns.
 
-`gross = transaction quantity × charged unit price`
+Return credit uses the original invoice snapshot. The invoice total is allocated proportionally over original line totals, with the final line receiving the Decimal rounding residual. A partial return receives its cumulative proportional share less credit already returned. This reverses original line and invoice-level discount/tax effects without consulting current catalog prices or tax settings.
 
-`line total = gross - line discount + line tax`
+`RESTOCK` calls the shared inventory posting primitive and adds the exact base quantity to the exact original warehouse and batch/shade. `NON_RESELLABLE` records the commercial return without increasing sellable stock; quarantine/damaged-location handling is deferred until a real location workflow is approved.
 
-The invoice stores gross subtotal, combined line/header discount, combined line/header tax, and `total = subtotal - discount + tax`. The browser estimate is informational only.
+## Receivable, refund, and customer credit policy
 
-## Unit, batch, and inventory authority
+The return posts one negative customer-ledger credit for its full value. `receivableApplied` is the lesser of current invoice outstanding and return credit. Any remaining legitimate credit may be refunded, applied to an exchange, or remain as named-customer advance. A refund creates a new outbound `Payment` and `SaleRefund`; it never edits original payments. Refund capacity is:
 
-The selected sale unit is converted directly to the product base unit with the Phase 5 factor and snapshotted on both sale line and inventory movement. Box, PCS, Sq.ft, and Sq.m never become independent stock counters. Batch-tracked products require an explicit company/product batch; the stock deduction targets that exact warehouse/batch position. Non-batch products reject fake batch selection.
+`return credit - receivable applied - exchange credit applied - prior refunds`
 
-Sale completion calls the Phase 6 inventory transaction primitive. Position advisory locks plus balance compare-and-swap updates serialize competing deductions and prevent concurrent overselling under the configured negative-stock policy.
+Walk-in customers cannot retain pooled anonymous credit, so their return must issue the full refundable amount immediately. Cash-shift movement integration remains Phase 11 work; Phase 10 records the financial refund without fabricating drawer history.
 
-## Settlement and receivable
+## Exchange and void
 
-Phase 9 accepts zero or one applied payment. It validates the active company payment method, computes cash change from tendered amount, and creates `Payment` plus `SalePayment` only for a positive paid amount. A fully paid sale creates no customer receivable. A positive due creates one immutable positive `CustomerLedgerEntry` (`SALE_INVOICE`), meaning the customer owes the company.
+An exchange is one atomic composition: linked return, replacement sale through the existing sale calculation/inventory engine, customer-credit application, and `SaleExchange` link. The original sale remains unchanged. The signed difference is replacement total minus returned credit; positive differences require payment or become a valid named-customer receivable, while unused named-customer credit remains an advance.
 
-The company-local walk-in customer cannot carry a due. For a named customer, completion locks the customer, derives current balance from immutable ledger entries, and rejects a projected receivable above the Decimal credit limit. Split settlement and later collection are Phase 10; cash-drawer movement and open-shift enforcement are Phase 11.
+A completed-sale void is a permission-controlled return of every remaining original quantity with kind `VOID`. It requires a reason and compensating inventory/ledger/refund effects. Detail APIs derive `PARTIALLY_RETURNED`, `RETURNED`, `EXCHANGED`, and `VOIDED` lifecycle status from immutable linked records rather than changing the completed sale row.
 
-## Atomicity and retries
+## Safety
 
-One PostgreSQL transaction creates the completed header/lines, payment/allocation, customer receivable when applicable, inventory movements/balances, and audit record. Any failure rolls back every effect.
-
-`SalesOperation` provides company-scoped completion idempotency. The normalized request hash includes the authenticated company/branch context and payload. The same key and request returns the committed sale; the same key with different content is rejected. Draft identifiers, customer, stock positions, and sequence rows are locked inside the transaction where required.
-
-## Search and authorization
-
-POS product search is bounded and server-side across barcode, SKU, name, brand, manufacturer, model, and tile display size. Results contain only sellable product/unit pricing, active conversions, selected-warehouse availability, and usable batches. Cost is returned only with `product.view_cost`.
-
-Every route uses authenticated company context. Operational routes also require a validated active branch, and register/warehouse ownership must match it. `sale.create` protects POS context, customer/product lookup, draft, and completion; `sale.view` protects history/detail; discount and price changes are independently permissioned.
+Critical commands use company-scoped `SalesOperation` request hashes. The same idempotency key and payload returns the committed result; a conflicting payload fails. Advisory locks serialize invoice allocation, return quantity, and refund capacity. Database checks enforce positive quantities/amounts, and triggers reject mutation or deletion of completed financial/sales records.

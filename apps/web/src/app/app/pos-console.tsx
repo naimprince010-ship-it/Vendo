@@ -80,6 +80,25 @@ type Sale = {
   customer: Customer;
   register: Named;
   items?: SaleLine[];
+  currentOutstanding?: string;
+  lifecycleStatus?: string;
+  paymentAllocations?: {
+    amount: string;
+    payment: {
+      paymentNumber: string;
+      direction: 'INBOUND' | 'OUTBOUND';
+      method: Named;
+    };
+  }[];
+  returns?: {
+    id: string;
+    returnNumber: string;
+    kind: 'RETURN' | 'VOID';
+    totalCredit: string;
+    receivableApplied: string;
+    refunds: { amount: string; payment: { paymentNumber: string; method: Named } }[];
+    exchange: { exchangeNumber: string; creditApplied: string; difference: string } | null;
+  }[];
 };
 type PosContext = {
   warehouses: Named[];
@@ -115,6 +134,9 @@ export function PosConsole() {
   const [methodId, setMethodId] = useState('');
   const [paid, setPaid] = useState('0');
   const [tendered, setTendered] = useState('');
+  const [secondMethodId, setSecondMethodId] = useState('');
+  const [secondPaid, setSecondPaid] = useState('0');
+  const [secondTendered, setSecondTendered] = useState('');
   const [invoiceDiscount, setInvoiceDiscount] = useState('0');
   const [invoiceTax, setInvoiceTax] = useState('0');
   const [draftId, setDraftId] = useState('');
@@ -164,6 +186,10 @@ export function PosConsole() {
   const activeRegisterId = registerId || context.data?.registers[0]?.id || '';
   const activeCustomerId = customerId || context.data?.walkIn.id || '';
   const activeMethodId = methodId || context.data?.paymentMethods[0]?.id || '';
+  const activeSecondMethodId =
+    secondMethodId ||
+    context.data?.paymentMethods.find((row) => row.id !== activeMethodId)?.id ||
+    '';
   const customers = useQuery({
     queryKey: ['sales', 'customers', activeBranchId],
     queryFn: () => api<Customer[]>('/sales/pos/customers?limit=50', {}, activeBranchId),
@@ -366,14 +392,26 @@ export function PosConsole() {
             body: JSON.stringify({
               ...payload(),
               draftSaleId: draftId || undefined,
-              payment:
-                Number(paid) > 0
-                  ? {
-                      methodId: activeMethodId,
-                      amount: paid,
-                      tendered: tendered || undefined,
-                    }
-                  : undefined,
+              payments: [
+                ...(Number(paid) > 0
+                  ? [
+                      {
+                        methodId: activeMethodId,
+                        amount: paid,
+                        tendered: tendered || undefined,
+                      },
+                    ]
+                  : []),
+                ...(Number(secondPaid) > 0
+                  ? [
+                      {
+                        methodId: activeSecondMethodId,
+                        amount: secondPaid,
+                        tendered: secondTendered || undefined,
+                      },
+                    ]
+                  : []),
+              ],
             }),
           },
           activeBranchId,
@@ -386,6 +424,8 @@ export function PosConsole() {
       setCart([]);
       setPaid('0');
       setTendered('');
+      setSecondPaid('0');
+      setSecondTendered('');
     }
   };
 
@@ -665,6 +705,35 @@ export function PosConsole() {
               onChange={(e) => setTendered(e.target.value)}
               placeholder="Cash tendered (cash only)"
             />
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+              Optional second payment
+            </p>
+            <select
+              className={field}
+              aria-label="Second payment method"
+              value={activeSecondMethodId}
+              onChange={(e) => setSecondMethodId(e.target.value)}
+            >
+              {(context.data?.paymentMethods ?? []).map((row) => (
+                <option key={row.id} value={row.id}>
+                  {row.code} · {row.name}
+                </option>
+              ))}
+            </select>
+            <input
+              className={field}
+              aria-label="Second paid amount"
+              value={secondPaid}
+              onChange={(e) => setSecondPaid(e.target.value)}
+              placeholder="Second payment amount"
+            />
+            <input
+              className={field}
+              aria-label="Second cash tendered"
+              value={secondTendered}
+              onChange={(e) => setSecondTendered(e.target.value)}
+              placeholder="Second cash tendered (cash only)"
+            />
             <div className="flex flex-wrap gap-2">
               <button
                 className={secondary}
@@ -693,8 +762,8 @@ export function PosConsole() {
               </button>
             </div>
             <p className="text-xs text-slate-400">
-              Register is required. Cash-shift enforcement begins in Phase 11. Split settlement and
-              due collection remain Phase 10.
+              Register is required. Cash-shift enforcement begins in Phase 11. Any unpaid remainder
+              is customer receivable, never a fake payment method.
             </p>
           </div>
           <div className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
@@ -758,6 +827,55 @@ export function PosConsole() {
                 Total {selectedSale.data.total} · Paid {selectedSale.data.paid} · Due{' '}
                 {selectedSale.data.due} · Change {selectedSale.data.change}
               </p>
+              <p className="rounded-lg bg-slate-950 p-3 text-sm">
+                Current status{' '}
+                <b>{selectedSale.data.lifecycleStatus ?? selectedSale.data.status}</b> · Current
+                outstanding{' '}
+                <b>{selectedSale.data.currentOutstanding ?? selectedSale.data.due} BDT</b>
+              </p>
+              {!!selectedSale.data.paymentAllocations?.length && (
+                <div>
+                  <h3 className="mb-2 text-sm font-semibold">Payment timeline</h3>
+                  {selectedSale.data.paymentAllocations.map((allocation) => (
+                    <p
+                      key={`${allocation.payment.paymentNumber}-${allocation.amount}`}
+                      className="mb-1 text-xs text-slate-300"
+                    >
+                      {allocation.payment.paymentNumber} · {allocation.amount} ·{' '}
+                      {allocation.payment.method.name}
+                    </p>
+                  ))}
+                </div>
+              )}
+              {!!selectedSale.data.returns?.length && (
+                <div>
+                  <h3 className="mb-2 text-sm font-semibold">Returns, refunds and exchanges</h3>
+                  {selectedSale.data.returns.map((saleReturn) => (
+                    <div
+                      key={saleReturn.id}
+                      className="mb-2 rounded-lg border border-slate-700 p-2"
+                    >
+                      <p className="text-sm font-semibold">
+                        {saleReturn.returnNumber} · {saleReturn.kind}
+                      </p>
+                      <p className="text-xs text-slate-300">
+                        Credit {saleReturn.totalCredit} · Applied to due{' '}
+                        {saleReturn.receivableApplied} · Refunded{' '}
+                        {saleReturn.refunds
+                          .reduce((sum, refund) => sum + Number(refund.amount), 0)
+                          .toFixed(4)}
+                      </p>
+                      {saleReturn.exchange && (
+                        <p className="text-xs text-amber-300">
+                          {saleReturn.exchange.exchangeNumber} · Credit applied{' '}
+                          {saleReturn.exchange.creditApplied} · Difference{' '}
+                          {saleReturn.exchange.difference}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           ) : (
             <p className="text-sm text-slate-400">Select a completed sale.</p>

@@ -229,6 +229,8 @@ describe('Phase 9 POS and sales API', () => {
   afterAll(async () => {
     if (companyId) {
       const triggers: Array<[string, string]> = [
+        ['Payment', 'Payment_completed_immutable'],
+        ['SalePayment', 'SalePayment_immutable'],
         ['Sale', 'Sale_completed_immutable'],
         ['SaleItem', 'SaleItem_completed_immutable'],
         ['InventoryMovement', 'InventoryMovement_immutable_delete'],

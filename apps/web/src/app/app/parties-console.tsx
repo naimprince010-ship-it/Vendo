@@ -445,8 +445,8 @@ function PartyDetail({
           <div>
             <h3 className="mb-2 font-semibold">Immutable ledger history</h3>
             <p className="mb-3 text-xs text-slate-400">
-              No sales, purchase, or payment history is shown until those workflows post real
-              entries.
+              This timeline contains only immutable entries posted by implemented operational and
+              balance workflows.
             </p>
             <div className="space-y-2">
               {ledger.data?.items.map((entry) => (

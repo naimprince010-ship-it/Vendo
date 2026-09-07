@@ -18,6 +18,8 @@ import {
   PriceType,
   PricingMode,
   Prisma,
+  ReturnDisposition,
+  SaleReturnKind,
   SaleStatus,
   SalesDocumentType,
   SalesOperationType,
@@ -26,10 +28,16 @@ import {
 import { InventoryService } from '../inventory/inventory.service';
 import type {
   CompleteSaleDto,
+  CollectCustomerPaymentDto,
+  PostSaleExchangeDto,
+  PostSaleRefundDto,
+  PostSaleReturnDto,
   PosCustomerQueryDto,
   PosSearchQueryDto,
   SaleLineDto,
   SaleListQueryDto,
+  SaleFinancialListQueryDto,
+  SalePaymentInputDto,
   SaveSaleDto,
 } from './dto/sales.dto';
 
@@ -340,24 +348,33 @@ export class SalesService {
           await this.validateContext(tx, principal, branch.id, dto);
           const customer = await this.requireCustomer(tx, principal.companyId, dto.customerId);
           const prepared = await this.prepare(tx, principal, dto);
-          const paid = money(dto.payment?.amount ?? 0);
+          const paymentInputs = this.paymentInputs(dto);
+          const paid = money(
+            paymentInputs.reduce((sum, payment) => sum.plus(money(payment.amount)), money(0)),
+          );
           if (paid.greaterThan(prepared.total))
             throw new BadRequestException('Payment cannot exceed the invoice total');
           const due = money(prepared.total.minus(paid));
           let change = money(0);
-          let paymentMethod: { id: string; isCash: boolean } | null = null;
-          if (dto.payment) {
-            paymentMethod = await tx.paymentMethod.findFirst({
-              where: { id: dto.payment.methodId, companyId: principal.companyId, isActive: true },
-              select: { id: true, isCash: true },
-            });
-            if (!paymentMethod) throw new BadRequestException('Payment method is unavailable');
-            if (paymentMethod.isCash) {
-              const tendered = money(dto.payment.tendered ?? dto.payment.amount);
-              if (tendered.lessThan(paid))
+          const paymentMethods = await tx.paymentMethod.findMany({
+            where: {
+              id: { in: paymentInputs.map((payment) => payment.methodId) },
+              companyId: principal.companyId,
+              isActive: true,
+            },
+            select: { id: true, isCash: true },
+          });
+          if (paymentMethods.length !== paymentInputs.length)
+            throw new BadRequestException('One or more payment methods are unavailable');
+          for (const payment of paymentInputs) {
+            const method = paymentMethods.find((row) => row.id === payment.methodId)!;
+            if (method.isCash) {
+              const applied = money(payment.amount);
+              const tendered = money(payment.tendered ?? payment.amount);
+              if (tendered.lessThan(applied))
                 throw new BadRequestException('Cash tendered cannot be less than cash applied');
-              change = money(tendered.minus(paid));
-            } else if (dto.payment.tendered)
+              change = money(change.plus(tendered.minus(applied)));
+            } else if (payment.tendered)
               throw new BadRequestException('Tendered amount is valid only for cash');
           }
           if (due.greaterThan(0)) {
@@ -440,7 +457,7 @@ export class SalesService {
                 line.unitCost,
               );
           }
-          if (dto.payment && paid.greaterThan(0) && paymentMethod) {
+          for (const input of paymentInputs) {
             const paymentNumber = await this.nextNumber(
               tx,
               principal.companyId,
@@ -450,19 +467,24 @@ export class SalesService {
               data: {
                 companyId: principal.companyId,
                 branchId: branch.id,
-                methodId: paymentMethod.id,
+                methodId: input.methodId,
                 customerId: customer.id,
                 recordedById: principal.userId,
                 paymentNumber,
                 direction: PaymentDirection.INBOUND,
                 status: PaymentStatus.COMPLETED,
-                amount: paid,
-                reference: dto.payment.reference,
+                amount: money(input.amount),
+                reference: input.reference,
                 paidAt: new Date(),
               },
             });
             await tx.salePayment.create({
-              data: { companyId: principal.companyId, saleId, paymentId: payment.id, amount: paid },
+              data: {
+                companyId: principal.companyId,
+                saleId,
+                paymentId: payment.id,
+                amount: money(input.amount),
+              },
             });
           }
           if (due.greaterThan(0)) {
@@ -524,6 +546,286 @@ export class SalesService {
     }
   }
 
+  collectCustomerPayment(
+    principal: AuthPrincipal,
+    branch: ActiveBranchContext,
+    key: string,
+    dto: CollectCustomerPaymentDto,
+  ) {
+    return this.idempotent(
+      principal,
+      key,
+      SalesOperationType.CUSTOMER_COLLECTION,
+      dto,
+      async (tx, operationId, requestHash) => {
+        await this.lock(tx, `${principal.companyId}:customer:${dto.customerId}`);
+        const customer = await this.requireCustomer(tx, principal.companyId, dto.customerId);
+        if (customer.isWalkIn)
+          throw new BadRequestException('Walk-in customer cannot hold receivable or advance');
+        const method = await tx.paymentMethod.findFirst({
+          where: { id: dto.methodId, companyId: principal.companyId, isActive: true },
+        });
+        if (!method) throw new BadRequestException('Payment method is unavailable');
+        this.assertDistinct(
+          dto.allocations.map((row) => row.saleId),
+          'sale allocation',
+        );
+        const amount = money(dto.amount);
+        const allocated = money(
+          dto.allocations.reduce((sum, row) => sum.plus(money(row.amount)), money(0)),
+        );
+        if (allocated.greaterThan(amount))
+          throw new BadRequestException('Allocations exceed collection amount');
+        for (const allocation of [...dto.allocations].sort((a, b) =>
+          a.saleId.localeCompare(b.saleId),
+        )) {
+          await this.lock(tx, `${principal.companyId}:sale:${allocation.saleId}`);
+          const sale = await tx.sale.findFirst({
+            where: {
+              id: allocation.saleId,
+              companyId: principal.companyId,
+              branchId: branch.id,
+              customerId: customer.id,
+              status: SaleStatus.COMPLETED,
+            },
+          });
+          if (!sale) throw new BadRequestException('Allocated sale is unavailable');
+          const outstanding = await this.invoiceOutstanding(tx, principal.companyId, sale);
+          if (money(allocation.amount).greaterThan(outstanding))
+            throw new ConflictException('Allocation exceeds invoice outstanding amount');
+        }
+        const paymentNumber = await this.nextNumber(
+          tx,
+          principal.companyId,
+          SalesDocumentType.CUSTOMER_COLLECTION,
+        );
+        const payment = await tx.payment.create({
+          data: {
+            companyId: principal.companyId,
+            branchId: branch.id,
+            methodId: method.id,
+            customerId: customer.id,
+            recordedById: principal.userId,
+            paymentNumber,
+            direction: PaymentDirection.INBOUND,
+            status: PaymentStatus.COMPLETED,
+            amount,
+            reference: dto.reference ?? dto.notes,
+            paidAt: dto.paidAt ? new Date(dto.paidAt) : new Date(),
+            saleAllocations: {
+              create: dto.allocations.map((row) => ({
+                saleId: row.saleId,
+                amount: money(row.amount),
+              })),
+            },
+          },
+        });
+        await tx.customerLedgerEntry.create({
+          data: {
+            companyId: principal.companyId,
+            branchId: branch.id,
+            customerId: customer.id,
+            createdById: principal.userId,
+            type: CustomerLedgerEntryType.PAYMENT,
+            amount: amount.negated(),
+            effectiveAt: dto.paidAt ? new Date(dto.paidAt) : new Date(),
+            referenceType: 'CUSTOMER_COLLECTION',
+            referenceId: payment.id,
+            description: dto.notes ?? `Customer collection ${paymentNumber}`,
+            idempotencyKey: `collection:${operationId}`,
+            requestHash,
+          },
+        });
+        await this.audit(tx, principal, branch.id, 'customer.collection.posted', payment.id, {
+          customerId: customer.id,
+          amount: amount.toFixed(4),
+          allocated: allocated.toFixed(4),
+          unapplied: amount.minus(allocated).toFixed(4),
+        });
+        return {
+          ...payment,
+          allocated: allocated.toFixed(4),
+          unapplied: amount.minus(allocated).toFixed(4),
+        };
+      },
+    );
+  }
+
+  postReturn(
+    principal: AuthPrincipal,
+    branch: ActiveBranchContext,
+    key: string,
+    dto: PostSaleReturnDto,
+  ) {
+    return this.idempotent(
+      principal,
+      key,
+      SalesOperationType.SALE_RETURN,
+      dto,
+      (tx, operationId, requestHash) =>
+        this.postReturnTx(
+          tx,
+          principal,
+          branch,
+          dto,
+          SaleReturnKind.RETURN,
+          operationId,
+          requestHash,
+        ),
+    );
+  }
+
+  postRefund(
+    principal: AuthPrincipal,
+    branch: ActiveBranchContext,
+    key: string,
+    dto: PostSaleRefundDto,
+  ) {
+    return this.idempotent(
+      principal,
+      key,
+      SalesOperationType.SALE_REFUND,
+      dto,
+      (tx, operationId, requestHash) =>
+        this.postRefundTx(tx, principal, branch, dto, operationId, requestHash),
+    );
+  }
+
+  postExchange(
+    principal: AuthPrincipal,
+    branch: ActiveBranchContext,
+    key: string,
+    dto: PostSaleExchangeDto,
+  ) {
+    return this.idempotent(
+      principal,
+      key,
+      SalesOperationType.EXCHANGE,
+      dto,
+      async (tx, operationId, requestHash) => {
+        if (dto.saleReturn.refunds?.length)
+          throw new BadRequestException('Exchange return cannot also issue an immediate refund');
+        const returned = await this.postReturnTx(
+          tx,
+          principal,
+          branch,
+          dto.saleReturn,
+          SaleReturnKind.RETURN,
+          `${operationId}:return`,
+          requestHash,
+        );
+        const availableCredit = money(returned.totalCredit).minus(returned.receivableApplied);
+        const replacementResult = await this.createReplacementSaleTx(
+          tx,
+          principal,
+          branch,
+          dto.replacementSale,
+          `${operationId}:sale`,
+          requestHash,
+          availableCredit,
+        );
+        const replacement = replacementResult.sale;
+        if (replacement.customerId !== returned.customerId)
+          throw new BadRequestException('Exchange replacement must use the original customer');
+        const creditApplied = replacementResult.creditApplied;
+        const exchangeNumber = await this.nextNumber(
+          tx,
+          principal.companyId,
+          SalesDocumentType.EXCHANGE,
+        );
+        const exchange = await tx.saleExchange.create({
+          data: {
+            companyId: principal.companyId,
+            branchId: branch.id,
+            originalSaleId: returned.saleId,
+            returnId: returned.id,
+            replacementSaleId: replacement.id,
+            createdById: principal.userId,
+            exchangeNumber,
+            creditApplied,
+            difference: money(replacement.total).minus(returned.totalCredit),
+            reason: dto.reason,
+          },
+        });
+        if (!returned.customer.isWalkIn && creditApplied.greaterThan(0)) {
+          await tx.customerLedgerEntry.create({
+            data: {
+              companyId: principal.companyId,
+              branchId: branch.id,
+              customerId: returned.customerId,
+              createdById: principal.userId,
+              type: CustomerLedgerEntryType.SALE_INVOICE,
+              amount: creditApplied,
+              effectiveAt: new Date(),
+              referenceType: 'EXCHANGE_CREDIT_APPLICATION',
+              referenceId: exchange.id,
+              description: `Exchange credit applied to ${replacement.invoiceNumber}`,
+              idempotencyKey: `exchange-credit:${operationId}`,
+              requestHash,
+            },
+          });
+        }
+        await this.audit(tx, principal, branch.id, 'sale.exchange.posted', exchange.id, {
+          originalSaleId: returned.saleId,
+          replacementSaleId: replacement.id,
+          creditApplied: creditApplied.toFixed(4),
+          difference: exchange.difference.toFixed(4),
+        });
+        return { exchange, saleReturn: returned, replacementSale: replacement };
+      },
+    );
+  }
+
+  voidSale(
+    principal: AuthPrincipal,
+    branch: ActiveBranchContext,
+    saleId: string,
+    key: string,
+    reason: string,
+    refunds: SalePaymentInputDto[] = [],
+  ) {
+    return this.idempotent(
+      principal,
+      key,
+      SalesOperationType.VOID_SALE,
+      { saleId, reason, refunds },
+      async (tx, operationId, requestHash) => {
+        const sale = await tx.sale.findFirst({
+          where: { id: saleId, companyId: principal.companyId, branchId: branch.id },
+          include: { items: true },
+        });
+        if (!sale || sale.status !== SaleStatus.COMPLETED)
+          throw new NotFoundException('Completed sale not found');
+        const prior = await tx.saleReturnItem.groupBy({
+          by: ['saleItemId'],
+          where: { companyId: principal.companyId, saleReturn: { saleId } },
+          _sum: { quantity: true },
+        });
+        const items = sale.items
+          .map((item) => ({
+            saleItemId: item.id,
+            quantity: q6(
+              item.quantity.minus(
+                prior.find((row) => row.saleItemId === item.id)?._sum.quantity ?? q6(0),
+              ),
+            ).toFixed(),
+            disposition: ReturnDisposition.RESTOCK,
+          }))
+          .filter((item) => q6(item.quantity).greaterThan(0));
+        if (!items.length) throw new ConflictException('Sale has already been fully returned');
+        return this.postReturnTx(
+          tx,
+          principal,
+          branch,
+          { saleId, items, reason, refunds },
+          SaleReturnKind.VOID,
+          `${operationId}:void`,
+          requestHash,
+        );
+      },
+    );
+  }
+
   async list(principal: AuthPrincipal, branch: ActiveBranchContext, query: SaleListQueryDto) {
     const where: Prisma.SaleWhereInput = {
       companyId: principal.companyId,
@@ -579,6 +881,692 @@ export class SalesService {
 
   get(principal: AuthPrincipal, branch: ActiveBranchContext, id: string) {
     return this.getInTx(this.db, principal, branch.id, id);
+  }
+
+  async listCollections(
+    principal: AuthPrincipal,
+    branch: ActiveBranchContext,
+    query: SaleFinancialListQueryDto,
+  ) {
+    const where: Prisma.PaymentWhereInput = {
+      companyId: principal.companyId,
+      branchId: branch.id,
+      customerId: query.customerId,
+      direction: PaymentDirection.INBOUND,
+      saleAllocations: query.saleId ? { some: { saleId: query.saleId } } : undefined,
+      ...(query.from || query.to
+        ? {
+            paidAt: {
+              ...(query.from ? { gte: new Date(query.from) } : {}),
+              ...(query.to ? { lte: new Date(query.to) } : {}),
+            },
+          }
+        : {}),
+      ...(query.search
+        ? {
+            OR: [
+              { paymentNumber: { contains: query.search, mode: 'insensitive' } },
+              { reference: { contains: query.search, mode: 'insensitive' } },
+              { customer: { name: { contains: query.search, mode: 'insensitive' } } },
+            ],
+          }
+        : {}),
+    };
+    const [items, total] = await this.db.$transaction([
+      this.db.payment.findMany({
+        where,
+        include: { method: true, customer: true, saleAllocations: true },
+        orderBy: [{ paidAt: 'desc' }, { id: 'desc' }],
+        skip: (query.page - 1) * query.limit,
+        take: query.limit,
+      }),
+      this.db.payment.count({ where }),
+    ]);
+    return { items, total, page: query.page, limit: query.limit };
+  }
+
+  async listReturns(
+    principal: AuthPrincipal,
+    branch: ActiveBranchContext,
+    query: SaleFinancialListQueryDto,
+  ) {
+    const where: Prisma.SaleReturnWhereInput = {
+      companyId: principal.companyId,
+      branchId: branch.id,
+      customerId: query.customerId,
+      saleId: query.saleId,
+      ...(query.from || query.to
+        ? {
+            returnedAt: {
+              ...(query.from ? { gte: new Date(query.from) } : {}),
+              ...(query.to ? { lte: new Date(query.to) } : {}),
+            },
+          }
+        : {}),
+      ...(query.search
+        ? {
+            OR: [
+              { returnNumber: { contains: query.search, mode: 'insensitive' } },
+              { sale: { invoiceNumber: { contains: query.search, mode: 'insensitive' } } },
+              { customer: { name: { contains: query.search, mode: 'insensitive' } } },
+            ],
+          }
+        : {}),
+    };
+    const [items, total] = await this.db.$transaction([
+      this.db.saleReturn.findMany({
+        where,
+        include: {
+          sale: { select: { id: true, invoiceNumber: true } },
+          customer: { select: { id: true, code: true, name: true } },
+          items: { include: { product: true, unit: true, batch: true } },
+          refunds: { include: { payment: { include: { method: true } } } },
+          exchange: true,
+        },
+        orderBy: [{ returnedAt: 'desc' }, { id: 'desc' }],
+        skip: (query.page - 1) * query.limit,
+        take: query.limit,
+      }),
+      this.db.saleReturn.count({ where }),
+    ]);
+    return { items, total, page: query.page, limit: query.limit };
+  }
+
+  async listRefunds(
+    principal: AuthPrincipal,
+    branch: ActiveBranchContext,
+    query: SaleFinancialListQueryDto,
+  ) {
+    const where: Prisma.SaleRefundWhereInput = {
+      companyId: principal.companyId,
+      saleReturn: {
+        branchId: branch.id,
+        customerId: query.customerId,
+        saleId: query.saleId,
+      },
+      ...(query.from || query.to
+        ? {
+            payment: {
+              paidAt: {
+                ...(query.from ? { gte: new Date(query.from) } : {}),
+                ...(query.to ? { lte: new Date(query.to) } : {}),
+              },
+            },
+          }
+        : {}),
+    };
+    const [items, total] = await this.db.$transaction([
+      this.db.saleRefund.findMany({
+        where,
+        include: {
+          saleReturn: { include: { sale: true, customer: true } },
+          payment: { include: { method: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip: (query.page - 1) * query.limit,
+        take: query.limit,
+      }),
+      this.db.saleRefund.count({ where }),
+    ]);
+    return { items, total, page: query.page, limit: query.limit };
+  }
+
+  private async postReturnTx(
+    tx: Tx,
+    principal: AuthPrincipal,
+    branch: ActiveBranchContext,
+    dto: PostSaleReturnDto,
+    kind: SaleReturnKind,
+    operationId: string,
+    requestHash: string,
+  ) {
+    await this.lock(tx, `${principal.companyId}:sale:${dto.saleId}`);
+    this.assertDistinct(
+      dto.items.map((row) => row.saleItemId),
+      'return line',
+    );
+    const sale = await tx.sale.findFirst({
+      where: {
+        id: dto.saleId,
+        companyId: principal.companyId,
+        branchId: branch.id,
+        status: SaleStatus.COMPLETED,
+      },
+      include: {
+        customer: true,
+        items: {
+          include: {
+            product: { select: { id: true, trackInventory: true } },
+            returnItems: { select: { baseQuantity: true, creditAmount: true } },
+          },
+        },
+      },
+    });
+    if (!sale) throw new NotFoundException('Completed sale not found');
+    const selected = dto.items.map((input) => {
+      const item = sale.items.find((row) => row.id === input.saleItemId);
+      if (!item) throw new BadRequestException('Return item is not part of the original sale');
+      const quantity = q6(input.quantity);
+      const baseQuantity = q6(quantity.mul(item.conversionFactor));
+      const priorBase = q6(
+        item.returnItems.reduce((sum, row) => sum.plus(row.baseQuantity), q6(0)),
+      );
+      if (priorBase.plus(baseQuantity).greaterThan(item.baseQuantity))
+        throw new ConflictException('Return quantity exceeds the remaining sold quantity');
+      return { input, item, quantity, baseQuantity, priorBase };
+    });
+    const allocations = this.allocatedLineTotals(sale);
+    const prepared = selected.map((row) => {
+      const allocated = allocations.get(row.item.id)!;
+      const priorCredit = money(
+        row.item.returnItems.reduce((sum, item) => sum.plus(item.creditAmount), money(0)),
+      );
+      const cumulative = money(
+        allocated.mul(row.priorBase.plus(row.baseQuantity)).div(row.item.baseQuantity),
+      );
+      return { ...row, creditAmount: money(cumulative.minus(priorCredit)) };
+    });
+    const totalCredit = money(prepared.reduce((sum, row) => sum.plus(row.creditAmount), money(0)));
+    const outstanding = await this.invoiceOutstanding(tx, principal.companyId, sale);
+    const receivableApplied = outstanding.lessThan(totalCredit) ? outstanding : totalCredit;
+    const immediateRefunds = dto.refunds ?? [];
+    const immediateRefundTotal = money(
+      immediateRefunds.reduce((sum, row) => sum.plus(money(row.amount)), money(0)),
+    );
+    const refundable = money(totalCredit.minus(receivableApplied));
+    if (immediateRefundTotal.greaterThan(refundable))
+      throw new BadRequestException('Refunds exceed the return refundable amount');
+    if (sale.customer.isWalkIn && !immediateRefundTotal.equals(totalCredit))
+      throw new BadRequestException('Walk-in returns require an immediate full refund');
+    const returnNumber = await this.nextNumber(
+      tx,
+      principal.companyId,
+      SalesDocumentType.SALE_RETURN,
+    );
+    const saleReturn = await tx.saleReturn.create({
+      data: {
+        companyId: principal.companyId,
+        branchId: branch.id,
+        warehouseId: sale.warehouseId,
+        saleId: sale.id,
+        customerId: sale.customerId,
+        createdById: principal.userId,
+        returnNumber,
+        kind,
+        totalCredit,
+        receivableApplied,
+        reason: dto.reason,
+        returnedAt: dto.returnedAt ? new Date(dto.returnedAt) : new Date(),
+        items: {
+          create: prepared.map((row) => ({
+            saleItemId: row.item.id,
+            productId: row.item.productId,
+            unitId: row.item.unitId,
+            batchId: row.item.batchId,
+            quantity: row.quantity,
+            baseQuantity: row.baseQuantity,
+            conversionFactor: row.item.conversionFactor,
+            creditAmount: row.creditAmount,
+            disposition: row.input.disposition,
+          })),
+        },
+      },
+      include: { customer: true, items: true },
+    });
+    for (const row of [...prepared].sort((a, b) =>
+      `${a.item.productId}:${a.item.batchId ?? '-'}`.localeCompare(
+        `${b.item.productId}:${b.item.batchId ?? '-'}`,
+      ),
+    )) {
+      if (row.input.disposition === ReturnDisposition.RESTOCK && row.item.product.trackInventory)
+        await this.inventory.postSaleReturnMovement(
+          tx,
+          principal,
+          branch.id,
+          sale.warehouseId,
+          {
+            productId: row.item.productId,
+            unitId: row.item.unitId,
+            batchId: row.item.batchId ?? undefined,
+            quantity: row.quantity,
+            baseQuantity: row.baseQuantity,
+            conversionFactor: row.item.conversionFactor,
+          },
+          saleReturn.id,
+          row.item.unitCost,
+        );
+    }
+    if (!sale.customer.isWalkIn && totalCredit.greaterThan(0)) {
+      await tx.customerLedgerEntry.create({
+        data: {
+          companyId: principal.companyId,
+          branchId: branch.id,
+          customerId: sale.customerId,
+          createdById: principal.userId,
+          type: CustomerLedgerEntryType.SALE_RETURN,
+          amount: totalCredit.negated(),
+          effectiveAt: saleReturn.returnedAt,
+          referenceType: 'SALE_RETURN',
+          referenceId: saleReturn.id,
+          description: `${kind === SaleReturnKind.VOID ? 'Sale reversal' : 'Sale return'} ${returnNumber}`,
+          idempotencyKey: `return:${operationId}`,
+          requestHash,
+        },
+      });
+    }
+    for (let index = 0; index < immediateRefunds.length; index += 1) {
+      const refund = immediateRefunds[index];
+      await this.createRefundPayment(
+        tx,
+        principal,
+        branch.id,
+        saleReturn,
+        refund,
+        `${operationId}:refund:${index}`,
+        requestHash,
+      );
+    }
+    await this.audit(
+      tx,
+      principal,
+      branch.id,
+      kind === SaleReturnKind.VOID ? 'sale.voided' : 'sale.return.posted',
+      saleReturn.id,
+      {
+        saleId: sale.id,
+        returnNumber,
+        totalCredit: totalCredit.toFixed(4),
+        receivableApplied: receivableApplied.toFixed(4),
+        immediateRefund: immediateRefundTotal.toFixed(4),
+      },
+    );
+    return saleReturn;
+  }
+
+  private async postRefundTx(
+    tx: Tx,
+    principal: AuthPrincipal,
+    branch: ActiveBranchContext,
+    dto: PostSaleRefundDto,
+    operationId: string,
+    requestHash: string,
+  ) {
+    await this.lock(tx, `${principal.companyId}:return:${dto.returnId}`);
+    const saleReturn = await tx.saleReturn.findFirst({
+      where: { id: dto.returnId, companyId: principal.companyId, branchId: branch.id },
+      include: { customer: true, refunds: true, exchange: true },
+    });
+    if (!saleReturn) throw new NotFoundException('Sale return not found');
+    const refunded = money(saleReturn.refunds.reduce((sum, row) => sum.plus(row.amount), money(0)));
+    const capacity = money(saleReturn.totalCredit)
+      .minus(saleReturn.receivableApplied)
+      .minus(saleReturn.exchange?.creditApplied ?? 0)
+      .minus(refunded);
+    if (money(dto.amount).greaterThan(capacity))
+      throw new ConflictException('Refund exceeds remaining refundable credit');
+    const result = await this.createRefundPayment(
+      tx,
+      principal,
+      branch.id,
+      saleReturn,
+      {
+        methodId: dto.methodId,
+        amount: dto.amount,
+        reference: dto.reference ?? dto.reason,
+      },
+      operationId,
+      requestHash,
+      dto.refundedAt ? new Date(dto.refundedAt) : new Date(),
+    );
+    await this.audit(tx, principal, branch.id, 'sale.refund.posted', result.payment.id, {
+      returnId: saleReturn.id,
+      amount: money(dto.amount).toFixed(4),
+      reason: dto.reason,
+    });
+    return result;
+  }
+
+  private async createRefundPayment(
+    tx: Tx,
+    principal: AuthPrincipal,
+    branchId: string,
+    saleReturn: { id: string; customerId: string; customer: { isWalkIn: boolean } },
+    input: SalePaymentInputDto,
+    operationId: string,
+    requestHash: string,
+    paidAt = new Date(),
+  ) {
+    const method = await tx.paymentMethod.findFirst({
+      where: { id: input.methodId, companyId: principal.companyId, isActive: true },
+    });
+    if (!method) throw new BadRequestException('Refund method is unavailable');
+    if (input.tendered) throw new BadRequestException('Refunds do not accept tendered cash');
+    const amount = money(input.amount);
+    const paymentNumber = await this.nextNumber(
+      tx,
+      principal.companyId,
+      SalesDocumentType.SALE_REFUND,
+    );
+    const payment = await tx.payment.create({
+      data: {
+        companyId: principal.companyId,
+        branchId,
+        methodId: method.id,
+        customerId: saleReturn.customerId,
+        recordedById: principal.userId,
+        paymentNumber,
+        direction: PaymentDirection.OUTBOUND,
+        status: PaymentStatus.COMPLETED,
+        amount,
+        reference: input.reference,
+        paidAt,
+      },
+    });
+    const refund = await tx.saleRefund.create({
+      data: {
+        companyId: principal.companyId,
+        returnId: saleReturn.id,
+        paymentId: payment.id,
+        amount,
+      },
+    });
+    if (!saleReturn.customer.isWalkIn) {
+      await tx.customerLedgerEntry.create({
+        data: {
+          companyId: principal.companyId,
+          branchId,
+          customerId: saleReturn.customerId,
+          createdById: principal.userId,
+          type: CustomerLedgerEntryType.PAYMENT,
+          amount,
+          effectiveAt: paidAt,
+          referenceType: 'SALE_REFUND',
+          referenceId: payment.id,
+          description: `Customer refund ${paymentNumber}`,
+          idempotencyKey: `refund:${operationId}`,
+          requestHash,
+        },
+      });
+    }
+    return { payment, refund };
+  }
+
+  private async createReplacementSaleTx(
+    tx: Tx,
+    principal: AuthPrincipal,
+    branch: ActiveBranchContext,
+    dto: CompleteSaleDto,
+    operationId: string,
+    requestHash: string,
+    availableCredit: Prisma.Decimal,
+  ) {
+    if (dto.draftSaleId) throw new BadRequestException('Exchange replacement cannot use a draft');
+    await this.validateContext(tx, principal, branch.id, dto);
+    const customer = await this.requireCustomer(tx, principal.companyId, dto.customerId);
+    const prepared = await this.prepare(tx, principal, dto);
+    const inputs = this.paymentInputs(dto);
+    const cashPaid = money(inputs.reduce((sum, input) => sum.plus(money(input.amount)), money(0)));
+    if (cashPaid.greaterThan(prepared.total))
+      throw new BadRequestException('Payments exceed the replacement sale total');
+    const remainingAfterMoney = money(prepared.total.minus(cashPaid));
+    const creditApplied = availableCredit.lessThan(remainingAfterMoney)
+      ? availableCredit
+      : remainingAfterMoney;
+    const due = money(remainingAfterMoney.minus(creditApplied));
+    const paid = money(cashPaid.plus(creditApplied));
+    const methods = await tx.paymentMethod.findMany({
+      where: {
+        id: { in: inputs.map((row) => row.methodId) },
+        companyId: principal.companyId,
+        isActive: true,
+      },
+    });
+    if (methods.length !== inputs.length)
+      throw new BadRequestException('One or more payment methods are unavailable');
+    let change = money(0);
+    for (const input of inputs) {
+      const method = methods.find((row) => row.id === input.methodId)!;
+      if (method.isCash) {
+        const tendered = money(input.tendered ?? input.amount);
+        if (tendered.lessThan(input.amount))
+          throw new BadRequestException('Cash tendered cannot be less than cash applied');
+        change = money(change.plus(tendered.minus(input.amount)));
+      } else if (input.tendered) {
+        throw new BadRequestException('Tendered amount is valid only for cash');
+      }
+    }
+    if (customer.isWalkIn && due.greaterThan(0))
+      throw new ConflictException('Walk-in exchange difference must be fully settled');
+    if (!customer.isWalkIn && due.greaterThan(0)) {
+      await this.lock(tx, `${principal.companyId}:customer:${customer.id}`);
+      const balance = await tx.customerLedgerEntry.aggregate({
+        where: { companyId: principal.companyId, customerId: customer.id },
+        _sum: { amount: true },
+      });
+      if (
+        money(balance._sum.amount ?? 0)
+          .plus(due)
+          .plus(creditApplied)
+          .greaterThan(customer.creditLimit)
+      )
+        throw new ConflictException('Customer credit limit would be exceeded');
+    }
+    const saleId = randomUUID();
+    const invoiceNumber = await this.nextNumber(
+      tx,
+      principal.companyId,
+      SalesDocumentType.SALE_INVOICE,
+    );
+    const sale = await tx.sale.create({
+      data: {
+        id: saleId,
+        companyId: principal.companyId,
+        branchId: branch.id,
+        warehouseId: dto.warehouseId,
+        registerId: dto.registerId,
+        customerId: dto.customerId,
+        createdById: principal.userId,
+        salespersonId: dto.salespersonId,
+        invoiceNumber,
+        status: SaleStatus.COMPLETED,
+        pricingMode: dto.pricingMode,
+        ...this.header(prepared),
+        paid,
+        due,
+        change,
+        notes: dto.notes,
+        completedAt: new Date(),
+        items: { create: prepared.lines.map((line) => this.lineData(principal, line)) },
+      },
+    });
+    for (const line of [...prepared.lines].sort((a, b) =>
+      `${a.productId}:${a.batchId ?? '-'}`.localeCompare(`${b.productId}:${b.batchId ?? '-'}`),
+    )) {
+      if (line.trackInventory)
+        await this.inventory.postSaleMovement(
+          tx,
+          principal,
+          branch.id,
+          dto.warehouseId,
+          {
+            productId: line.productId,
+            unitId: line.unitId,
+            batchId: line.batchId,
+            quantity: line.quantity.toFixed(),
+          },
+          saleId,
+          line.unitCost,
+        );
+    }
+    for (const input of inputs) {
+      const payment = await tx.payment.create({
+        data: {
+          companyId: principal.companyId,
+          branchId: branch.id,
+          methodId: input.methodId,
+          customerId: customer.id,
+          recordedById: principal.userId,
+          paymentNumber: await this.nextNumber(
+            tx,
+            principal.companyId,
+            SalesDocumentType.SALE_PAYMENT,
+          ),
+          direction: PaymentDirection.INBOUND,
+          status: PaymentStatus.COMPLETED,
+          amount: money(input.amount),
+          reference: input.reference,
+          paidAt: new Date(),
+        },
+      });
+      await tx.salePayment.create({
+        data: {
+          companyId: principal.companyId,
+          saleId,
+          paymentId: payment.id,
+          amount: money(input.amount),
+        },
+      });
+    }
+    if (!customer.isWalkIn && due.greaterThan(0)) {
+      await tx.customerLedgerEntry.create({
+        data: {
+          companyId: principal.companyId,
+          branchId: branch.id,
+          customerId: customer.id,
+          createdById: principal.userId,
+          type: CustomerLedgerEntryType.SALE_INVOICE,
+          amount: due,
+          effectiveAt: new Date(),
+          referenceType: 'SALE',
+          referenceId: saleId,
+          description: `Exchange sale ${invoiceNumber}`,
+          idempotencyKey: `exchange-sale:${operationId}`,
+          requestHash,
+        },
+      });
+    }
+    await this.audit(tx, principal, branch.id, 'sale.completed', saleId, {
+      invoiceNumber,
+      exchange: true,
+      total: prepared.total.toFixed(4),
+      paid: paid.toFixed(4),
+      due: due.toFixed(4),
+      creditApplied: creditApplied.toFixed(4),
+    });
+    return { sale, creditApplied };
+  }
+
+  private allocatedLineTotals(sale: {
+    total: Prisma.Decimal;
+    items: Array<{ id: string; lineTotal: Prisma.Decimal }>;
+  }) {
+    const ordered = [...sale.items].sort((a, b) => a.id.localeCompare(b.id));
+    const sum = money(ordered.reduce((total, item) => total.plus(item.lineTotal), money(0)));
+    const result = new Map<string, Prisma.Decimal>();
+    let allocated = money(0);
+    for (let index = 0; index < ordered.length; index += 1) {
+      const item = ordered[index];
+      const value =
+        index === ordered.length - 1
+          ? money(sale.total.minus(allocated))
+          : sum.isZero()
+            ? money(0)
+            : money(sale.total.mul(item.lineTotal).div(sum));
+      result.set(item.id, value);
+      allocated = money(allocated.plus(value));
+    }
+    return result;
+  }
+
+  private async invoiceOutstanding(
+    tx: Tx | DatabaseService,
+    companyId: string,
+    sale: { id: string; total: Prisma.Decimal },
+  ) {
+    const [payments, returns, exchangeCredits] = await Promise.all([
+      tx.salePayment.aggregate({
+        where: {
+          companyId,
+          saleId: sale.id,
+          payment: { status: PaymentStatus.COMPLETED, direction: PaymentDirection.INBOUND },
+        },
+        _sum: { amount: true },
+      }),
+      tx.saleReturn.aggregate({
+        where: { companyId, saleId: sale.id },
+        _sum: { totalCredit: true },
+      }),
+      tx.saleExchange.aggregate({
+        where: { companyId, replacementSaleId: sale.id },
+        _sum: { creditApplied: true },
+      }),
+    ]);
+    const value = money(sale.total)
+      .minus(payments._sum.amount ?? 0)
+      .minus(returns._sum.totalCredit ?? 0)
+      .minus(exchangeCredits._sum.creditApplied ?? 0);
+    return value.isNegative() ? money(0) : money(value);
+  }
+
+  private paymentInputs(dto: CompleteSaleDto) {
+    if (dto.payment && dto.payments?.length)
+      throw new BadRequestException('Use payment or payments, not both');
+    const inputs = dto.payments ?? (dto.payment ? [dto.payment] : []);
+    this.assertDistinct(
+      inputs.map((row) => row.methodId),
+      'payment method',
+    );
+    return inputs;
+  }
+
+  private assertDistinct(values: string[], label: string) {
+    if (new Set(values).size !== values.length)
+      throw new BadRequestException(`Duplicate ${label} is not allowed`);
+  }
+
+  private idempotent<T>(
+    principal: AuthPrincipal,
+    key: string,
+    type: SalesOperationType,
+    payload: unknown,
+    work: (tx: Tx, operationId: string, requestHash: string) => Promise<T>,
+  ) {
+    this.assertKey(key);
+    const requestHash = this.hash(payload);
+    return this.db
+      .$transaction(
+        async (tx) => {
+          const operation = await tx.salesOperation.create({
+            data: {
+              companyId: principal.companyId,
+              createdById: principal.userId,
+              type,
+              idempotencyKey: key,
+              requestHash,
+            },
+          });
+          const result = await work(tx, operation.id, requestHash);
+          await tx.salesOperation.update({
+            where: { id: operation.id },
+            data: { result: JSON.parse(JSON.stringify(result)) as Prisma.InputJsonValue },
+          });
+          return result;
+        },
+        { timeout: 30000 },
+      )
+      .catch(async (error: unknown) => {
+        if (!isUniqueConstraintError(error)) throw error;
+        const existing = await this.db.salesOperation.findUnique({
+          where: {
+            companyId_idempotencyKey: { companyId: principal.companyId, idempotencyKey: key },
+          },
+        });
+        if (!existing || existing.type !== type || existing.requestHash !== requestHash)
+          throw new ConflictException('Idempotency key was already used for a different request');
+        if (!existing.result)
+          throw new ConflictException('Operation is still in progress; retry shortly');
+        return existing.result as T;
+      });
   }
 
   private async prepare(tx: Tx, principal: AuthPrincipal, dto: SaveSaleDto): Promise<PreparedSale> {
@@ -767,11 +1755,51 @@ export class SalesService {
             },
           },
           paymentAllocations: { include: { payment: { include: { method: true } } } },
+          returns: {
+            include: {
+              items: { include: { product: true, unit: true, batch: true } },
+              refunds: { include: { payment: { include: { method: true } } } },
+              exchange: true,
+            },
+          },
+          originalExchanges: true,
+          replacementExchanges: true,
         },
       })
-      .then((sale) => {
+      .then(async (sale) => {
         if (!sale) throw new NotFoundException('Sale not found');
-        return sale;
+        const outstanding = await this.invoiceOutstanding(tx, principal.companyId, sale);
+        const returnedBase = new Map<string, Prisma.Decimal>();
+        for (const saleReturn of sale.returns)
+          for (const item of saleReturn.items)
+            returnedBase.set(
+              item.saleItemId,
+              q6((returnedBase.get(item.saleItemId) ?? q6(0)).plus(item.baseQuantity)),
+            );
+        const totalReturned = money(
+          sale.returns.reduce((sum, row) => sum.plus(row.totalCredit), money(0)),
+        );
+        const lifecycleStatus = sale.originalExchanges.length
+          ? 'EXCHANGED'
+          : sale.returns.some((row) => row.kind === SaleReturnKind.VOID)
+            ? 'VOIDED'
+            : totalReturned.equals(sale.total)
+              ? 'RETURNED'
+              : totalReturned.greaterThan(0)
+                ? 'PARTIALLY_RETURNED'
+                : sale.status;
+        return {
+          ...sale,
+          currentOutstanding: outstanding.toFixed(4),
+          lifecycleStatus,
+          items: sale.items.map((item) => ({
+            ...item,
+            returnedBaseQuantity: (returnedBase.get(item.id) ?? q6(0)).toFixed(6),
+            returnableBaseQuantity: q6(
+              item.baseQuantity.minus(returnedBase.get(item.id) ?? q6(0)),
+            ).toFixed(6),
+          })),
+        };
       });
   }
 
@@ -813,6 +1841,10 @@ export class SalesService {
     const prefix: Record<SalesDocumentType, string> = {
       SALE_INVOICE: 'INV',
       SALE_PAYMENT: 'PAY',
+      CUSTOMER_COLLECTION: 'COL',
+      SALE_RETURN: 'SR',
+      SALE_REFUND: 'RF',
+      EXCHANGE: 'EX',
     };
     return `${prefix[type]}-${(row.nextNumber - 1n).toString().padStart(6, '0')}`;
   }

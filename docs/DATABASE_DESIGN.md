@@ -74,7 +74,7 @@ Implemented Phase 6 inventory workflows use transaction-scoped PostgreSQL adviso
 
 ## Deferred Schema
 
-Return/refund/exchange entities (Phases 8 and 10) and any double-entry journal (future accounting scope) remain deliberately deferred so their lifecycle rules are designed with the implementing workflow rather than guessed early.
+Only a future double-entry general ledger remains deliberately deferred. Purchase returns were added with Phase 8 and sale returns/refunds/exchanges with Phase 10 when their actual lifecycle and transaction rules were implemented.
 
 Phase 5 migration `20260906043323_phase5_catalog_foundation` normalizes company-owned manufacturers, adds a separate sanitary profile, permits unit-bound barcodes, and enforces one active conversion per company/product/unit. Existing manufacturer text is migrated before its legacy column is removed. Commercial factors remain `numeric(24,10)`; money remains `numeric(19,4)`.
 
@@ -93,3 +93,9 @@ Sale money remains `numeric(19,4)`, quantities remain `numeric(20,6)`, and conve
 Composite foreign keys enforce company/branch/warehouse/product/batch ownership. A partial unique index prevents duplicate active supplier invoice references. Positive quantity/conversion and non-negative monetary checks protect purchase-return data; PostgreSQL triggers make posted receipts, posted invoice amounts/lines, and posted returns immutable while still permitting invoice payment-status projection changes.
 
 The Phase 8 migrations are `20260906170000_phase8_purchasing_workflow` and `20260906171000_phase8_purchasing_constraints`. The second restores Phase 6 null-safe indexes that Prisma cannot express and replaces an inspected ambiguous generated invoice-item relation with the intended tenant-safe composite relationship.
+
+## Phase 10 Sales Financial Foundation
+
+Migration `20260907140329_phase10_payments_returns_exchange` adds `SaleReturn`, `SaleReturnItem`, `SaleRefund`, and `SaleExchange` while retaining the existing generic `Payment`, allocation, customer ledger, and inventory journals. Return lines reference the exact original sale line, product, unit, and optional batch through company-safe composite foreign keys. Company-local return/exchange identities are unique and indexed with sale, customer, branch, and date access paths.
+
+Money remains `numeric(19,4)`, physical quantities `numeric(20,6)`, and conversion snapshots `numeric(24,10)`. Positive checks constrain return/refund quantities and amounts; exchange credit cannot be negative. PostgreSQL triggers make posted returns/items/refunds/exchanges, sale allocations, and completed payments immutable. The migration explicitly preserves the Phase 6 null-safe batch/count indexes that Prisma cannot represent.

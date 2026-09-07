@@ -139,6 +139,7 @@ describe('Phase 8 purchasing API', () => {
   afterAll(async () => {
     if (companyId) {
       const triggers: Array<[string, string]> = [
+        ['Payment', 'Payment_completed_immutable'],
         ['SupplierLedgerEntry', 'SupplierLedgerEntry_immutable_delete'],
         ['InventoryMovement', 'InventoryMovement_immutable_delete'],
         ['GoodsReceipt', 'GoodsReceipt_posted_immutable'],
