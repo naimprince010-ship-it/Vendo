@@ -96,6 +96,12 @@ export const PERMISSIONS = {
   EXPENSE_REVERSE: 'expense.reverse',
   REPORT_VIEW_SALES: 'report.view_sales',
   REPORT_VIEW_PROFIT: 'report.view_profit',
+  REPORT_VIEW_INVENTORY: 'report.view_inventory',
+  REPORT_VIEW_PURCHASES: 'report.view_purchases',
+  REPORT_VIEW_CUSTOMERS: 'report.view_customers',
+  REPORT_VIEW_SUPPLIERS: 'report.view_suppliers',
+  REPORT_VIEW_EXPENSES: 'report.view_expenses',
+  REPORT_VIEW_CASH: 'report.view_cash',
   SETTINGS_MANAGE: 'settings.manage',
 } as const;
 

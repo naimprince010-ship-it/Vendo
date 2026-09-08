@@ -24,3 +24,53 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.print-document {
+  display: none;
+}
+
+@media print {
+  @page {
+    margin: 8mm;
+  }
+
+  body {
+    background: white !important;
+  }
+
+  body * {
+    visibility: hidden !important;
+  }
+
+  .app-shell,
+  .app-shell > div {
+    margin: 0 !important;
+    max-width: none !important;
+    padding: 0 !important;
+  }
+
+  .print-document {
+    display: block !important;
+    left: 0;
+    position: absolute;
+    top: 0;
+    visibility: visible !important;
+    box-shadow: none !important;
+  }
+
+  .print-document * {
+    visibility: visible !important;
+  }
+
+  .print-thermal {
+    width: 72mm;
+    padding: 2mm !important;
+    font-size: 10px;
+  }
+
+  .print-a4 {
+    width: 194mm;
+    min-height: 277mm;
+    padding: 10mm !important;
+  }
+}

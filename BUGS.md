@@ -299,3 +299,19 @@ No Critical/High payment, collection, customer-ledger, return/refund/exchange, i
 ## Phase 11 Verification Note — 2026-09-08
 
 No Critical/High cash-shift, drawer-movement, expense, payment-integration, migration, API, security, concurrency, or UI blocker remains. `BUG-021` and `BUG-022` were found through the production browser gate and resolved before the full uncached gate. Browser evidence verifies applied sale cash (not tender/change), a named-customer partial cash collection reducing invoice outstanding from BDT 1,850 to BDT 1,750, cash expense, cash refund, expected/actual/variance closing, disabled closed-drawer actions, history, and a clean console. The temporary verification account is disabled, has no role, and has no active session; it is retained only because immutable business/audit records reference its actor identity. Transactional browser evidence remains as development data. Deferred `BUG-008` remains the only known issue and is a low-severity future pg@9 compatibility warning on pinned pg 8.23.
+
+## BUG-023 — Historical snapshot backfill blocked by sale-line immutability
+
+- **ID:** BUG-023
+- **Severity:** High
+- **Area:** Phase 12 migration / historical invoice snapshots
+- **Description:** The first development migration attempt added nullable snapshot columns, then the Phase 10 completed-sale trigger rejected the controlled backfill.
+- **Reproduction:** Apply the original Phase 12 migration to a database containing completed sale lines.
+- **Expected:** Existing sale lines receive display snapshots while runtime mutation protection remains enabled after migration.
+- **Actual:** PostgreSQL raised `completed sale items are immutable`; the backfill did not commit.
+- **Status:** Resolved — the migration disables only `SaleItem_completed_immutable` around the one-time composite-tenant backfill and re-enables it before enforcing non-null columns. The partial development attempt was explicitly cleaned, and the corrected migration applies successfully.
+- **Related task:** Phase 12 — immutable receipt/invoice reprints
+
+## Phase 12 Verification Note — 2026-09-08
+
+No Critical/High reporting, financial-definition, inventory-equivalence, historical-document, migration, API, permission, tenant-isolation, browser, or print blocker remains. `BUG-023` was resolved before the additive migration was replayed cleanly and compared with the live schema. The complete API suite passes (14 suites/85 tests), all eight checked financial immutability triggers are enabled, Phase 12 test fixtures were removed, and the production browser verified real dashboard/report/invoice data with a clean console. The in-app browser did not surface the blob-anchor download event, so CSV correctness is supported by the real API integration test rather than a claimed browser download. Deferred `BUG-008` remains the only known issue and is a low-severity future pg@9 compatibility warning on pinned pg 8.23.

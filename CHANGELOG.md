@@ -4,6 +4,17 @@ All meaningful project changes are recorded here. This project follows a phase-o
 
 ## Unreleased
 
+### Phase 12 — Dashboard, Reports, and Receipts
+
+- Added a company-timezone operational dashboard and paginated sales, product/tile, inventory, purchase, customer, supplier, expense, cash, and restricted financial report APIs over real transaction ledgers.
+- Defined event-period sales/return treatment, historical-cost gross profit, receivable/payable signs, valid-expense handling, and drawer cash semantics without presenting collections as revenue or subtracting refunds twice.
+- Added permission-matched CSV exports and six granular report permissions; the guarded seed now idempotently grants newly introduced permissions to existing system Owner roles.
+- Added migration `20260908120000_phase12_sale_display_snapshots` so product, SKU, unit, tile size, batch, lot, and shade remain stable on reprints after catalog changes.
+- Added authenticated dashboard/report consoles and one historical invoice projection with thermal and A4 print layouts.
+- Added Phase 12 integration coverage for return-aware revenue/profit, derived tile equivalents, customer/supplier ledger totals, historical snapshot reprints, and permission enforcement.
+- Excluded only generated Prisma client output from API lint traversal so the authored application source remains fully linted without exhausting the build host.
+- Verified 14 current migrations with clean replay/live schema equality, 104-permission seed idempotency, 144 Swagger paths, 14 API suites/85 tests, all package gates and production builds, and real production-browser dashboard/report/invoice/print workflows with a clean console.
+
 ### Phase 1 — Foundation
 
 - Connected the empty local Git repository to `https://github.com/naimprince010-ship-it/Vendo.git`.

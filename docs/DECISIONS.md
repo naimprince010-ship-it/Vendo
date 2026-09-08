@@ -215,3 +215,12 @@
 - **Alternatives:** Mutable drawer balance; one shift per cashier with overlapping register ownership; asynchronous cash-event replication; treating tendered cash/change as separate revenue movements.
 - **Rationale:** One lock and one journal remain correct across API instances, make close-vs-post deterministic, and preserve atomicity with the originating transaction without double counting cash or rewriting historical Phase 8–10 records.
 - **Consequences:** Opening is included once through its movement. Closed shifts cannot reopen or accept movements. Actual cash and variance are preserved as reconciliation facts rather than converted into fake transactions. Cash-account/general-ledger treatment and denomination counts remain deferred.
+
+## ADR-025 — Event-Period Reports and Immutable Sale Display Snapshots
+
+- **Date:** 2026-09-08
+- **Context:** Accurate daily reports and stable invoice reprints must survive catalog edits. Sale lines already snapshot money, quantity, conversion, and cost, but mutable product/unit/batch labels could change historical print output.
+- **Decision:** Build read-only transaction-event reports with company-local date boundaries and no summary counters. Add only missing sale display snapshots. Gross sales recognize completed invoices; return/void credits recognize their posting event; collections and refunds are settlement rather than revenue. Restocked returns reverse proportional historical cost, while non-resellable returns do not.
+- **Alternatives:** Mutable dashboard totals; current-catalog reprints; subtracting both return credit and refund; a premature general ledger.
+- **Rationale:** The model reconciles to immutable transaction sources, prevents historical drift, and avoids misleading accounting claims.
+- **Consequences:** Sale and later return may appear in different period events. Current invoice detail can show lifetime state while period summaries stay event based. Net profit remains unavailable until complete accounting exists.

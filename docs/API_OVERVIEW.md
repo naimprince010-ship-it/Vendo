@@ -81,3 +81,13 @@ Phase 10 extends sale completion to multiple configured payment methods and expo
 - `POST /cash/movements/in` and `/out` require amount, reason, active shift, permission, and `Idempotency-Key`; `GET /cash/movements` exposes bounded immutable history.
 - Cash portions of sale completion, customer collection, supplier payment, and refund post one source-unique drawer movement inside the originating transaction. Non-cash portions post none.
 - `/expense-categories` provides company-scoped lifecycle management. `POST /expenses` and `POST /expenses/:id/reverse` create immutable posted history and an atomic drawer effect only when the configured method is cash. `GET /expenses` is paginated and active-branch scoped.
+
+## Phase 12 Reporting and Document API
+
+- `GET /reports/dashboard` returns permission-filtered company-local-day KPIs and bounded operational lists.
+- `GET /reports/sales`, `/products`, `/inventory`, `/purchases`, `/customers`, `/suppliers`, `/expenses`, and `/cash` provide server-filtered paginated read models.
+- `GET /reports/financial-summary` requires both sales and profit permissions and intentionally returns no fabricated net-profit value.
+- `GET /reports/invoices/:id` returns a company/branch-authorized historical document projection from sale snapshots.
+- `GET /reports/exports/:kind` emits permission-matched UTF-8 CSV with the same date/search/tenant filters.
+
+Date inputs are company-timezone local `YYYY-MM-DD` values converted server-side to half-open UTC intervals. A range over 366 days is rejected.

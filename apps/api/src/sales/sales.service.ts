@@ -55,6 +55,13 @@ type PreparedLine = {
   productId: string;
   unitId: string;
   batchId?: string;
+  productNameSnapshot: string;
+  skuSnapshot: string;
+  unitCodeSnapshot: string;
+  tileSizeSnapshot?: string;
+  batchNumberSnapshot?: string;
+  lotNumberSnapshot?: string;
+  shadeSnapshot?: string;
   trackInventory: boolean;
   quantity: Prisma.Decimal;
   baseQuantity: Prisma.Decimal;
@@ -1638,7 +1645,8 @@ export class SalesService {
       where: { companyId: principal.companyId, id: { in: dto.items.map((row) => row.productId) } },
       include: {
         baseUnit: true,
-        conversions: { where: { isActive: true } },
+        tileProfile: true,
+        conversions: { where: { isActive: true }, include: { fromUnit: true } },
         prices: { where: { isActive: true } },
         batches: { where: { id: { in: dto.items.flatMap((row) => row.batchId ?? []) } } },
       },
@@ -1655,12 +1663,21 @@ export class SalesService {
           ? new Prisma.Decimal(1)
           : product.conversions.find((row) => row.fromUnitId === input.unitId)?.factorToBase;
       if (!factor) throw new BadRequestException(`Sale unit is unavailable for ${product.name}`);
+      const selectedUnit =
+        input.unitId === product.baseUnitId
+          ? product.baseUnit
+          : product.conversions.find((row) => row.fromUnitId === input.unitId)?.fromUnit;
+      if (!selectedUnit)
+        throw new BadRequestException(`Sale unit is unavailable for ${product.name}`);
       let batchId: string | undefined;
+      let batchSnapshot:
+        { batchNumber: string; lotNumber: string | null; shade: string | null } | undefined;
       if (product.batchTracking) {
         const batch = product.batches.find((row) => row.id === input.batchId && row.isActive);
         if (!batch)
           throw new BadRequestException(`An active batch is required for ${product.name}`);
         batchId = batch.id;
+        batchSnapshot = batch;
       } else if (input.batchId) {
         throw new BadRequestException(`Batch is not valid for ${product.name}`);
       }
@@ -1702,6 +1719,13 @@ export class SalesService {
         productId: product.id,
         unitId: input.unitId,
         batchId,
+        productNameSnapshot: product.name,
+        skuSnapshot: product.sku,
+        unitCodeSnapshot: selectedUnit.code,
+        tileSizeSnapshot: product.tileProfile?.displaySize ?? undefined,
+        batchNumberSnapshot: batchSnapshot?.batchNumber,
+        lotNumberSnapshot: batchSnapshot?.lotNumber ?? undefined,
+        shadeSnapshot: batchSnapshot?.shade ?? undefined,
         trackInventory: product.trackInventory,
         quantity,
         baseQuantity,
@@ -1872,6 +1896,13 @@ export class SalesService {
       productId: line.productId,
       unitId: line.unitId,
       batchId: line.batchId,
+      productNameSnapshot: line.productNameSnapshot,
+      skuSnapshot: line.skuSnapshot,
+      unitCodeSnapshot: line.unitCodeSnapshot,
+      tileSizeSnapshot: line.tileSizeSnapshot,
+      batchNumberSnapshot: line.batchNumberSnapshot,
+      lotNumberSnapshot: line.lotNumberSnapshot,
+      shadeSnapshot: line.shadeSnapshot,
       quantity: line.quantity,
       baseQuantity: line.baseQuantity,
       conversionFactor: line.conversionFactor,

@@ -11,13 +11,22 @@ import { PartiesConsole } from './parties-console';
 import { PurchasingConsole } from './purchasing-console';
 import { PosConsole } from './pos-console';
 import { Phase10Console } from './phase10-console';
+import { DashboardConsole, ReportsConsole } from './reporting-console';
 
 export default function ProtectedAppPage() {
   const router = useRouter();
   const { user, status, logout } = useAuth();
   const [area, setArea] = useState<
-    'pos' | 'cash' | 'organization' | 'catalog' | 'inventory' | 'parties' | 'purchasing'
-  >('pos');
+    | 'dashboard'
+    | 'pos'
+    | 'cash'
+    | 'organization'
+    | 'catalog'
+    | 'inventory'
+    | 'parties'
+    | 'purchasing'
+    | 'reports'
+  >('dashboard');
 
   useEffect(() => {
     if (status === 'anonymous') router.replace('/login');
@@ -32,7 +41,7 @@ export default function ProtectedAppPage() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 px-4 py-6 text-slate-100 sm:px-6">
+    <main className="app-shell min-h-screen bg-slate-950 px-4 py-6 text-slate-100 sm:px-6">
       <div className="mx-auto max-w-7xl">
         <header className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-800 bg-slate-900 px-6 py-5">
           <div>
@@ -53,6 +62,7 @@ export default function ProtectedAppPage() {
         <nav className="mb-5 flex gap-2" aria-label="Application sections">
           {(
             [
+              'dashboard',
               'pos',
               'cash',
               'purchasing',
@@ -60,6 +70,7 @@ export default function ProtectedAppPage() {
               'inventory',
               'catalog',
               'organization',
+              'reports',
             ] as const
           ).map((item) => (
             <button
@@ -72,7 +83,9 @@ export default function ProtectedAppPage() {
             </button>
           ))}
         </nav>
-        {area === 'pos' ? (
+        {area === 'dashboard' ? (
+          <DashboardConsole />
+        ) : area === 'pos' ? (
           <div className="space-y-6">
             <PosConsole />
             <Phase10Console />
@@ -87,6 +100,8 @@ export default function ProtectedAppPage() {
           <InventoryConsole />
         ) : area === 'catalog' ? (
           <CatalogConsole />
+        ) : area === 'reports' ? (
+          <ReportsConsole />
         ) : (
           <OrganizationConsole />
         )}

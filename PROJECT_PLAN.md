@@ -109,11 +109,11 @@ Gate evidence: additive 13th migration with clean replay/live schema equality, 9
 
 ## Phase 12 — Dashboard, Reports, and Receipts
 
-- [ ] Real-data operational dashboard
-- [ ] Sales, tile, inventory, purchasing, customer, and finance reports
-- [ ] Thermal and full-page printable receipts/invoices
-- [ ] Accuracy and query-performance verification
-- [ ] Complete Phase 12 gate
+- [x] Real-data operational dashboard
+- [x] Sales, tile, inventory, purchasing, customer, and finance reports
+- [x] Thermal and full-page printable receipts/invoices
+- [x] Accuracy and query-performance verification
+- [x] Complete Phase 12 gate
 
 ## Phase 13 — Audit, Security, Testing, and Production Readiness
 
@@ -283,3 +283,18 @@ Gate evidence: additive 13th migration with clean replay/live schema equality, 9
 - Live production browser opening, cash sale/change exclusion, named-customer invoice due collection (1,850 to 1,750 outstanding), cash expense, cash refund, derived total, close/variance, disabled closed-drawer actions, and history: PASS; console clean
 - Prisma format/validation/generation/status, Prettier, Compose, secret scan, Git whitespace/integrity, and 67.82 GiB destination free space: PASS
 - Blocking Critical/High bugs: none open; browser-discovered `BUG-021` and `BUG-022` resolved before final verification
+
+### Phase 12 — PASS (2026-09-08)
+
+- Real-data company-timezone dashboard and permission-scoped sales, product/tile, inventory, purchase, customer, supplier, expense, cash, and financial reports: PASS
+- Return-aware event-period revenue, historical-cost gross profit, ledger-derived receivable/payable, and cash-flow definitions: PASS
+- Authoritative base inventory quantities with derived Box/PCS/Sq.ft/Sq.m presentation and low-stock evaluation: PASS
+- Historical sale-line product/SKU/unit/tile/batch/lot/shade snapshots plus shared thermal and A4 invoice projection: PASS
+- Permission-matched CSV exports, paginated/filterable report queries, date-range bounds, and deterministic Decimal calculations: PASS
+- Migration `20260908120000_phase12_sale_display_snapshots`: PASS (14 migrations current; clean replay normalized schema hash equals live database)
+- Central permission seed: PASS and idempotent (104 permissions after two executions); existing system Owner roles receive the synchronized catalog
+- API integration/regression tests: PASS (14 suites, 85 tests; Phase 12 suite 5/5)
+- Repository lint, strict TypeScript checks, tests, production builds, Prisma validation/generation/status, formatting, Compose, secret scan, and Git integrity: PASS
+- Swagger/OpenAPI: PASS (144 paths; 12 report paths)
+- Production browser dashboard, all report domains, historical invoice lookup, thermal/A4 print styles, database reconciliation, and clean console: PASS
+- Blocking Critical/High bugs: none open; migration defect `BUG-023` resolved before the final gate

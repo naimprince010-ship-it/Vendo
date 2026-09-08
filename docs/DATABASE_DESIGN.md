@@ -109,3 +109,9 @@ Opening float is stored both as the shift snapshot and exactly one `OPENING` mov
 `CashOperation` provides company-scoped request-hash idempotency for open, manual movement, expense, reversal, and close commands. Automatic movements use a database unique source identity `(companyId, referenceType, referenceId, type)`, mapping each eligible business payment to exactly one drawer event. The company-local `CashDocumentSequence` allocates expense numbers without max-plus races.
 
 `ExpenseCategory` has a company-unique code/name and active lifecycle. `Expense` is posted immediately with Decimal amount and timestamp, and may only receive one controlled `POSTED → REVERSED` transition with actor, time, and reason. Cash expense/reversal creates an atomic `EXPENSE` outflow/compensating `CASH_IN`; non-cash expense history does not touch the drawer. General-ledger and variance accounting treatment remain deferred rather than fabricated.
+
+## Phase 12 Reporting and Document Snapshots
+
+Migration `20260908120000_phase12_sale_display_snapshots` adds immutable `SaleItem` snapshots for product name, SKU, transaction-unit code, tile display size, batch, lot, and shade. Existing rows are backfilled from composite tenant-owned catalog relations. The named completed-line trigger is disabled only around that controlled migration update and is re-enabled before the new required columns become non-null.
+
+Reports add no summary tables or duplicated balances. Database aggregates and bounded read models consume the transaction tables directly, retaining `numeric(19,4)` money, `numeric(20,6)` quantity, and one authoritative inventory base quantity.

@@ -1117,6 +1117,13 @@ model SaleItem {
   productId           String           @db.Uuid
   unitId              String           @db.Uuid
   batchId             String?          @db.Uuid
+  productNameSnapshot String           @db.VarChar(200)
+  skuSnapshot         String           @db.VarChar(80)
+  unitCodeSnapshot    String           @db.VarChar(24)
+  tileSizeSnapshot    String?          @db.VarChar(120)
+  batchNumberSnapshot String?          @db.VarChar(120)
+  lotNumberSnapshot   String?          @db.VarChar(120)
+  shadeSnapshot       String?          @db.VarChar(80)
   quantity            Decimal          @db.Decimal(20, 6)
   baseQuantity        Decimal          @db.Decimal(20, 6)
   conversionFactor    Decimal          @db.Decimal(24, 10)

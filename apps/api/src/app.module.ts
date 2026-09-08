@@ -12,6 +12,7 @@ import { InventoryModule } from './inventory/inventory.module';
 import { PartiesModule } from './parties/parties.module';
 import { PurchasingModule } from './purchasing/purchasing.module';
 import { RegistersModule } from './registers/registers.module';
+import { ReportsModule } from './reports/reports.module';
 import { RolesModule } from './roles/roles.module';
 import { SalesModule } from './sales/sales.module';
 import { UsersModule } from './users/users.module';
@@ -34,6 +35,7 @@ import { WarehousesModule } from './warehouses/warehouses.module';
     SalesModule,
     WarehousesModule,
     RegistersModule,
+    ReportsModule,
     HealthModule,
   ],
 })
