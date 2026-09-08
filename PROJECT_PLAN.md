@@ -280,6 +280,6 @@ Gate evidence: additive 13th migration with clean replay/live schema equality, 9
 - API integration/regression tests: PASS (13 suites, 80 tests; Phase 11 suite 4/4 including open/close, automatic sources, idempotency, security, and close-vs-post concurrency)
 - Repository uncached lint, strict TypeScript, tests, and production builds: PASS (20/20 tasks across 5 packages; zero cached)
 - Swagger/OpenAPI: PASS (132 paths; 13 cash/expense paths; bearer and refresh-cookie schemes)
-- Live production browser opening, cash sale/change exclusion, named-customer cash collection, cash expense, cash refund, derived total, close/variance, disabled closed-drawer actions, and history: PASS; console clean
+- Live production browser opening, cash sale/change exclusion, named-customer invoice due collection (1,850 to 1,750 outstanding), cash expense, cash refund, derived total, close/variance, disabled closed-drawer actions, and history: PASS; console clean
 - Prisma format/validation/generation/status, Prettier, Compose, secret scan, Git whitespace/integrity, and 67.82 GiB destination free space: PASS
 - Blocking Critical/High bugs: none open; browser-discovered `BUG-021` and `BUG-022` resolved before final verification
