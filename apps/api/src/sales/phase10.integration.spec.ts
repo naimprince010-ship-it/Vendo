@@ -115,6 +115,22 @@ describe('Phase 10 payments, returns, refunds, and exchange API', () => {
     cashId = cash.id;
     cardId = card.id;
     mfsId = mfs.id;
+    const shift = await db.cashShift.create({
+      data: { companyId, branchId, registerId, cashierId: owner.id, openingCash: '0' },
+    });
+    await db.cashMovement.create({
+      data: {
+        companyId,
+        branchId,
+        shiftId: shift.id,
+        registerId,
+        recordedById: owner.id,
+        type: 'OPENING',
+        amount: '0',
+        referenceType: 'CASH_SHIFT',
+        referenceId: shift.id,
+      },
+    });
     const [tile, basin] = await db.$transaction([
       db.product.create({
         data: {
@@ -193,9 +209,14 @@ describe('Phase 10 payments, returns, refunds, and exchange API', () => {
         ['SaleItem', 'SaleItem_completed_immutable'],
         ['InventoryMovement', 'InventoryMovement_immutable_delete'],
         ['CustomerLedgerEntry', 'CustomerLedgerEntry_immutable_delete'],
+        ['CashMovement', 'CashMovement_immutable'],
+        ['CashShift', 'CashShift_guard'],
       ];
       for (const [table, trigger] of triggers)
         await db.$executeRawUnsafe(`ALTER TABLE "${table}" DISABLE TRIGGER "${trigger}"`);
+      await db.cashMovement.deleteMany({ where: { companyId } });
+      await db.cashOperation.deleteMany({ where: { companyId } });
+      await db.cashShift.deleteMany({ where: { companyId } });
       await db.saleRefund.deleteMany({ where: { companyId } });
       await db.saleExchange.deleteMany({ where: { companyId } });
       await db.saleReturnItem.deleteMany({ where: { companyId } });
@@ -394,6 +415,7 @@ describe('Phase 10 payments, returns, refunds, and exchange API', () => {
     const refundBody = {
       returnId: returned.body.id,
       methodId: cashId,
+      registerId,
       amount: '50',
       reason: 'Partial cash refund',
     };
@@ -472,6 +494,7 @@ describe('Phase 10 payments, returns, refunds, and exchange API', () => {
           .send({
             returnId: returned.body.id,
             methodId: cashId,
+            registerId,
             amount: '400',
             reason: 'Concurrent refund capacity test',
           }),

@@ -206,3 +206,12 @@
 - **Alternatives:** Edit completed sale lines/payments; calculate returns at current prices; refund every return in cash; model exchange by replacing original items.
 - **Rationale:** Linked immutable documents preserve historical truth, prevent excess refunds, and reuse the established inventory, sale, payment, ledger, idempotency, and locking authorities.
 - **Consequences:** Original `Sale.due` is only a completion snapshot; current outstanding is derived. Exact batch/shade is restored using the original conversion. Walk-in returns require immediate refund because anonymous advance pooling is unsafe. Phase 11 will add cash-drawer movements without changing Phase 10 financial records.
+
+## ADR-024 — Register-Serialized Immutable Cash Journal
+
+- **Date:** 2026-09-07
+- **Context:** Cash sales, collections, supplier payments, refunds, manual movements, and expenses must reconcile one physical drawer without changing the existing payment, party-ledger, or inventory authorities.
+- **Decision:** Permit one open shift per register. Represent opening float and every eligible drawer event as one immutable `CashMovement`; derive expected cash by signed aggregation. A shared transaction-owned cash service uses a company/register advisory lock for open, post, and close, request-hash operations for explicit commands, and source-unique identities for automatic movements. Cash business events require an open shift; non-cash events do not.
+- **Alternatives:** Mutable drawer balance; one shift per cashier with overlapping register ownership; asynchronous cash-event replication; treating tendered cash/change as separate revenue movements.
+- **Rationale:** One lock and one journal remain correct across API instances, make close-vs-post deterministic, and preserve atomicity with the originating transaction without double counting cash or rewriting historical Phase 8–10 records.
+- **Consequences:** Opening is included once through its movement. Closed shifts cannot reopen or accept movements. Actual cash and variance are preserved as reconciliation facts rather than converted into fake transactions. Cash-account/general-ledger treatment and denomination counts remain deferred.

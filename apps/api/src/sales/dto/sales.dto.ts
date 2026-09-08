@@ -88,6 +88,7 @@ export class SaleAllocationDto {
 export class CollectCustomerPaymentDto {
   @IsUUID('4') customerId!: string;
   @IsUUID('4') methodId!: string;
+  @IsUUID('4') @IsOptional() registerId?: string;
   @Transform(trim) @Matches(positive) amount!: string;
   @IsDateString() @IsOptional() paidAt?: string;
   @Transform(trim) @IsString() @Length(1, 160) @IsOptional() reference?: string;
@@ -126,6 +127,7 @@ export class PostSaleReturnDto {
 export class PostSaleRefundDto {
   @IsUUID('4') returnId!: string;
   @IsUUID('4') methodId!: string;
+  @IsUUID('4') @IsOptional() registerId?: string;
   @Transform(trim) @Matches(positive) amount!: string;
   @IsDateString() @IsOptional() refundedAt?: string;
   @Transform(trim) @IsString() @Length(1, 160) @IsOptional() reference?: string;

@@ -129,3 +129,15 @@ All meaningful project changes are recorded here. This project follows a phase-o
 - Added eight Phase 10 integration workflows plus static migration checks within 12 passing suites/75 tests, covering split/due, collection allocation/advance, full/partial, walk-in, and concurrent exact-batch returns, historical discount/tax reversal, refund bounds/idempotency/concurrency, exchange, void, immutability, audit, cross-company rejection, and permissions.
 - Production browser verification passed partial collection, two-method sale with BDT 100 change and BDT 700 due, exact BROWSER-B001/Shade A partial return, fully-settled BDT 5,000 refund, linked exchange with BDT 1,850 credit and BDT 3,150 difference, inventory reconciliation, customer ledger, sale timeline, and clean console.
 - Phase 10 gate passed with 88-permission idempotent seeds, 119-path Swagger, Prisma, migration status/replay/drift, uncached repository lint/typecheck/build, production Next.js/NestJS builds, formatting, Compose, secret scan, Git integrity, API regression, and browser checks. Cash drawer movements remain correctly deferred to Phase 11.
+
+### Phase 11 — Cash Shifts and Expenses
+
+- Added register-scoped cash shifts with concurrency-safe open/close operations, immutable opening and signed drawer movements, backend-derived expected cash, and preserved actual/variance close snapshots.
+- Added one transaction-owned cash movement per eligible sale payment, customer collection, supplier payment, and refund; non-cash payments and cash tender/change do not alter drawer totals.
+- Added idempotent manual cash in/out, company-scoped expense-category lifecycle, atomic cash/non-cash expenses, controlled expense reversal, paginated shift/movement/expense history, and audit records.
+- Added migration `20260907180000_phase11_cash_shifts_expenses` with register/shift ownership, source uniqueness, request-hash and value checks, immutable movement/closed-shift/posted-expense guards, and retained PostgreSQL null-safe inventory identities.
+- Added ten fine-grained cash/expense permissions, bringing the idempotent catalog to 98 permissions.
+- Added a real cash console and POS register-shift status, plus register-aware customer collection, supplier payment, refund, and sale requests.
+- Added Phase 11 integration/concurrency coverage within 13 passing suites/80 tests, including duplicate open, movement idempotency, automatic source uniqueness, cash/non-cash separation, expected cash, close-vs-post locking, tenant/branch/register security, and immutability.
+- Fixed browser-discovered guarded expense-category loading and stale closed-shift state (`BUG-021`, `BUG-022`), then reverified production browser sale, collection, expense, refund, close/variance, history, disabled drawer actions, and a clean console.
+- Phase 11 gate passed with 13-migration clean replay/live equality, PostgreSQL catalog checks, 132-path Swagger, uncached 20/20 repository lint/typecheck/test/build tasks, production Next.js/NestJS builds, Prisma, formatting, Compose, secret scan, Git integrity, and destination capacity checks.

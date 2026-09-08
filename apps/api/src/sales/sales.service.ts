@@ -10,9 +10,12 @@ import type { AuthPrincipal } from '../authorization/auth-principal';
 import { PERMISSIONS } from '../authorization/permission-catalog';
 import type { ActiveBranchContext } from '../authorization/authenticated-request';
 import { DatabaseService } from '../database/database.service';
+import { CashService } from '../cash/cash.service';
 import { isUniqueConstraintError } from '../database/prisma-errors';
 import {
   CustomerLedgerEntryType,
+  CashMovementType,
+  CashShiftStatus,
   PaymentDirection,
   PaymentStatus,
   PriceType,
@@ -79,6 +82,7 @@ export class SalesService {
   constructor(
     private readonly db: DatabaseService,
     private readonly inventory: InventoryService,
+    private readonly cash: CashService,
   ) {}
 
   async posContext(principal: AuthPrincipal, branch: ActiveBranchContext) {
@@ -90,7 +94,16 @@ export class SalesService {
       }),
       this.db.register.findMany({
         where: { companyId: principal.companyId, branchId: branch.id, isActive: true },
-        select: { id: true, code: true, name: true },
+        select: {
+          id: true,
+          code: true,
+          name: true,
+          cashShifts: {
+            where: { status: CashShiftStatus.OPEN },
+            select: { id: true, cashierId: true, openedAt: true },
+            take: 1,
+          },
+        },
         orderBy: { name: 'asc' },
       }),
       this.db.paymentMethod.findMany({
@@ -486,6 +499,18 @@ export class SalesService {
                 amount: money(input.amount),
               },
             });
+            const method = paymentMethods.find((row) => row.id === input.methodId)!;
+            if (method.isCash)
+              await this.cash.postPaymentMovementTx(tx, principal, {
+                branchId: branch.id,
+                registerId: dto.registerId,
+                paymentId: payment.id,
+                type: CashMovementType.CASH_SALE,
+                amount: input.amount,
+                occurredAt: payment.paidAt,
+                referenceType: 'SALE_PAYMENT',
+                referenceId: payment.id,
+              });
           }
           if (due.greaterThan(0)) {
             await tx.customerLedgerEntry.create({
@@ -620,6 +645,17 @@ export class SalesService {
             },
           },
         });
+        if (method.isCash)
+          await this.cash.postPaymentMovementTx(tx, principal, {
+            branchId: branch.id,
+            registerId: dto.registerId,
+            paymentId: payment.id,
+            type: CashMovementType.CUSTOMER_COLLECTION,
+            amount,
+            occurredAt: payment.paidAt,
+            referenceType: 'CUSTOMER_COLLECTION',
+            referenceId: payment.id,
+          });
         await tx.customerLedgerEntry.create({
           data: {
             companyId: principal.companyId,
@@ -1164,6 +1200,8 @@ export class SalesService {
         refund,
         `${operationId}:refund:${index}`,
         requestHash,
+        undefined,
+        sale.registerId,
       );
     }
     await this.audit(
@@ -1217,6 +1255,7 @@ export class SalesService {
       operationId,
       requestHash,
       dto.refundedAt ? new Date(dto.refundedAt) : new Date(),
+      dto.registerId,
     );
     await this.audit(tx, principal, branch.id, 'sale.refund.posted', result.payment.id, {
       returnId: saleReturn.id,
@@ -1235,6 +1274,7 @@ export class SalesService {
     operationId: string,
     requestHash: string,
     paidAt = new Date(),
+    registerId?: string,
   ) {
     const method = await tx.paymentMethod.findFirst({
       where: { id: input.methodId, companyId: principal.companyId, isActive: true },
@@ -1270,6 +1310,17 @@ export class SalesService {
         amount,
       },
     });
+    if (method.isCash)
+      await this.cash.postPaymentMovementTx(tx, principal, {
+        branchId,
+        registerId,
+        paymentId: payment.id,
+        type: CashMovementType.CASH_REFUND,
+        amount,
+        occurredAt: paidAt,
+        referenceType: 'SALE_REFUND',
+        referenceId: payment.id,
+      });
     if (!saleReturn.customer.isWalkIn) {
       await tx.customerLedgerEntry.create({
         data: {
@@ -1426,6 +1477,18 @@ export class SalesService {
           amount: money(input.amount),
         },
       });
+      const method = methods.find((row) => row.id === input.methodId)!;
+      if (method.isCash)
+        await this.cash.postPaymentMovementTx(tx, principal, {
+          branchId: branch.id,
+          registerId: dto.registerId,
+          paymentId: payment.id,
+          type: CashMovementType.CASH_SALE,
+          amount: input.amount,
+          occurredAt: payment.paidAt,
+          referenceType: 'SALE_PAYMENT',
+          referenceId: payment.id,
+        });
     }
     if (!customer.isWalkIn && due.greaterThan(0)) {
       await tx.customerLedgerEntry.create({

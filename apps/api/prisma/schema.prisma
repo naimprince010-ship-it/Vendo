@@ -163,11 +163,31 @@ enum CashShiftStatus {
 enum CashMovementType {
   OPENING
   CASH_SALE
+  CUSTOMER_COLLECTION
+  SUPPLIER_PAYMENT
   CASH_REFUND
   CASH_IN
   CASH_OUT
   EXPENSE
   CLOSING_ADJUSTMENT
+}
+
+enum CashOperationType {
+  OPEN_SHIFT
+  CASH_IN
+  CASH_OUT
+  POST_EXPENSE
+  REVERSE_EXPENSE
+  CLOSE_SHIFT
+}
+
+enum CashDocumentType {
+  EXPENSE
+}
+
+enum ExpenseStatus {
+  POSTED
+  REVERSED
 }
 
 enum SettingScope {
@@ -224,6 +244,7 @@ model Company {
   suppliers              Supplier[]
   paymentMethods         PaymentMethod[]
   expenseCategories      ExpenseCategory[]
+  expenses               Expense[]
   settings               Setting[]
   auditLogs              AuditLog[]
   authSessions           AuthSession[]
@@ -239,6 +260,8 @@ model Company {
   purchaseReturns        PurchaseReturn[]
   saleReturns            SaleReturn[]
   saleExchanges          SaleExchange[]
+  cashOperations         CashOperation[]
+  cashDocumentSequences  CashDocumentSequence[]
 
   @@unique([id, code])
 }
@@ -317,9 +340,10 @@ model Register {
   createdAt DateTime @default(now()) @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @db.Timestamptz(3)
 
-  branch     Branch      @relation(fields: [branchId, companyId], references: [id, companyId], onDelete: Restrict)
-  sales      Sale[]
-  cashShifts CashShift[]
+  branch        Branch         @relation(fields: [branchId, companyId], references: [id, companyId], onDelete: Restrict)
+  sales         Sale[]
+  cashShifts    CashShift[]
+  cashMovements CashMovement[]
 
   @@unique([companyId, code])
   @@unique([id, companyId])
@@ -356,6 +380,7 @@ model User {
   cashShifts            CashShift[]           @relation("CashShiftCashier")
   cashMovements         CashMovement[]        @relation("CashMovementRecordedBy")
   expenses              Expense[]             @relation("ExpenseCreatedBy")
+  reversedExpenses      Expense[]             @relation("ExpenseReversedBy")
   inventoryMovements    InventoryMovement[]   @relation("InventoryMovementCreatedBy")
   auditLogs             AuditLog[]            @relation("AuditActor")
   authSessions          AuthSession[]
@@ -370,6 +395,7 @@ model User {
   purchaseReturns       PurchaseReturn[]      @relation("PurchaseReturnCreatedBy")
   purchaseOperations    PurchaseOperation[]   @relation("PurchaseOperationCreatedBy")
   salesOperations       SalesOperation[]      @relation("SalesOperationCreatedBy")
+  cashOperations        CashOperation[]       @relation("CashOperationCreatedBy")
   saleReturns           SaleReturn[]          @relation("SaleReturnCreatedBy")
   saleExchanges         SaleExchange[]        @relation("SaleExchangeCreatedBy")
 
@@ -1545,8 +1571,10 @@ model CashShift {
   register     Register        @relation(fields: [registerId, branchId, companyId], references: [id, branchId, companyId], onDelete: Restrict)
   cashier      User            @relation("CashShiftCashier", fields: [cashierId, companyId], references: [id, companyId], onDelete: Restrict)
   movements    CashMovement[]
+  operations   CashOperation[]
 
   @@unique([id, companyId])
+  @@unique([id, registerId, branchId, companyId])
   @@index([companyId, registerId, status])
   @@index([companyId, cashierId, openedAt])
 }
@@ -1556,6 +1584,7 @@ model CashMovement {
   companyId     String           @db.Uuid
   branchId      String           @db.Uuid
   shiftId       String           @db.Uuid
+  registerId    String           @db.Uuid
   paymentId     String?          @db.Uuid
   recordedById  String           @db.Uuid
   type          CashMovementType
@@ -1566,25 +1595,59 @@ model CashMovement {
   occurredAt    DateTime         @default(now()) @db.Timestamptz(3)
   createdAt     DateTime         @default(now()) @db.Timestamptz(3)
   branch        Branch           @relation(fields: [branchId, companyId], references: [id, companyId], onDelete: Restrict)
-  shift         CashShift        @relation(fields: [shiftId, companyId], references: [id, companyId], onDelete: Restrict)
+  shift         CashShift        @relation(fields: [shiftId, registerId, branchId, companyId], references: [id, registerId, branchId, companyId], onDelete: Restrict)
+  register      Register         @relation(fields: [registerId, branchId, companyId], references: [id, branchId, companyId], onDelete: Restrict)
   payment       Payment?         @relation(fields: [paymentId, companyId], references: [id, companyId], onDelete: Restrict)
   recordedBy    User             @relation("CashMovementRecordedBy", fields: [recordedById, companyId], references: [id, companyId], onDelete: Restrict)
 
+  @@unique([companyId, referenceType, referenceId, type])
   @@index([companyId, shiftId, occurredAt])
+  @@index([companyId, registerId, occurredAt])
   @@index([companyId, referenceType, referenceId])
 }
 
+model CashOperation {
+  id             String            @id @default(uuid()) @db.Uuid
+  companyId      String            @db.Uuid
+  shiftId        String?           @db.Uuid
+  createdById    String            @db.Uuid
+  type           CashOperationType
+  idempotencyKey String            @db.VarChar(120)
+  requestHash    String            @db.Char(64)
+  result         Json?
+  createdAt      DateTime          @default(now()) @db.Timestamptz(3)
+  company        Company           @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  shift          CashShift?        @relation(fields: [shiftId, companyId], references: [id, companyId], onDelete: Restrict)
+  createdBy      User              @relation("CashOperationCreatedBy", fields: [createdById, companyId], references: [id, companyId], onDelete: Restrict)
+
+  @@unique([companyId, idempotencyKey])
+  @@index([companyId, type, createdAt])
+}
+
+model CashDocumentSequence {
+  companyId String           @db.Uuid
+  type      CashDocumentType
+  nextValue BigInt           @default(1)
+  updatedAt DateTime         @updatedAt @db.Timestamptz(3)
+  company   Company          @relation(fields: [companyId], references: [id], onDelete: Restrict)
+
+  @@id([companyId, type])
+}
+
 model ExpenseCategory {
-  id        String    @id @default(uuid()) @db.Uuid
-  companyId String    @db.Uuid
-  name      String    @db.VarChar(120)
-  isActive  Boolean   @default(true)
-  createdAt DateTime  @default(now()) @db.Timestamptz(3)
-  updatedAt DateTime  @updatedAt @db.Timestamptz(3)
-  company   Company   @relation(fields: [companyId], references: [id], onDelete: Restrict)
-  expenses  Expense[]
+  id          String    @id @default(uuid()) @db.Uuid
+  companyId   String    @db.Uuid
+  code        String    @db.VarChar(40)
+  name        String    @db.VarChar(120)
+  description String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime  @updatedAt @db.Timestamptz(3)
+  company     Company   @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  expenses    Expense[]
 
   @@unique([companyId, name])
+  @@unique([companyId, code])
   @@unique([id, companyId])
 }
 
@@ -1595,20 +1658,28 @@ model Expense {
   categoryId      String          @db.Uuid
   paymentMethodId String          @db.Uuid
   createdById     String          @db.Uuid
+  reversedById    String?         @db.Uuid
+  status          ExpenseStatus   @default(POSTED)
   expenseNumber   String          @db.VarChar(60)
   amount          Decimal         @db.Decimal(19, 4)
-  expenseDate     DateTime        @db.Date
+  expenseDate     DateTime        @db.Timestamptz(3)
   description     String?
+  reference       String?         @db.VarChar(160)
+  reversalReason  String?
+  reversedAt      DateTime?       @db.Timestamptz(3)
   createdAt       DateTime        @default(now()) @db.Timestamptz(3)
   updatedAt       DateTime        @updatedAt @db.Timestamptz(3)
   branch          Branch          @relation(fields: [branchId, companyId], references: [id, companyId], onDelete: Restrict)
   category        ExpenseCategory @relation(fields: [categoryId, companyId], references: [id, companyId], onDelete: Restrict)
   paymentMethod   PaymentMethod   @relation(fields: [paymentMethodId, companyId], references: [id, companyId], onDelete: Restrict)
   createdBy       User            @relation("ExpenseCreatedBy", fields: [createdById, companyId], references: [id, companyId], onDelete: Restrict)
+  reversedBy      User?           @relation("ExpenseReversedBy", fields: [reversedById, companyId], references: [id, companyId], onDelete: Restrict)
+  company         Company         @relation(fields: [companyId], references: [id])
 
   @@unique([companyId, expenseNumber])
   @@index([companyId, branchId, expenseDate])
   @@index([companyId, categoryId, expenseDate])
+  @@index([companyId, status, expenseDate])
 }
 
 model Setting {

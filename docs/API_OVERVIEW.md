@@ -74,3 +74,10 @@ Phase 10 extends sale completion to multiple configured payment methods and expo
 - `POST /sales/refunds` posts only remaining legitimate refundable credit as a new outbound payment. `GET /sales/refunds` provides traceable refund history.
 - `POST /sales/exchanges` atomically composes the return and a replacement sale through the existing sale engine, records credit applied, and links both documents.
 - `POST /sales/:id/void` is a reason- and permission-controlled compensating return of all remaining sale quantities; it never deletes or edits the original invoice.
+
+## Phase 11 Cash and Expense API
+
+- `POST /cash/shifts/open`, `GET /cash/shifts/current`, `GET /cash/shifts/:id`, and `POST /cash/shifts/:id/close` provide an idempotent register-shift lifecycle and backend-derived reconciliation snapshot.
+- `POST /cash/movements/in` and `/out` require amount, reason, active shift, permission, and `Idempotency-Key`; `GET /cash/movements` exposes bounded immutable history.
+- Cash portions of sale completion, customer collection, supplier payment, and refund post one source-unique drawer movement inside the originating transaction. Non-cash portions post none.
+- `/expense-categories` provides company-scoped lifecycle management. `POST /expenses` and `POST /expenses/:id/reverse` create immutable posted history and an atomic drawer effect only when the configured method is cash. `GET /expenses` is paginated and active-branch scoped.

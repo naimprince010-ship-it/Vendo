@@ -7,6 +7,7 @@ import { useAuth } from '../../auth/auth-context';
 type Page<T> = { items: T[]; total: number };
 type Branch = { id: string; code: string; name: string; isActive: boolean };
 type Named = { id: string; code: string; name: string };
+type Register = Named & { cashShifts: { id: string; cashierId: string; openedAt: string }[] };
 type Customer = Named & { phone?: string | null; isWalkIn: boolean; creditLimit: string };
 type PaymentMethod = Named & { isCash: boolean };
 type Unit = Named & { decimalScale?: number };
@@ -102,7 +103,7 @@ type Sale = {
 };
 type PosContext = {
   warehouses: Named[];
-  registers: Named[];
+  registers: Register[];
   paymentMethods: PaymentMethod[];
   walkIn: Customer;
 };
@@ -184,6 +185,7 @@ export function PosConsole() {
   });
   const activeWarehouseId = warehouseId || context.data?.warehouses[0]?.id || '';
   const activeRegisterId = registerId || context.data?.registers[0]?.id || '';
+  const activeRegister = context.data?.registers.find((row) => row.id === activeRegisterId);
   const activeCustomerId = customerId || context.data?.walkIn.id || '';
   const activeMethodId = methodId || context.data?.paymentMethods[0]?.id || '';
   const activeSecondMethodId =
@@ -475,6 +477,15 @@ export function PosConsole() {
             </option>
           ))}
         </select>
+        <span
+          className={`rounded-lg px-3 py-2 text-xs font-semibold ${
+            activeRegister?.cashShifts.length
+              ? 'bg-emerald-950 text-emerald-300'
+              : 'bg-rose-950 text-rose-300'
+          }`}
+        >
+          {activeRegister?.cashShifts.length ? 'Shift open' : 'No shift open'}
+        </span>
       </div>
       {message && (
         <p className="rounded-lg bg-emerald-950 p-3 text-sm text-emerald-300">{message}</p>
@@ -762,8 +773,8 @@ export function PosConsole() {
               </button>
             </div>
             <p className="text-xs text-slate-400">
-              Register is required. Cash-shift enforcement begins in Phase 11. Any unpaid remainder
-              is customer receivable, never a fake payment method.
+              Register is required. Cash payments require an open register shift. Any unpaid
+              remainder is customer receivable, never a fake payment method.
             </p>
           </div>
           <div className="rounded-2xl border border-slate-800 bg-slate-900 p-4">

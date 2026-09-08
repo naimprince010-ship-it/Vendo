@@ -100,10 +100,12 @@ Gate evidence: 12-migration clean replay with normalized live/replay schema equa
 
 ## Phase 11 — Cash Shifts and Expenses
 
-- [ ] Shift open/close and reconciliation
-- [ ] Cash movements
-- [ ] Expense categories and expenses
-- [ ] Complete Phase 11 gate
+- [x] Shift open/close and reconciliation
+- [x] Cash movements
+- [x] Expense categories and expenses
+- [x] Complete Phase 11 gate
+
+Gate evidence: additive 13th migration with clean replay/live schema equality, 98-permission seed idempotency, 132-path Swagger verification, 13 API suites/80 tests, uncached 5-package lint/typecheck/test/build gates, Prisma/format/Compose/security/Git checks, and production browser shift/sale/collection/expense/refund/close/variance/clean-console workflows.
 
 ## Phase 12 — Dashboard, Reports, and Receipts
 
@@ -265,3 +267,19 @@ Gate evidence: 12-migration clean replay with normalized live/replay schema equa
 - Interactive production browser login/context, barcode tile and sanitary cart, BOX unit, batch/shade, hold/resume, cash payment/change, completion, invoice/history, inventory deduction, and named-customer credit ledger workflow: PASS; browser console clean
 - Eleven-migration clean replay and normalized live/replay schema equality, Prisma validation/generation/status, formatting, Compose, Git integrity, and remote integrity: PASS
 - Blocking Critical/High bugs: none open; browser-runtime gate blocker `BUG-019` resolved on retry
+
+### Phase 11 — PASS (2026-09-08)
+
+- One OPEN shift per register, opening float, immutable movement journal, deterministic register locks, and closed-shift immutability: PASS
+- Automatic cash effects for applied sale cash, customer collection, supplier payment, and refund; non-cash methods and tendered change excluded: PASS
+- Manual cash in/out, company-scoped expense categories, atomic cash/non-cash expenses, controlled reversal, and auditability: PASS
+- Ledger-derived expected cash with stored actual and variance snapshots: PASS (browser evidence 4,850 expected, 4,800 actual, -50 variance)
+- Migration `20260907180000_phase11_cash_shifts_expenses`: PASS (13 migrations current; clean replay and normalized live/replay schema hashes match)
+- PostgreSQL catalog verification: PASS (4 required Phase 11 indexes, 3 guard/immutability triggers, 4 checks, no duplicate open browser shift)
+- Central permission seed: PASS and idempotent (98 permissions after two executions)
+- API integration/regression tests: PASS (13 suites, 80 tests; Phase 11 suite 4/4 including open/close, automatic sources, idempotency, security, and close-vs-post concurrency)
+- Repository uncached lint, strict TypeScript, tests, and production builds: PASS (20/20 tasks across 5 packages; zero cached)
+- Swagger/OpenAPI: PASS (132 paths; 13 cash/expense paths; bearer and refresh-cookie schemes)
+- Live production browser opening, cash sale/change exclusion, named-customer cash collection, cash expense, cash refund, derived total, close/variance, disabled closed-drawer actions, and history: PASS; console clean
+- Prisma format/validation/generation/status, Prettier, Compose, secret scan, Git whitespace/integrity, and 67.82 GiB destination free space: PASS
+- Blocking Critical/High bugs: none open; browser-discovered `BUG-021` and `BUG-022` resolved before final verification

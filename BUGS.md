@@ -271,3 +271,31 @@ No Critical/High purchasing, inventory-integration, supplier-ledger, migration, 
 ## Phase 10 Verification Note — 2026-09-07
 
 No Critical/High payment, collection, customer-ledger, return/refund/exchange, inventory, migration, API, security, or UI blocker remains. `BUG-020` and one stale Phase 7 ledger caption were found and resolved before the final gate. The production browser verified all required flows and a clean console. Temporary verification credentials and their local auth/audit rows were removed after use; transactional browser evidence remains as development data. Deferred `BUG-008` remains the only known issue and is a low-severity future pg@9 compatibility warning on pinned pg 8.23.
+
+## BUG-021 — Expense categories were not loaded with active branch context
+
+- **ID:** BUG-021
+- **Severity:** High
+- **Area:** Phase 11 expense frontend / authorization context
+- **Description:** The expense-category query omitted the required `x-branch-id` header enforced by the cash controller's active-branch guard, so a successfully created category did not populate the category list or expense selector.
+- **Reproduction:** In the production cash console, create an expense category and attempt to select it for a new expense.
+- **Expected:** The authenticated company category appears immediately and can be used for a permitted branch expense.
+- **Actual:** Creation committed, but the guarded list request failed and the selector remained empty.
+- **Status:** Resolved — the category query is branch-context keyed and sends the validated active branch; production browser creation, selection, and cash-expense posting pass.
+- **Related task:** Phase 11 — expense categories and expenses
+
+## BUG-022 — Closed drawer remained displayed as an active shift
+
+- **ID:** BUG-022
+- **Severity:** High
+- **Area:** Phase 11 cash frontend / shift lifecycle
+- **Description:** Nest returns an empty body when the current-shift endpoint has no open shift. The generic browser API helper attempted JSON parsing, leaving TanStack Query's last successful OPEN shift data visible after close.
+- **Reproduction:** Close an active shift, wait for query invalidation, and inspect the cash header and action controls.
+- **Expected:** The register shows no open shift and drawer actions are disabled.
+- **Actual:** Shift history was CLOSED, but the active card and cash controls retained stale OPEN state.
+- **Status:** Resolved — empty successful responses are handled explicitly and the current-shift query normalizes them to `null`; the rebuilt production UI shows `No shift open`, disables cash actions, and preserves closed history.
+- **Related task:** Phase 11 — shift close and reconciliation
+
+## Phase 11 Verification Note — 2026-09-08
+
+No Critical/High cash-shift, drawer-movement, expense, payment-integration, migration, API, security, concurrency, or UI blocker remains. `BUG-021` and `BUG-022` were found through the production browser gate and resolved before the full uncached gate. Browser evidence verifies applied sale cash (not tender/change), named-customer cash collection, cash expense, cash refund, expected/actual/variance closing, disabled closed-drawer actions, history, and a clean console. The temporary browser account and its local role rows were removed; transactional browser evidence remains as development data. Deferred `BUG-008` remains the only known issue and is a low-severity future pg@9 compatibility warning on pinned pg 8.23.

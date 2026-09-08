@@ -56,6 +56,16 @@ const phase10Migration = readFileSync(
   ),
   'utf8',
 );
+const phase11Migration = readFileSync(
+  join(
+    process.cwd(),
+    'prisma',
+    'migrations',
+    '20260907180000_phase11_cash_shifts_expenses',
+    'migration.sql',
+  ),
+  'utf8',
+);
 
 describe('database foundation', () => {
   it('uses Decimal database fields rather than unsafe floating point fields', () => {
@@ -121,5 +131,16 @@ describe('database foundation', () => {
     expect(phase10Migration).toContain('Payment_completed_immutable');
     expect(phase10Migration).toContain('ProductBatch_identity_key');
     expect(phase10Migration).toContain('PhysicalCountItem_position_key');
+  });
+
+  it('adds immutable register-scoped cash movements and controlled expense reversal', () => {
+    expect(phase11Migration).toContain('CashMovement_shiftId_registerId_branchId_companyId_fkey');
+    expect(phase11Migration).toContain('CashMovement_companyId_referenceType_referenceId_type_key');
+    expect(phase11Migration).toContain('CashMovement_immutable');
+    expect(phase11Migration).toContain('CashShift_guard');
+    expect(phase11Migration).toContain('Expense_guard');
+    expect(phase11Migration).toContain('CashOperation_companyId_idempotencyKey_key');
+    expect(phase11Migration).toContain('ProductBatch_identity_key');
+    expect(phase11Migration).toContain('PhysicalCountItem_position_key');
   });
 });

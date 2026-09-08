@@ -128,6 +128,22 @@ describe('Phase 9 POS and sales API', () => {
     boxId = box.id;
     sqftId = sqft.id;
     cashId = cash.id;
+    const shift = await db.cashShift.create({
+      data: { companyId, branchId, registerId, cashierId: ownerId, openingCash: '0' },
+    });
+    await db.cashMovement.create({
+      data: {
+        companyId,
+        branchId,
+        shiftId: shift.id,
+        registerId,
+        recordedById: ownerId,
+        type: 'OPENING',
+        amount: '0',
+        referenceType: 'CASH_SHIFT',
+        referenceId: shift.id,
+      },
+    });
     const [tile, sanitary, race] = await db.$transaction([
       db.product.create({
         data: {
@@ -235,9 +251,14 @@ describe('Phase 9 POS and sales API', () => {
         ['SaleItem', 'SaleItem_completed_immutable'],
         ['InventoryMovement', 'InventoryMovement_immutable_delete'],
         ['CustomerLedgerEntry', 'CustomerLedgerEntry_immutable_delete'],
+        ['CashMovement', 'CashMovement_immutable'],
+        ['CashShift', 'CashShift_guard'],
       ];
       for (const [table, trigger] of triggers)
         await db.$executeRawUnsafe(`ALTER TABLE "${table}" DISABLE TRIGGER "${trigger}"`);
+      await db.cashMovement.deleteMany({ where: { companyId } });
+      await db.cashOperation.deleteMany({ where: { companyId } });
+      await db.cashShift.deleteMany({ where: { companyId } });
       await db.salePayment.deleteMany({ where: { companyId } });
       await db.payment.deleteMany({ where: { companyId } });
       await db.customerLedgerEntry.deleteMany({ where: { companyId } });

@@ -72,7 +72,8 @@ type Invoice = {
   total: string;
   items?: InvoiceLine[];
 };
-type PaymentMethod = { id: string; code: string; name: string };
+type PaymentMethod = { id: string; code: string; name: string; isCash: boolean };
+type Register = { id: string; branchId: string; code: string; name: string; isActive: boolean };
 type SupplierPayment = {
   id: string;
   paymentNumber: string;
@@ -218,6 +219,11 @@ export function PurchasingConsole() {
     queryFn: () => api<PaymentMethod[]>('/purchases/payment-methods', {}, activeBranchId),
     enabled: Boolean(activeBranchId && can('supplier.payment.view')),
   });
+  const registers = useQuery({
+    queryKey: ['purchase', 'registers', activeBranchId],
+    queryFn: () => api<Page<Register>>(`/registers?branchId=${activeBranchId}&limit=100`, {}, ''),
+    enabled: Boolean(activeBranchId),
+  });
   const context = {
     api,
     run,
@@ -301,6 +307,7 @@ export function PurchasingConsole() {
           invoices={invoices.data?.items ?? []}
           methods={methods.data ?? []}
           payments={payments.data?.items ?? []}
+          registers={(registers.data?.items ?? []).filter((row) => row.isActive)}
         />
       ) : (
         <ReturnsPanel
@@ -830,12 +837,20 @@ function PaymentsPanel({
   invoices,
   methods,
   payments,
-}: Context & { invoices: Invoice[]; methods: PaymentMethod[]; payments: SupplierPayment[] }) {
+  registers,
+}: Context & {
+  invoices: Invoice[];
+  methods: PaymentMethod[];
+  payments: SupplierPayment[];
+  registers: Register[];
+}) {
   const [supplierId, setSupplierId] = useState('');
   const [invoiceId, setInvoiceId] = useState('');
   const [methodId, setMethodId] = useState('');
   const [amount, setAmount] = useState('0');
   const [reference, setReference] = useState('');
+  const [registerId, setRegisterId] = useState('');
+  const selectedMethod = methods.find((row) => row.id === methodId);
   const eligible = invoices.filter(
     (i) => i.supplierId === supplierId && ['POSTED', 'PARTIALLY_PAID'].includes(i.status),
   );
@@ -845,6 +860,14 @@ function PaymentsPanel({
         <div className="grid gap-3 md:grid-cols-2">
           <Select label="Supplier" value={supplierId} set={setSupplierId} options={suppliers} />
           <Select label="Payment method" value={methodId} set={setMethodId} options={methods} />
+          {selectedMethod?.isCash && (
+            <Select
+              label="Cash register"
+              value={registerId}
+              set={setRegisterId}
+              options={registers}
+            />
+          )}
           <Select
             label="Invoice (optional for advance)"
             value={invoiceId}
@@ -867,7 +890,7 @@ function PaymentsPanel({
         </div>
         <button
           className={`${primary} mt-3`}
-          disabled={!supplierId || !methodId}
+          disabled={!supplierId || !methodId || Boolean(selectedMethod?.isCash && !registerId)}
           onClick={() =>
             void run(
               () =>
@@ -879,6 +902,7 @@ function PaymentsPanel({
                     body: JSON.stringify({
                       supplierId,
                       methodId,
+                      registerId: selectedMethod?.isCash ? registerId : undefined,
                       amount,
                       paidAt: new Date().toISOString(),
                       reference: reference || undefined,
@@ -896,7 +920,8 @@ function PaymentsPanel({
           Post payment
         </button>
         <p className="mt-3 text-xs text-slate-400">
-          Cash drawer effects are intentionally deferred to Phase 11.
+          Cash payments require an open shift on the selected register; non-cash payments do not
+          affect the drawer.
         </p>
       </Card>
       <Card title="Supplier payment history">

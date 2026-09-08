@@ -105,6 +105,7 @@ export class PaymentAllocationDto {
 export class PostSupplierPaymentDto {
   @IsUUID('4') supplierId!: string;
   @IsUUID('4') methodId!: string;
+  @IsUUID('4') @IsOptional() registerId?: string;
   @Transform(trim) @Matches(positive) amount!: string;
   @IsDateString() paidAt!: string;
   @Transform(trim) @IsString() @Length(1, 160) @IsOptional() reference?: string;

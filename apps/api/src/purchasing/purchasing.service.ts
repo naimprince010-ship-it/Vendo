@@ -8,9 +8,11 @@ import {
 import type { AuthPrincipal } from '../authorization/auth-principal';
 import type { ActiveBranchContext } from '../authorization/authenticated-request';
 import { DatabaseService } from '../database/database.service';
+import { CashService } from '../cash/cash.service';
 import { isUniqueConstraintError } from '../database/prisma-errors';
 import {
   InvoiceStatus,
+  CashMovementType,
   InventoryMovementType,
   OrderStatus,
   PaymentDirection,
@@ -47,6 +49,7 @@ export class PurchasingService {
   constructor(
     private readonly db: DatabaseService,
     private readonly inventory: InventoryService,
+    private readonly cash: CashService,
   ) {}
 
   async createOrder(
@@ -513,6 +516,17 @@ export class PurchasingService {
             },
           },
         });
+        if (method.isCash)
+          await this.cash.postPaymentMovementTx(tx, principal, {
+            branchId: branch.id,
+            registerId: dto.registerId,
+            paymentId: payment.id,
+            type: CashMovementType.SUPPLIER_PAYMENT,
+            amount,
+            occurredAt: payment.paidAt,
+            referenceType: 'SUPPLIER_PAYMENT',
+            referenceId: payment.id,
+          });
         for (const allocation of dto.allocations)
           await this.refreshInvoiceStatus(tx, principal.companyId, allocation.invoiceId);
         await tx.supplierLedgerEntry.create({

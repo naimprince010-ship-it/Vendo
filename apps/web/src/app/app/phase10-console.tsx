@@ -70,7 +70,7 @@ type PosProduct = {
   availability:
     { id: string; batchNumber: string; shade: string | null }[] | { baseQuantity: string };
 };
-type PosContext = { paymentMethods: Method[] };
+type PosContext = { paymentMethods: Method[]; registers: Named[] };
 type Tab = 'collection' | 'return' | 'refund' | 'exchange';
 
 const field =
@@ -192,6 +192,7 @@ export function Phase10Console() {
   });
 
   const activeMethodId = methodId || context.data?.paymentMethods[0]?.id || '';
+  const activeRegisterId = context.data?.registers[0]?.id || '';
   const selectedLine = detail.data?.items.find((row) => row.id === saleItemId);
   const chosenUnitId =
     replacementUnitId || replacement?.scannedUnitId || replacement?.baseUnit.id || '';
@@ -211,6 +212,7 @@ export function Phase10Console() {
             body: JSON.stringify({
               customerId,
               methodId: activeMethodId,
+              registerId: activeRegisterId || undefined,
               amount,
               allocations: saleId ? [{ saleId, amount }] : [],
               notes: saleId
@@ -253,6 +255,7 @@ export function Phase10Console() {
             body: JSON.stringify({
               returnId,
               methodId: activeMethodId,
+              registerId: activeRegisterId || undefined,
               amount,
               reason: reason || 'Approved customer refund',
             }),

@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { BranchesModule } from './branches/branches.module';
 import { CatalogModule } from './catalog/catalog.module';
+import { CashModule } from './cash/cash.module';
 import { CompaniesModule } from './companies/companies.module';
 import { validateEnvironment } from './config/environment';
 import { DatabaseModule } from './database/database.module';
@@ -26,6 +27,7 @@ import { WarehousesModule } from './warehouses/warehouses.module';
     CompaniesModule,
     BranchesModule,
     CatalogModule,
+    CashModule,
     InventoryModule,
     PartiesModule,
     PurchasingModule,
