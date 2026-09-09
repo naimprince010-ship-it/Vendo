@@ -2,6 +2,10 @@
 
 The NestJS REST API is versioned at `/api/v1`; Swagger/OpenAPI is exposed in non-production environments and can be separately protected in production.
 
+Production liveness is `GET /api/v1/health`; database-backed readiness is `GET /api/v1/health/ready`. Both are public by design and expose no secrets. Responses and structured server logs carry an `x-request-id` correlation value.
+
+`GET /api/v1/audit-logs` requires `audit.view` and returns a company-scoped, paginated journal with optional action, entity, actor, branch, and date filters. A supplied branch must belong to the authenticated company.
+
 Phase 7 exposes authenticated company-scoped `/customer-groups`, `/customers`, and `/suppliers` resources with server-side pagination/search and lifecycle endpoints. Customer credit limits have a dedicated permission endpoint. Customer and supplier ledger routes provide real balance/history queries plus idempotent opening, correction, and adjustment posting. Party master routes do not require `x-branch-id`; optional branch attribution belongs to future operational transaction origins.
 
 Phase 8 exposes active-branch-scoped `/purchases` resources for purchase orders, goods receipts, supplier invoices, outbound supplier payments, purchase returns, payment methods, and supplier due queries. The API owns lifecycle transitions, Decimal calculations, company/location ownership, inventory/supplier-ledger effects, allocation limits, and duplicate-submit protection.

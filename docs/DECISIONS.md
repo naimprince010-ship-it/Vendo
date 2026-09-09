@@ -224,3 +224,12 @@
 - **Alternatives:** Mutable dashboard totals; current-catalog reprints; subtracting both return credit and refund; a premature general ledger.
 - **Rationale:** The model reconciles to immutable transaction sources, prevents historical drift, and avoids misleading accounting claims.
 - **Consequences:** Sale and later return may appear in different period events. Current invoice detail can show lifetime state while period summaries stay event based. Net profit remains unavailable until complete accounting exists.
+
+## ADR-026 — Production Runtime and Recovery Boundary
+
+- **Date:** 2026-09-08
+- **Context:** The modular monolith needs a repeatable single-host production shape, observable failures, safe database rollout, and exercised recovery without introducing microservices or fake in-app infrastructure.
+- **Decision:** Package the API and standalone Next.js app as non-root containers behind Caddy TLS; keep PostgreSQL private and persistent; run additive Prisma migrations as an explicit one-shot deployment step. Fail startup on unsafe production configuration, expose separate liveness/readiness probes, correlate structured redacted logs, and keep backup/restore plus disaster recovery as guarded operator procedures. Use `pg_trgm` GIN indexes for bounded user-entered substring search.
+- **Alternatives:** Expose app/database ports directly; migrate automatically during API startup; store backups on the database volume only; introduce an external observability/messaging platform before need; accept sequential search at SME catalog scale.
+- **Rationale:** This boundary is deployable on one appropriately secured host, preserves the modular-monolith decision, prevents partial rollout ambiguity, and provides independently testable recovery and performance controls.
+- **Consequences:** Operators must provide DNS/TLS reachability, secret-store values, off-host encrypted backup retention, monitoring, and a tested rollback window. Binary uploads, full accounting, offline operation, and horizontally distributed transaction coordination remain outside Version 1.

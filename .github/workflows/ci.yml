@@ -6,6 +6,35 @@ on:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: vendo_test
+          POSTGRES_USER: vendo
+          POSTGRES_PASSWORD: ci_only_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U vendo -d vendo_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://vendo:ci_only_password@localhost:5432/vendo_test?schema=public
+      SHADOW_DATABASE_URL: postgresql://vendo:ci_only_password@localhost:5432/vendo_shadow?schema=public
+      JWT_ACCESS_SECRET: ci-access-secret-that-is-longer-than-32-characters
+      JWT_REFRESH_SECRET: ci-refresh-secret-that-is-longer-than-32-characters
+      JWT_ISSUER: vendo-api
+      JWT_AUDIENCE: vendo-web
+      ACCESS_TOKEN_TTL: 15m
+      REFRESH_TOKEN_TTL: 30d
+      PASSWORD_RESET_TTL: 30m
+      CORS_ORIGINS: http://localhost:3000
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -16,8 +45,11 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm lint
-      - run: pnpm typecheck
-      - run: pnpm test
-      - run: pnpm build
+      - run: pnpm audit --prod --audit-level high
+      - run: pnpm --filter @vendo/api db:deploy
+      - run: pnpm exec turbo lint --concurrency=1
+      - run: pnpm exec turbo typecheck --concurrency=1
+      - run: pnpm exec turbo test --concurrency=1
+      - run: pnpm exec turbo build --concurrency=1
+      - run: pnpm format:check
       - run: docker compose --env-file .env.example config --quiet

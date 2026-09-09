@@ -11,4 +11,5 @@ export interface ActiveBranchContext {
 export interface AuthenticatedRequest extends Request {
   principal: AuthPrincipal;
   activeBranch?: ActiveBranchContext;
+  requestId?: string;
 }

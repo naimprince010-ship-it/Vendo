@@ -2,6 +2,13 @@ packages:
   - apps/*
   - packages/*
 
+injectWorkspacePackages: true
+
+overrides:
+  deepmerge-ts: 8.0.2
+  mysql2: 3.23.1
+  multer: 2.3.0
+
 allowBuilds:
   '@parcel/watcher': true
   '@prisma/engines': true

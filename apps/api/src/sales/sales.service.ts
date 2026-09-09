@@ -543,6 +543,11 @@ export class SalesService {
             paid: paid.toFixed(4),
             due: due.toFixed(4),
           });
+          if (prepared.discount.greaterThan(0))
+            await this.audit(tx, principal, branch.id, 'sale.discount.applied', saleId, {
+              discount: prepared.discount.toFixed(4),
+              reason: dto.notes ?? 'sale_discount',
+            });
           for (const line of prepared.lines.filter((row) => row.override))
             await this.audit(tx, principal, branch.id, 'sale.price.overridden', saleId, {
               productId: line.productId,
@@ -1523,6 +1528,11 @@ export class SalesService {
       due: due.toFixed(4),
       creditApplied: creditApplied.toFixed(4),
     });
+    if (prepared.discount.greaterThan(0))
+      await this.audit(tx, principal, branch.id, 'sale.discount.applied', saleId, {
+        discount: prepared.discount.toFixed(4),
+        reason: dto.notes ?? 'exchange_sale_discount',
+      });
     return { sale, creditApplied };
   }
 

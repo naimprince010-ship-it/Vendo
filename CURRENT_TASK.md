@@ -1,57 +1,57 @@
 # Current Phase
 
-Phase 12 — Dashboard, Reports, and Receipts
+Phase 13 — Audit, Security, Testing, and Production Readiness
 
 # Current Task
 
-Phase 12 gate is complete. Prepare to begin the Phase 13 audit, security, critical testing, and production-readiness review without changing Phase 12 financial definitions.
+Complete the final module, security, database, operational, performance, deployment, and end-to-end production-readiness review; fix every Critical/High gap and record the verified release evidence.
 
 # Objective
 
-Build accurate company/branch-scoped reporting from the immutable sales, returns, inventory, purchasing, party-ledger, expense, and cash records delivered in Phases 6–11. Add thermal receipt and A4 invoice views that preserve historical sale snapshots. Do not start Phase 13 production-hardening work.
+Validate the complete approved Tiles + Sanitary POS scope as one system. Add only the production controls, observability, deployment/backup tooling, regression coverage, and documentation required to close verified Critical/High gaps. Preserve all accepted domain and transaction invariants.
 
 # Dependencies
 
-- Verified Phase 6 inventory ledger and authoritative base-quantity architecture
-- Verified Phase 8 supplier payment and configured payment-method workflows
-- Verified Phase 9 atomic sales and payment snapshots
-- Verified Phase 10 returns, refunds, customer collections, and invoice-outstanding logic
-- Verified Phase 11 cash shifts, immutable cash movements, and expenses
-- Existing authenticated company, branch, permission, audit, and Decimal foundations
+- Verified Phases 1–12 and their recorded gates
+- Fourteen applied additive migrations and the current Prisma model
+- Existing authenticated company, active-branch, permission, audit, Decimal, transaction-lock, and idempotency foundations
+- Production browser workflows and immutable financial/inventory journals
 
 # Expected Files To Change
 
-- Additive Prisma migration for any required immutable sale-line display snapshots
-- Reporting API module, DTOs, services, controllers, exports, permissions, and tests
-- Real dashboard and report frontend consoles
-- Thermal receipt and A4 invoice presentation and print styling
-- Database, architecture, permissions, API, decisions, and governance documentation
+- Runtime security, structured logging, correlation, health/readiness, and environment-validation code
+- Route-security, cross-tenant/branch, audit, invariant, concurrency, and end-to-end regression coverage
+- Production Docker/reverse-proxy configuration and CI improvements
+- Backup/restore and operational scripts
+- Production, security, disaster-recovery, operations, release-checklist, and final module-review documentation
+- Governance records and any narrowly required fixes discovered by verification
 
 # Acceptance Criteria
 
-- Dashboard and reports use only real database records and enforce tenant, branch, permission, date, timezone, pagination, and Decimal rules.
-- Sales metrics distinguish gross sales, return/void credits, net sales, collections, refunds, tax, cost, and gross profit without double counting.
-- Inventory, purchasing, customer, supplier, expense, cash, and financial summaries reconcile with their authoritative ledgers.
-- Tile reports display useful Box/PCS/Sq.ft/Sq.m equivalents without creating independent inventory quantities.
-- Thermal and A4 documents use immutable transaction snapshots, expose payment/due/return state, and print cleanly.
-- Relevant CSV exports, audit/security boundaries, automated checks, browser workflows, and production builds pass.
+- Every major module receives a factual PASS/PARTIAL/FAIL/NOT IMPLEMENTED classification with evidence and limitations.
+- No known Critical/High authentication, authorization, tenant/branch isolation, inventory, financial, secret, migration, deployment, or recovery blocker remains.
+- Production startup fails closed on unsafe configuration and exposes distinct liveness/readiness behavior with structured, redacted request logs.
+- All migrations replay from zero; backup and restore are exercised against an isolated database; restored invariants pass.
+- Critical concurrency, idempotency, tenant, branch, permission, inventory, financial, and browser workflows pass.
+- Production deployment, backup, disaster recovery, operations, monitoring, first-run, update, and rollback procedures are executable and documented.
 
 # Verification Required
 
-- Phase 12 API/integration tests for financial definitions, return/void treatment, timezone boundaries, permissions, tenant isolation, exports, and invoice snapshots
-- Migration SQL inspection/application/status plus clean replay and zero drift if a migration is added
-- Inventory, customer/supplier ledger, and cash reconciliation checks
-- Permission/bootstrap idempotency, Swagger, production browser dashboards/reports/print views, and clean console
-- Prisma checks, repository lint/typecheck/tests/builds, formatting, Compose, secret scan, and Git integrity
+- Complete automated suite with exact suite/test/failure/skip totals
+- Route authorization inventory and expanded cross-company/cross-branch/permission negative tests
+- Full migration replay, live/replay comparison, backup/restore drill, and restored invariant checks
+- Controlled SME-scale performance run with recorded search, POS, inventory, and report timings
+- Production-like golden API/browser workflows, clean console, and print-style inspection
+- Frozen install, lint, typecheck, tests, production builds, Prisma, Compose, CI, dependency, secret-history, and Git integrity checks
 
 # Status
 
-COMPLETE — Phase 12 implementation, migration, automated checks, production builds, report reconciliation, printable-document inspection, production browser workflows, and clean-console verification all pass.
+COMPLETE — Phase 13 gate passed on 2026-09-09. The approved Version 1 codebase is production-ready with no open Critical/High issue; environment-specific deployment acceptance remains mandatory.
 
 # Blockers
 
-None. `BUG-008` remains a low-severity deferred pg@9 compatibility warning on the pinned pg 8 runtime.
+None. `BUG-008` remains a documented Low future pg@9 compatibility warning on the supported pinned pg 8.23 runtime and does not invalidate the release gate.
 
 # Next Approved Task
 
-Phase 13 — begin with the module-by-module audit-trail and security threat review, then define the remaining critical end-to-end and production-readiness gaps before making implementation changes.
+Execute the environment-specific production checklist: provision secrets and first owner, configure DNS/TLS and monitoring, schedule encrypted off-host backups, complete a restore rehearsal on the target host, accept the physical thermal printer, then perform a controlled production rollout.

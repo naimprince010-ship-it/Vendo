@@ -117,14 +117,14 @@ Gate evidence: additive 13th migration with clean replay/live schema equality, 9
 
 ## Phase 13 — Audit, Security, Testing, and Production Readiness
 
-- [ ] Critical action audit trail
-- [ ] Security hardening and threat review
-- [ ] File and input validation
-- [ ] End-to-end critical workflow suite
-- [ ] Production Docker and deployment documentation
-- [ ] Final migration and backup/restore verification
-- [ ] Final module-by-module production review
-- [ ] Complete Phase 13 gate
+- [x] Critical action audit trail
+- [x] Security hardening and threat review
+- [x] File and input validation
+- [x] End-to-end critical workflow suite
+- [x] Production Docker and deployment documentation
+- [x] Final migration and backup/restore verification
+- [x] Final module-by-module production review
+- [x] Complete Phase 13 gate
 
 ## Phase Gate Log
 
@@ -298,3 +298,18 @@ Gate evidence: additive 13th migration with clean replay/live schema equality, 9
 - Swagger/OpenAPI: PASS (144 paths; 12 report paths)
 - Production browser dashboard, all report domains, historical invoice lookup, thermal/A4 print styles, database reconciliation, and clean console: PASS
 - Blocking Critical/High bugs: none open; migration defect `BUG-023` resolved before the final gate
+
+### Phase 13 — PASS (2026-09-09)
+
+- Permissioned company-scoped audit retrieval, critical-action coverage inventory, route authorization audit, structured correlation logging, redacted failures, bounded requests, strict production environment validation, and separate liveness/readiness: PASS
+- Migration `20260908180000_phase13_search_performance`: PASS (15 migrations current; clean replay and normalized live/replay schema hash `a3a9f37632eb36669f9181076c635df3f1d22a095e65627b4326d64804eb51e9`)
+- Backup/restore drill: PASS (custom-format backup SHA-256 `42BA31FE7883226BB40CC3703D372C67D0ADA59C291D4106F436A4E83555E85A`; 64 tables, 291 indexes, 178 foreign keys, 24 triggers, 15 migrations, and all checked inventory/return/refund/shift invariants match live)
+- Permission/bootstrap seeds: PASS and idempotent (105 permissions; one company-local walk-in, owner role, and 105 owner grants after two executions)
+- API integration/regression tests: PASS (15 suites, 92 tests, zero failures/skips/snapshots)
+- Repository uncached sequential lint, strict TypeScript, tests, and production builds: PASS across all five packages; Next.js generated `/`, `/app`, and `/login`
+- Production API and standalone web container builds and non-root runtime smoke checks: PASS; API readiness/liveness/request-ID/404/production-Swagger behavior and web login response verified
+- PostgreSQL 17 SME performance fixture: PASS (10,000 products; warm product substring 1.278 ms, exact barcode 0.332 ms, 50-row stock page 0.625 ms)
+- Swagger/OpenAPI: PASS (146 paths; bearer and refresh-cookie schemes; permissioned audit path present)
+- Representative production browser workflow: PASS (login/branch context, POS search and tile unit/batch/shade, inventory, purchasing, parties, cash, reports, catalog, organization, historical invoice and print CSS); console clean
+- Frozen offline install, Prisma format/validation/generation/status, dependency audit, Compose/CI configuration, secret/history scan, Git whitespace/integrity, and destination capacity: PASS
+- Final 44-module review: 43 PASS, Settings PARTIAL by explicit accepted Version 1 scope; no Critical/High blocker remains. `BUG-024` through `BUG-028` resolved; `BUG-008` remains Low/deferred on pinned pg 8.23.

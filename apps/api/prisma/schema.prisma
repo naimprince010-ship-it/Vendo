@@ -551,6 +551,7 @@ model Category {
   @@unique([companyId, slug])
   @@unique([id, companyId])
   @@index([companyId, parentId, isActive])
+  @@index([name(ops: raw("gin_trgm_ops"))], type: Gin, map: "Category_name_trgm_idx")
 }
 
 model Brand {
@@ -567,6 +568,7 @@ model Brand {
   @@unique([companyId, slug])
   @@unique([id, companyId])
   @@index([companyId, name, isActive])
+  @@index([name(ops: raw("gin_trgm_ops"))], type: Gin, map: "Brand_name_trgm_idx")
 }
 
 model Manufacturer {
@@ -583,6 +585,7 @@ model Manufacturer {
   @@unique([companyId, slug])
   @@unique([id, companyId])
   @@index([companyId, name, isActive])
+  @@index([name(ops: raw("gin_trgm_ops"))], type: Gin, map: "Manufacturer_name_trgm_idx")
 }
 
 model Product {
@@ -632,6 +635,9 @@ model Product {
   @@index([companyId, brandId, isActive])
   @@index([companyId, manufacturerId, isActive])
   @@index([companyId, categoryId, isActive])
+  @@index([sku(ops: raw("gin_trgm_ops"))], type: Gin, map: "Product_sku_trgm_idx")
+  @@index([name(ops: raw("gin_trgm_ops"))], type: Gin, map: "Product_name_trgm_idx")
+  @@index([model(ops: raw("gin_trgm_ops"))], type: Gin, map: "Product_model_trgm_idx")
 }
 
 model ProductTileProfile {
@@ -654,6 +660,7 @@ model ProductTileProfile {
   @@unique([productId, companyId])
   @@index([companyId, widthMm, heightMm])
   @@index([companyId, series])
+  @@index([displaySize(ops: raw("gin_trgm_ops"))], type: Gin, map: "ProductTileProfile_displaySize_trgm_idx")
 }
 
 model ProductSanitaryProfile {
@@ -686,6 +693,7 @@ model ProductBarcode {
 
   @@unique([companyId, barcode])
   @@index([productId])
+  @@index([barcode(ops: raw("gin_trgm_ops"))], type: Gin, map: "ProductBarcode_barcode_trgm_idx")
 }
 
 model UnitConversion {
@@ -766,6 +774,7 @@ model CustomerGroup {
   @@unique([id, companyId])
   @@index([companyId, name])
   @@index([companyId, isActive])
+  @@index([name(ops: raw("gin_trgm_ops"))], type: Gin, map: "CustomerGroup_name_trgm_idx")
 }
 
 model Customer {
@@ -797,6 +806,10 @@ model Customer {
   @@index([companyId, email])
   @@index([companyId, name])
   @@index([companyId, isActive])
+  @@index([code(ops: raw("gin_trgm_ops"))], type: Gin, map: "Customer_code_trgm_idx")
+  @@index([name(ops: raw("gin_trgm_ops"))], type: Gin, map: "Customer_name_trgm_idx")
+  @@index([phone(ops: raw("gin_trgm_ops"))], type: Gin, map: "Customer_phone_trgm_idx")
+  @@index([email(ops: raw("gin_trgm_ops"))], type: Gin, map: "Customer_email_trgm_idx")
 }
 
 model Supplier {
@@ -829,6 +842,11 @@ model Supplier {
   @@index([companyId, contactName])
   @@index([companyId, name])
   @@index([companyId, isActive])
+  @@index([code(ops: raw("gin_trgm_ops"))], type: Gin, map: "Supplier_code_trgm_idx")
+  @@index([name(ops: raw("gin_trgm_ops"))], type: Gin, map: "Supplier_name_trgm_idx")
+  @@index([contactName(ops: raw("gin_trgm_ops"))], type: Gin, map: "Supplier_contactName_trgm_idx")
+  @@index([phone(ops: raw("gin_trgm_ops"))], type: Gin, map: "Supplier_phone_trgm_idx")
+  @@index([email(ops: raw("gin_trgm_ops"))], type: Gin, map: "Supplier_email_trgm_idx")
 }
 
 model CustomerLedgerEntry {

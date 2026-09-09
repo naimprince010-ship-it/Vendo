@@ -315,3 +315,67 @@ No Critical/High cash-shift, drawer-movement, expense, payment-integration, migr
 ## Phase 12 Verification Note — 2026-09-08
 
 No Critical/High reporting, financial-definition, inventory-equivalence, historical-document, migration, API, permission, tenant-isolation, browser, or print blocker remains. `BUG-023` was resolved before the additive migration was replayed cleanly and compared with the live schema. The complete API suite passes (14 suites/85 tests), all eight checked financial immutability triggers are enabled, Phase 12 test fixtures were removed, and the production browser verified real dashboard/report/invoice data with a clean console. The in-app browser did not surface the blob-anchor download event, so CSV correctness is supported by the real API integration test rather than a claimed browser download. Deferred `BUG-008` remains the only known issue and is a low-severity future pg@9 compatibility warning on pinned pg 8.23.
+
+## BUG-024 — Production dependency audit found transitive high advisories
+
+- **ID:** BUG-024
+- **Severity:** High
+- **Area:** Production dependencies
+- **Description:** The initial Phase 13 audit reported high-severity advisories in transitive `deepmerge-ts` and `mysql2` versions used by Prisma tooling.
+- **Reproduction:** Run the production dependency audit before the Phase 13 overrides.
+- **Expected:** No known high-severity dependency vulnerability ships in the verified lockfile.
+- **Actual:** Two transitive vulnerable versions were selected.
+- **Status:** Resolved — workspace overrides select `deepmerge-ts` 8.0.2 and `mysql2` 3.23.1; frozen reinstall and the final production audit report no known vulnerabilities.
+- **Related task:** Phase 13 — dependency and supply-chain gate
+
+## BUG-025 — Production API image omitted the Express runtime
+
+- **ID:** BUG-025
+- **Severity:** High
+- **Area:** Production API container packaging
+- **Description:** The first API image built from a legacy workspace deployment layout but failed at runtime because Express was only available transitively and was absent from the deployed production tree.
+- **Reproduction:** Start the first Phase 13 API image and request readiness.
+- **Expected:** The non-root image starts the compiled NestJS artifact with all declared runtime dependencies.
+- **Actual:** Node terminated with `Cannot find module 'express'`.
+- **Status:** Resolved — Express is an explicit API runtime dependency, workspace packages are injected for deterministic `pnpm deploy --prod`, and the rebuilt non-root image passes readiness, liveness, request-ID, 404, and production-Swagger smoke checks.
+- **Related task:** Phase 13 — production container verification
+
+## BUG-026 — Substring catalog search lacked an executable index plan
+
+- **ID:** BUG-026
+- **Severity:** High
+- **Area:** Catalog and party search performance
+- **Description:** Case-insensitive `contains` queries compile to leading-wildcard `ILIKE`, which ordinary B-tree indexes cannot efficiently serve as SME data grows.
+- **Reproduction:** Inspect product/customer/supplier substring plans before the Phase 13 search migration.
+- **Expected:** Bounded user-entered substring search has an index strategy at the documented SME scale.
+- **Actual:** The database had only B-tree search keys and could fall back to sequential scans.
+- **Status:** Resolved — migration `20260908180000_phase13_search_performance` enables `pg_trgm` and adds 18 GIN indexes. A guarded 10,000-product fixture verifies the intended warm GIN plan and sub-2 ms local database timings.
+- **Related task:** Phase 13 — controlled performance gate
+
+## BUG-027 — Docker build cache corruption and host temporary data blocked image rebuild
+
+- **ID:** BUG-027
+- **Severity:** Medium
+- **Area:** Verification environment / production image gate
+- **Description:** Docker Desktop BuildKit reported snapshot/cache failures while the host system drive was constrained by an obsolete installer temporary directory.
+- **Reproduction:** Rebuild the corrected API production image in the affected local Docker Desktop state.
+- **Expected:** A clean production image rebuild completes without changing application or database data.
+- **Actual:** BuildKit could not materialize a valid snapshot until its disposable cache and host capacity were remediated.
+- **Status:** Resolved — only disposable BuildKit cache was pruned; the obsolete 788 MB installer temporary directory was moved recoverably to `D:\TempArchive`; images/volumes and PostgreSQL data were preserved, and both production images passed smoke tests.
+- **Related task:** Phase 13 — production image verification
+
+## BUG-028 — New Multer denial-of-service advisories entered the final audit
+
+- **ID:** BUG-028
+- **Severity:** High
+- **Area:** Production dependencies / request parsing
+- **Description:** The final live registry audit began reporting newly published denial-of-service advisories against transitive Multer 2.2.0 after the earlier dependency gate had passed.
+- **Reproduction:** Run `pnpm audit --prod --audit-level low` against the pre-fix Phase 13 lockfile on 2026-09-09.
+- **Expected:** No known High vulnerability remains in the production dependency graph at release time.
+- **Actual:** Three High and one Low Multer advisories were reported through Nest platform dependencies.
+- **Status:** Resolved — the workspace now selects patched Multer 2.3.0; the frozen install, full affected quality suite, production audit, and rebuilt API image/runtime smoke test pass.
+- **Related task:** Phase 13 — final time-sensitive dependency gate
+
+## Phase 13 Verification Note — 2026-09-09
+
+No Critical/High audit, authorization, tenant/branch, inventory, financial, migration, recovery, dependency, container, browser, or operational-documentation blocker remains. `BUG-024` through `BUG-028` were resolved before the final gate. The complete API suite passes (15 suites/92 tests), all 15 migrations replay from zero, restored catalog/invariant counts match live, both production images run as non-root, and the representative production browser workflow has a clean console. The disposable browser operator is disabled with zero roles and zero active sessions. `BUG-008` remains the sole known issue: a Low future pg@9 compatibility warning on the supported pinned pg 8.23 runtime.

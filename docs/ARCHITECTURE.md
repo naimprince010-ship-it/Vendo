@@ -8,6 +8,7 @@ Vendo is a TypeScript-first modular monolith in a pnpm monorepo.
 - `apps/api`: NestJS REST API, versioned under `/api/v1`, with OpenAPI documentation.
 - PostgreSQL: authoritative transactional store accessed through Prisma.
 - Shared packages: UI primitives, contracts, validation, TypeScript/ESLint configuration.
+- Production edge: Caddy terminates TLS and routes `/api/*` to the private API container and all other requests to the private standalone Next.js container; PostgreSQL has no published host port.
 
 The browser never accesses the database. The API owns authorization, conversion, pricing, inventory, payments, and transactional consistency. TanStack Query manages server state; React Hook Form and Zod manage form state and user-facing validation.
 
@@ -38,3 +39,5 @@ Phase 10 extends the Sales module with settlement, collection, return, refund, e
 Phase 11 adds a Cash application boundary shared by sales and purchasing. One register-scoped advisory lock serializes shift open, automatic/manual movements, and close. The cash journal is the drawer authority; business payment and ledger records retain their existing financial meanings. Expense posting composes the same cash primitive only for configured cash methods, while non-cash transactions never affect a physical drawer.
 
 Phase 12 adds a read-only reporting boundary over the established transaction authorities. It creates no mutable reporting balances: sales use completed invoices and immutable return events, inventory uses the base-unit projection, party balances sum immutable ledgers, purchasing keeps receipt/invoice/payment events distinct, and cash uses drawer movements. Branch-operational endpoints are active-branch guarded; company-level party positions remain company scoped. Thermal and A4 documents share one immutable invoice projection.
+
+Phase 13 adds a cross-cutting observability boundary with validated correlation IDs, structured redacted request logs, safe global exception handling, and separate liveness/readiness probes. Production images run as non-root users. Deployment uses an explicit one-shot migration job before application rollout; backups, restores, disaster recovery, and operator response remain external operational procedures rather than hidden application side effects.

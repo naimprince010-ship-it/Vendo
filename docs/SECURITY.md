@@ -10,10 +10,16 @@
 - DTO/request validation, secure headers, CORS allowlist, request size limits, and rate limits.
 - Login and reset endpoints have explicit throttles. Five consecutive failures temporarily lock an account for 15 minutes, while responses remain intentionally generic to resist enumeration.
 - Secrets supplied only through environment or deployment secret stores.
-- File uploads validated by size, MIME signature, extension policy, and storage isolation.
+- Binary file uploads are not implemented in Version 1. Product/company image fields are metadata-only. Any future upload endpoint must add size limits, MIME-signature validation, extension policy, malware handling, isolated object storage, and authorization before release.
 - Critical actions recorded in the audit log.
 
 No production credentials belong in Git. `.env.example` documents names using non-secret development placeholders.
+
+## Operator and Backup Responsibility
+
+Production secrets must be generated and injected by the deployment secret store; operators must not reuse development/bootstrap values. Database backups contain customer, supplier, transaction, and audit data and therefore require encrypted off-host storage, least-privilege access, retention controls, restore testing, and secure disposal. The application does not claim that a local database volume or an unencrypted local dump is a disaster-recovery copy.
+
+Operators own host patching, Docker/Caddy/PostgreSQL security updates, DNS and TLS validity, firewall exposure, log access/retention, monitoring destinations, backup-job alerting, and incident-response access. The release checklist requires these environment controls before accepting real business data.
 
 ## Password Reset and Bootstrap
 
@@ -36,3 +42,11 @@ Sales endpoints derive company and user identity from the current authenticated 
 Phase 10 financial commands add separate permissions for customer collection/payment history, return, refund, exchange, and void. All linked IDs are re-resolved inside the authenticated company and active branch. Request-hash idempotency prevents duplicate submits, transaction-scoped locks prevent over-allocation/over-return/over-refund, and immutable database triggers protect completed payment and compensating-document history.
 
 Phase 11 drawer commands require an authenticated company, authorized active branch, active company/branch-owned register, and explicit permission. Cash business events require an open shift; non-cash events create no drawer row. Register-scoped PostgreSQL advisory locks serialize opening, movement posting, and closing across API processes. Database source uniqueness blocks duplicate automatic movements, request hashes protect manual command retries, and triggers prevent movement deletion, closed-shift edits, and silent posted-expense rewrites.
+
+## Production Runtime Boundary
+
+Production configuration is validated before NestJS starts. PostgreSQL URLs, two distinct 32+ character JWT secrets, explicit HTTPS CORS origins, valid ports/durations, and disabled development seed/bootstrap switches are mandatory. Placeholder/loopback database credentials and placeholder secrets are rejected. Request bodies are bounded, proxy trust is explicit, Swagger is disabled in production, and `/api/v1/health/ready` fails closed when PostgreSQL is unavailable.
+
+Every request receives or validates an `x-request-id`. Completion/failure logs are structured JSON and contain method, query-free route, status, duration, and safe authenticated identifiers; request bodies, cookies, authorization headers, token values, raw exception messages, and stack traces are excluded. Unexpected 5xx responses expose only a generic message and correlation ID.
+
+The centralized route audit statically verifies that every controller route is permission-protected or belongs to a narrowly reviewed public/self-service exception. Only authentication bootstrap/session routes and health endpoints may declare `@Public()`; operational cash, inventory, purchase, report, and sales controllers must also declare active-branch enforcement.

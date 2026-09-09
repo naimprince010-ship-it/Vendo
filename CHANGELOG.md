@@ -4,6 +4,16 @@ All meaningful project changes are recorded here. This project follows a phase-o
 
 ## Unreleased
 
+### Phase 13 — Audit, Security, Testing, and Production Readiness
+
+- Added permissioned, company-scoped audit-log retrieval; static route/branch/permission coverage regression checks; and explicit audit events for completed-sale discounts.
+- Added request correlation, structured redacted completion/error logs, generic unexpected-error responses, bounded request bodies, explicit proxy/CORS behavior, strict fail-closed production configuration, and distinct database readiness.
+- Added the `pg_trgm` search-performance migration with 18 GIN indexes and a guarded 10,000-product PostgreSQL performance fixture.
+- Added production non-root API and standalone Next.js containers behind Caddy, a one-shot migration profile, private PostgreSQL, CI database verification, and production environment examples.
+- Added guarded backup/restore scripts and production deployment, backup, disaster-recovery, operations, performance, release-checklist, security, and final module-review documentation.
+- Resolved transitive high-severity `deepmerge-ts`, `mysql2`, and newly published Multer advisories; corrected API image packaging by making Express explicit and deploying injected workspace packages deterministically.
+- Verified 15 migrations from zero, idempotent 105-permission bootstrap, live/replay schema equality, a custom-format backup/restore with catalog and invariant parity, 15 API suites/92 tests, all package quality/build gates, production images, 146 Swagger paths, and a representative production browser workflow with a clean console.
+
 ### Phase 12 — Dashboard, Reports, and Receipts
 
 - Added a company-timezone operational dashboard and paginated sales, product/tile, inventory, purchase, customer, supplier, expense, cash, and restricted financial report APIs over real transaction ledgers.

@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
+import { AuditModule } from './audit/audit.module';
 import { BranchesModule } from './branches/branches.module';
 import { CatalogModule } from './catalog/catalog.module';
 import { CashModule } from './cash/cash.module';
@@ -9,6 +10,7 @@ import { validateEnvironment } from './config/environment';
 import { DatabaseModule } from './database/database.module';
 import { HealthModule } from './health/health.module';
 import { InventoryModule } from './inventory/inventory.module';
+import { ObservabilityModule } from './observability/observability.module';
 import { PartiesModule } from './parties/parties.module';
 import { PurchasingModule } from './purchasing/purchasing.module';
 import { RegistersModule } from './registers/registers.module';
@@ -22,7 +24,9 @@ import { WarehousesModule } from './warehouses/warehouses.module';
   imports: [
     ConfigModule.forRoot({ isGlobal: true, validate: validateEnvironment }),
     DatabaseModule,
+    ObservabilityModule,
     AuthModule,
+    AuditModule,
     UsersModule,
     RolesModule,
     CompaniesModule,

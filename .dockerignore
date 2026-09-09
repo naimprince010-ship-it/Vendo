@@ -1,0 +1,16 @@
+.git
+.github
+.next
+.turbo
+.phase13-verification
+**/.next
+**/.turbo
+**/dist
+**/node_modules
+**/node_modules.incomplete-*
+.env
+.env.*
+!.env.example
+coverage
+uploads
+*.log

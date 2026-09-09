@@ -102,6 +102,7 @@ export const PERMISSIONS = {
   REPORT_VIEW_SUPPLIERS: 'report.view_suppliers',
   REPORT_VIEW_EXPENSES: 'report.view_expenses',
   REPORT_VIEW_CASH: 'report.view_cash',
+  AUDIT_VIEW: 'audit.view',
   SETTINGS_MANAGE: 'settings.manage',
 } as const;
 

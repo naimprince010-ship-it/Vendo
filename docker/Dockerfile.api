@@ -1,0 +1,25 @@
+FROM node:24-alpine AS build
+ENV PNPM_HOME=/pnpm
+ENV PATH=$PNPM_HOME:$PATH
+RUN corepack enable
+WORKDIR /workspace
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json ./
+COPY apps/api/package.json apps/api/package.json
+COPY apps/web/package.json apps/web/package.json
+COPY packages/types/package.json packages/types/package.json
+COPY packages/ui/package.json packages/ui/package.json
+COPY packages/validation/package.json packages/validation/package.json
+RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store pnpm install --filter @vendo/api... --frozen-lockfile
+COPY . .
+RUN pnpm --filter @vendo/api build
+RUN pnpm --filter @vendo/api deploy --prod /opt/vendo-api
+
+FROM node:24-alpine AS runtime
+ENV NODE_ENV=production
+WORKDIR /app
+RUN addgroup -S vendo && adduser -S -G vendo vendo
+COPY --from=build --chown=vendo:vendo /opt/vendo-api ./
+COPY --from=build --chown=vendo:vendo /workspace/apps/api/dist ./dist
+USER vendo
+EXPOSE 4000
+CMD ["node", "dist/main.js"]
