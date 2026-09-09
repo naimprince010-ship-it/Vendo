@@ -126,6 +126,27 @@ Gate evidence: additive 13th migration with clean replay/live schema equality, 9
 - [x] Final module-by-module production review
 - [x] Complete Phase 13 gate
 
+## Approved V1 UI Redesign — Stage 1 Foundation
+
+- [x] Establish approved light-first semantic tokens and Geist typography
+- [x] Add source-owned reusable UI primitives in `packages/ui`
+- [x] Add focused component tests and preserve the legacy `StatusBadge` import
+- [x] Pass frozen install, formatting, lint, strict TypeScript, UI build, and Next.js production build
+- [ ] Pass interactive production-browser smoke and clean-console verification
+- [x] Conditionally accept Stage 1 on the complete non-browser gate
+
+Current gate status: **CONDITIONALLY ACCEPTED** — every available application and non-browser gate passes. Interactive browser/console acceptance remains deferred under external-tooling `BUG-029` and is mandatory before final UI rollout acceptance.
+
+## Approved V1 UI Redesign — Stage 2 Application Shell and Routing
+
+- [ ] Add authenticated light-first application shell
+- [ ] Add scalable, permission-aware sidebar and header
+- [ ] Centralize company/branch context without weakening API authorization
+- [ ] Add route-addressable module navigation while preserving `/app`
+- [ ] Pass available Stage 2 automated and HTTP gates
+- [ ] Obtain manual Chrome acceptance while `BUG-029` remains open
+- [ ] Complete Stage 2 gate
+
 ## Phase Gate Log
 
 ### Phase 1 — PASS (2026-09-04)

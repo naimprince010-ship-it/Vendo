@@ -1,57 +1,64 @@
 # Current Phase
 
-Phase 13 — Audit, Security, Testing, and Production Readiness
+Approved V1 UI Redesign — Stage 2 Application Shell and Routing
 
 # Current Task
 
-Complete the final module, security, database, operational, performance, deployment, and end-to-end production-readiness review; fix every Critical/High gap and record the verified release evidence.
+Implement the approved authenticated light-first application shell, scalable navigation, header, shared branch context, and route-addressable module foundation without redesigning POS or changing verified V1 workflows.
 
 # Objective
 
-Validate the complete approved Tiles + Sanitary POS scope as one system. Add only the production controls, observability, deployment/backup tooling, regression coverage, and documentation required to close verified Critical/High gaps. Preserve all accepted domain and transaction invariants.
+Replace the local-state `/app` navigation container with a URL-addressable shell that preserves authentication/session restoration, company and branch access, permission-aware visibility, and existing console behavior.
 
 # Dependencies
 
-- Verified Phases 1–12 and their recorded gates
-- Fourteen applied additive migrations and the current Prisma model
-- Existing authenticated company, active-branch, permission, audit, Decimal, transaction-lock, and idempotency foundations
-- Production browser workflows and immutable financial/inventory journals
+- Verified Vendo Version 1 release at `ff0b8a5f20fc23ace15a42897ce2d5bfd3d57265`
+- Conditionally accepted Stage 1 light-first component foundation
+- Approved Figma application-shell direction and Stage 2 plan
+- `docs/UI_IMPLEMENTATION_PLAN.md` and existing UI audit artifacts
+- Existing production-rollout preparation remains paused and preserved; no external deployment is authorized
 
 # Expected Files To Change
 
-- Runtime security, structured logging, correlation, health/readiness, and environment-validation code
-- Route-security, cross-tenant/branch, audit, invariant, concurrency, and end-to-end regression coverage
-- Production Docker/reverse-proxy configuration and CI improvements
-- Backup/restore and operational scripts
-- Production, security, disaster-recovery, operations, release-checklist, and final module-review documentation
-- Governance records and any narrowly required fixes discovered by verification
+- `apps/web/src/app/app/layout.tsx` and route pages
+- `apps/web/src/components/app-shell/*`
+- `apps/web/src/contexts/branch-context.tsx`
+- `apps/web/src/hooks/use-vendo-api.ts`
+- `apps/web/src/lib/routes.ts`, `permissions.ts`, and `query-keys.ts`
+- Narrow compatibility changes to `/app` and providers where required
+- Governance documentation
 
 # Acceptance Criteria
 
-- Every major module receives a factual PASS/PARTIAL/FAIL/NOT IMPLEMENTED classification with evidence and limitations.
-- No known Critical/High authentication, authorization, tenant/branch isolation, inventory, financial, secret, migration, deployment, or recovery blocker remains.
-- Production startup fails closed on unsafe configuration and exposes distinct liveness/readiness behavior with structured, redacted request logs.
-- All migrations replay from zero; backup and restore are exercised against an isolated database; restored invariants pass.
-- Critical concurrency, idempotency, tenant, branch, permission, inventory, financial, and browser workflows pass.
-- Production deployment, backup, disaster recovery, operations, monitoring, first-run, update, and rollback procedures are executable and documented.
+- Authenticated shell restores the existing secure session and redirects anonymous users to login.
+- Sidebar/header navigation is light-first, scalable, permission-aware, and responsive at approved desktop widths.
+- Company/branch context is centralized without trusting frontend ownership claims or changing API enforcement.
+- `/app` remains compatible and module navigation is route-addressable.
+- Existing consoles render through route pages without changing request payloads or business logic.
+- Available lint, strict TypeScript, tests, production build, formatting, and route/HTTP smoke gates pass.
+- Manual Chrome acceptance is requested explicitly while external `BUG-029` prevents automated browser/console verification.
 
 # Verification Required
 
-- Complete automated suite with exact suite/test/failure/skip totals
-- Route authorization inventory and expanded cross-company/cross-branch/permission negative tests
-- Full migration replay, live/replay comparison, backup/restore drill, and restored invariant checks
-- Controlled SME-scale performance run with recorded search, POS, inventory, and report timings
-- Production-like golden API/browser workflows, clean console, and print-style inspection
-- Frozen install, lint, typecheck, tests, production builds, Prisma, Compose, CI, dependency, secret-history, and Git integrity checks
+- `pnpm install --frozen-lockfile`
+- `pnpm format:check`
+- `pnpm lint`
+- `pnpm typecheck`
+- Relevant frontend tests
+- `pnpm --filter @vendo/web build`
+- Route manifest and HTTP smoke for `/app` compatibility plus module routes
+- Authentication, permission visibility, and branch-context review
+- Manual Chrome shell/navigation/console checklist while `BUG-029` is open
 
 # Status
 
-COMPLETE — Phase 13 gate passed on 2026-09-09. The approved Version 1 codebase is production-ready with no open Critical/High issue; environment-specific deployment acceptance remains mandatory.
+IN PROGRESS — Stage 1 is conditionally accepted on its complete non-browser gate. Stage 2 application shell and routing is now the only approved implementation scope.
 
 # Blockers
 
-None. `BUG-008` remains a documented Low future pg@9 compatibility warning on the supported pinned pg 8.23 runtime and does not invalidate the release gate.
+- `BUG-029` remains an external deferred browser-automation blocker; manual Chrome acceptance is required for Stage 2.
+- Pre-existing uncommitted production-rollout and UI-audit artifacts remain preserved and must not be discarded.
 
 # Next Approved Task
 
-Execute the environment-specific production checklist: provision secrets and first owner, configure DNS/TLS and monitoring, schedule encrypted off-host backups, complete a restore rehearsal on the target host, accept the physical thermal printer, then perform a controlled production rollout.
+Implement only the Stage 2 authenticated application shell, route foundation, permission-aware navigation, and shared branch context. Stop before Stage 3 POS redesign until automated gates and human Chrome acceptance are reported.

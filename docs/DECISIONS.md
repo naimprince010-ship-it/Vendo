@@ -233,3 +233,12 @@
 - **Alternatives:** Expose app/database ports directly; migrate automatically during API startup; store backups on the database volume only; introduce an external observability/messaging platform before need; accept sequential search at SME catalog scale.
 - **Rationale:** This boundary is deployable on one appropriately secured host, preserves the modular-monolith decision, prevents partial rollout ambiguity, and provides independently testable recovery and performance controls.
 - **Consequences:** Operators must provide DNS/TLS reachability, secret-store values, off-host encrypted backup retention, monitoring, and a tested rollback window. Binary uploads, full accounting, offline operation, and horizontally distributed transaction coordination remain outside Version 1.
+
+## ADR-027 — Source-Owned Light-First UI Foundation
+
+- **Date:** 2026-09-09
+- **Context:** The approved Figma redesign needs consistent business-software primitives without a wholesale UI-framework migration or changes to verified V1 workflows.
+- **Decision:** Keep Vendo-owned React components in `packages/ui`, styled through Tailwind CSS v4 semantic tokens. Use Radix only for Dialog, Alert Dialog, and Tooltip where focus, keyboard, portal, and modal behavior materially reduce accessibility risk. Keep Select, Checkbox, Radio, and Switch native in Stage 1. Geist is the canonical application font and light mode is the default.
+- **Alternatives:** Adopt a large component framework; duplicate per-screen Tailwind palettes; hand-roll modal focus management; migrate application routes during the foundation stage.
+- **Rationale:** A small source-owned layer preserves control, limits dependencies, aligns with the approved Figma tokens, and enables later screen-by-screen migration without touching business logic.
+- **Consequences:** Existing application screens are not visually migrated in Stage 1. Popover and Dropdown Menu dependencies remain deferred until an approved screen needs them. Money and quantity components format authoritative values only and contain no business calculation logic.

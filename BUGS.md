@@ -379,3 +379,15 @@ No Critical/High reporting, financial-definition, inventory-equivalence, histori
 ## Phase 13 Verification Note — 2026-09-09
 
 No Critical/High audit, authorization, tenant/branch, inventory, financial, migration, recovery, dependency, container, browser, or operational-documentation blocker remains. `BUG-024` through `BUG-028` were resolved before the final gate. The complete API suite passes (15 suites/92 tests), all 15 migrations replay from zero, restored catalog/invariant counts match live, both production images run as non-root, and the representative production browser workflow has a clean console. The disposable browser operator is disabled with zero roles and zero active sessions. `BUG-008` remains the sole known issue: a Low future pg@9 compatibility warning on the supported pinned pg 8.23 runtime.
+
+## BUG-029 — Stage 1 browser-control runtime fails before navigation
+
+- **ID:** BUG-029
+- **Severity:** Medium
+- **Area:** Verification environment / V1 UI redesign Stage 1
+- **Description:** The Codex Desktop browser-control runtime cannot initialize, so the required interactive production browser smoke and console inspection cannot run.
+- **Reproduction:** Initialize the approved in-app browser control runtime before navigating to `http://localhost:3000/login`.
+- **Expected:** Browser connection initializes, the existing application routes can be smoke-tested, and the browser console can be inspected.
+- **Actual:** Initialization fails twice before browser selection or navigation with `failed to write kernel assets: The system cannot find the path specified. (os error 3)`.
+- **Status:** Open — deferred external-tooling blocker. API readiness and HTTP web smoke both return 200; no application failure is indicated. It does not block Stage 2 implementation but must pass before final UI rollout acceptance.
+- **Related task:** Approved V1 UI redesign — Stage 1 foundation gate

@@ -1,0 +1,35 @@
+:root,
+[data-theme='light'] {
+  color-scheme: light;
+  --vendo-canvas: #f6f7f9;
+  --vendo-surface: #ffffff;
+  --vendo-surface-secondary: #f9fafb;
+  --vendo-neutral-hover: #f1f5f9;
+  --vendo-text-primary: #172033;
+  --vendo-text-secondary: #667085;
+  --vendo-text-muted: #98a2b3;
+  --vendo-text-disabled: #b8c0cc;
+  --vendo-border: #e4e7ec;
+  --vendo-border-strong: #d0d5dd;
+  --vendo-divider: #eaecf0;
+  --vendo-primary: #1d3557;
+  --vendo-primary-hover: #152a46;
+  --vendo-primary-soft: #eef2f7;
+  --vendo-amber: #d99a2b;
+  --vendo-amber-soft: #fff7e6;
+  --vendo-success: #16865c;
+  --vendo-success-soft: #ecfdf3;
+  --vendo-warning: #b76e00;
+  --vendo-warning-soft: #fff8e7;
+  --vendo-danger: #c4324b;
+  --vendo-danger-soft: #fff1f3;
+  --vendo-info: #2878c8;
+  --vendo-info-soft: #eff8ff;
+  --vendo-radius-sm: 6px;
+  --vendo-radius-md: 9px;
+  --vendo-radius-lg: 13px;
+  --vendo-control-sm: 32px;
+  --vendo-control-md: 40px;
+  --vendo-control-lg: 44px;
+  --vendo-shadow-dialog: 0 24px 64px rgb(23 32 51 / 0.18);
+}

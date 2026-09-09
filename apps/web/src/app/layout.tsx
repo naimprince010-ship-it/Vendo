@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import { Geist, Geist_Mono } from 'next/font/google';
+import '@vendo/ui/styles.css';
 import './globals.css';
 import { Providers } from './providers';
 

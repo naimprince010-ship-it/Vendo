@@ -4,6 +4,20 @@ All meaningful project changes are recorded here. This project follows a phase-o
 
 ## Unreleased
 
+### V1 UI redesign — Stage 1 foundation (conditionally accepted)
+
+- Added the approved light-first semantic color, radius, control-size, shadow, and typography tokens; Geist is now the canonical global application font.
+- Added source-owned accessible component foundations for actions, persistent-label forms, badges/statuses, cards, tables, pagination, dialogs, alerts, tooltips, loading/empty/error states, and presentation-only money/quantity values.
+- Kept existing workflows and `StatusBadge` imports compatible; no route, backend, API, database, authentication, authorization, inventory, or financial behavior changed.
+- Added focused UI component tests and verified frozen install, formatting, lint, strict TypeScript, UI build, Next.js production build, generated semantic CSS, dependency audit, API readiness, and HTTP web smoke.
+- Stage 1 passed every available non-browser gate and is conditionally accepted. External browser-runtime `BUG-029` remains open; interactive browser/console acceptance is deferred and must pass before final UI rollout acceptance.
+
+### Production rollout preparation
+
+- Established the environment-specific acceptance record for release `ff0b8a5f20fc23ace15a42897ce2d5bfd3d57265` without changing Version 1 architecture or starting Version 2 work.
+- Revalidated the production Compose configuration with ephemeral undisclosed secrets, confirmed `.env.production` remains excluded from Git, verified production seed/bootstrap switches fail closed, and inventoried all 15 migrations.
+- Recorded the external infrastructure, DNS, secure-secret, monitoring, backup, first-owner, business-configuration, and physical-hardware inputs that must be supplied before the deployment can be accepted.
+
 ### Phase 13 — Audit, Security, Testing, and Production Readiness
 
 - Added permissioned, company-scoped audit-log retrieval; static route/branch/permission coverage regression checks; and explicit audit events for completed-sale discounts.

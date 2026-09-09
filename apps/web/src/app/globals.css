@@ -1,28 +1,71 @@
 @import 'tailwindcss';
 
+@source '../../../../packages/ui/src';
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: var(--vendo-canvas);
+  --foreground: var(--vendo-text-primary);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-canvas: var(--vendo-canvas);
+  --color-surface: var(--vendo-surface);
+  --color-surface-secondary: var(--vendo-surface-secondary);
+  --color-neutral-hover: var(--vendo-neutral-hover);
+  --color-text-primary: var(--vendo-text-primary);
+  --color-text-secondary: var(--vendo-text-secondary);
+  --color-text-muted: var(--vendo-text-muted);
+  --color-text-disabled: var(--vendo-text-disabled);
+  --color-border: var(--vendo-border);
+  --color-border-strong: var(--vendo-border-strong);
+  --color-divider: var(--vendo-divider);
+  --color-primary: var(--vendo-primary);
+  --color-primary-hover: var(--vendo-primary-hover);
+  --color-primary-soft: var(--vendo-primary-soft);
+  --color-amber: var(--vendo-amber);
+  --color-amber-soft: var(--vendo-amber-soft);
+  --color-success: var(--vendo-success);
+  --color-success-soft: var(--vendo-success-soft);
+  --color-warning: var(--vendo-warning);
+  --color-warning-soft: var(--vendo-warning-soft);
+  --color-danger: var(--vendo-danger);
+  --color-danger-soft: var(--vendo-danger-soft);
+  --color-info: var(--vendo-info);
+  --color-info-soft: var(--vendo-info-soft);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --radius-sm: var(--vendo-radius-sm);
+  --radius-md: var(--vendo-radius-md);
+  --radius-lg: var(--vendo-radius-lg);
+  --spacing-control-sm: var(--vendo-control-sm);
+  --spacing-control-md: var(--vendo-control-md);
+  --spacing-control-lg: var(--vendo-control-lg);
+  --shadow-dialog: var(--vendo-shadow-dialog);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  color: var(--vendo-text-primary);
+  letter-spacing: -0.015em;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
 }
 
 .print-document {
