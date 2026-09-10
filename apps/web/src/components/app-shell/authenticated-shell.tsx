@@ -18,21 +18,13 @@ import { hasAnyPermission } from '../../lib/permissions';
 import { appRouteGroups, routeForPath, type AppRoute } from '../../lib/routes';
 import { NavigationIcon } from './navigation-icon';
 
-function NavigationLink({
-  mobile,
-  onNavigate,
-  route,
-}: {
-  mobile?: boolean;
-  onNavigate?: () => void;
-  route: AppRoute;
-}) {
+function NavigationLink({ mobile, route }: { mobile?: boolean; route: AppRoute }) {
   const pathname = usePathname();
   const active = pathname === route.href || pathname.startsWith(`${route.href}/`);
   const link = (
     <Link
       href={route.href}
-      onClick={onNavigate}
+      aria-label={route.label}
       aria-current={active ? 'page' : undefined}
       className={`group flex h-10 items-center gap-3 rounded-md px-3 text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface ${
         active
@@ -41,7 +33,7 @@ function NavigationLink({
       } ${mobile ? '' : 'justify-center min-[1400px]:justify-start'}`}
     >
       <NavigationIcon name={route.icon} className="shrink-0" />
-      <span className={mobile ? '' : 'md:hidden min-[1400px]:inline'}>{route.label}</span>
+      <span className={mobile ? '' : 'hidden min-[1400px]:inline'}>{route.label}</span>
     </Link>
   );
   if (mobile) return link;
@@ -55,7 +47,7 @@ function NavigationLink({
   );
 }
 
-function Sidebar({ mobile, onNavigate }: { mobile?: boolean; onNavigate?: () => void }) {
+function Sidebar({ mobile }: { mobile?: boolean }) {
   const { user } = useAuth();
   if (!user) return null;
   return (
@@ -71,18 +63,13 @@ function Sidebar({ mobile, onNavigate }: { mobile?: boolean; onNavigate?: () => 
         return (
           <div key={group.label} className="mb-5 last:mb-0">
             <p
-              className={`mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-text-muted ${mobile ? '' : 'md:hidden min-[1400px]:block'}`}
+              className={`mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-text-muted ${mobile ? '' : 'hidden min-[1400px]:block'}`}
             >
               {group.label}
             </p>
             <div className="grid gap-1">
               {routes.map((route) => (
-                <NavigationLink
-                  key={route.href}
-                  route={route}
-                  mobile={mobile}
-                  onNavigate={onNavigate}
-                />
+                <NavigationLink key={route.href} route={route} mobile={mobile} />
               ))}
             </div>
           </div>
@@ -98,7 +85,8 @@ function ShellFrame({ children }: { children: ReactNode }) {
   const { logout, user } = useAuth();
   const { activeBranch, activeBranchId, branches, isLoading, setActiveBranchId } =
     useBranchContext();
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const [mobileOpenedPath, setMobileOpenedPath] = useState<string | null>(null);
+  const mobileOpen = mobileOpenedPath === pathname;
   const route = routeForPath(pathname);
   const initials = `${user?.firstName?.[0] ?? ''}${user?.lastName?.[0] ?? ''}`.toUpperCase() || 'V';
 
@@ -136,16 +124,16 @@ function ShellFrame({ children }: { children: ReactNode }) {
             <button
               className="absolute inset-0 bg-text-primary/40"
               aria-label="Close navigation"
-              onClick={() => setMobileOpen(false)}
+              onClick={() => setMobileOpenedPath(null)}
             />
             <aside className="relative flex h-full w-72 flex-col bg-surface shadow-dialog">
               <div className="flex h-16 items-center justify-between border-b border-divider px-4">
                 <span className="font-bold text-primary">VENDO</span>
-                <Button variant="ghost" size="sm" onClick={() => setMobileOpen(false)}>
+                <Button variant="ghost" size="sm" onClick={() => setMobileOpenedPath(null)}>
                   Close
                 </Button>
               </div>
-              <Sidebar mobile onNavigate={() => setMobileOpen(false)} />
+              <Sidebar mobile />
             </aside>
           </div>
         ) : null}
@@ -156,7 +144,7 @@ function ShellFrame({ children }: { children: ReactNode }) {
               variant="ghost"
               size="sm"
               className="md:hidden"
-              onClick={() => setMobileOpen(true)}
+              onClick={() => setMobileOpenedPath(pathname)}
             >
               Menu
             </Button>

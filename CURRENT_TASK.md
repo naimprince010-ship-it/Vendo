@@ -4,7 +4,7 @@ Approved V1 UI Redesign — Stage 2 Application Shell and Routing
 
 # Current Task
 
-Obtain human Chrome acceptance for the implemented Stage 2 application shell and routing while `BUG-029` remains open as an external Codex browser-runtime blocker.
+Complete and record the recovered interactive browser acceptance for the implemented Stage 2 application shell and routing.
 
 # Objective
 
@@ -13,7 +13,7 @@ Replace the local-state `/app` navigation container with a URL-addressable shell
 # Dependencies
 
 - Verified Vendo Version 1 release at `ff0b8a5f20fc23ace15a42897ce2d5bfd3d57265`
-- Conditionally accepted Stage 1 light-first component foundation
+- Verified Stage 1 light-first component foundation
 - Approved Figma application-shell direction and Stage 2 plan
 - `docs/UI_IMPLEMENTATION_PLAN.md` and existing UI audit artifacts
 - Existing production-rollout preparation remains paused and preserved; no external deployment is authorized
@@ -36,7 +36,7 @@ Replace the local-state `/app` navigation container with a URL-addressable shell
 - `/app` remains compatible and module navigation is route-addressable.
 - Existing consoles render through route pages without changing request payloads or business logic.
 - Available lint, strict TypeScript, tests, production build, formatting, and route/HTTP smoke gates pass.
-- Manual Chrome acceptance is requested explicitly while external `BUG-029` prevents automated browser/console verification.
+- Interactive browser acceptance confirms responsive rendering, route navigation, session behavior, light-first styling, and a clean console.
 
 # Verification Required
 
@@ -48,17 +48,17 @@ Replace the local-state `/app` navigation container with a URL-addressable shell
 - `pnpm --filter @vendo/web build`
 - Route manifest and HTTP smoke for `/app` compatibility plus module routes
 - Authentication, permission visibility, and branch-context review
-- Manual Chrome shell/navigation/console checklist while `BUG-029` is open
+- Interactive shell/navigation/console acceptance at 1440 × 900, 1280 × 720, and 390 × 844
 
 # Status
 
-IMPLEMENTATION COMPLETE — MANUAL ACCEPTANCE PENDING. The authenticated shell, permission-aware navigation, shared branch context, route-addressable modules, `/app` compatibility, automated frontend checks, production build, and HTTP route smoke are verified. Interactive rendering and console acceptance remain deferred to the documented manual Chrome checklist because `BUG-029` is external to Vendo.
+PASS. The authenticated shell, permission-aware navigation, shared branch context, route-addressable modules, `/app` compatibility, automated frontend checks, production build, HTTP route smoke, responsive interactive rendering, authentication cycle, and clean browser console are verified. Stage 1 is also promoted from conditional acceptance to PASS because its deferred browser gate now passes.
 
 # Blockers
 
-- `BUG-029` remains an external deferred browser-automation blocker; manual Chrome acceptance is required for Stage 2.
+- No Stage 2 blocker remains. `BUG-029` and the browser-discovered `BUG-030` are resolved.
 - Pre-existing uncommitted production-rollout and UI-audit artifacts remain preserved and must not be discarded.
 
 # Next Approved Task
 
-Run and report the Stage 2 manual Chrome acceptance checklist in `docs/UI_STAGE2_MANUAL_ACCEPTANCE.md`. Do not begin Stage 3 POS redesign until the human result is recorded and the Stage 2 gate is evaluated.
+Stage 3 POS redesign is the next approved plan item, but it must not begin until the user explicitly authorizes it. This run stops after the verified Stage 2 commit and push.

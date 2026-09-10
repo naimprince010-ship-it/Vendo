@@ -64,10 +64,10 @@ function Card({ title, children }: { title: string; children: ReactNode }) {
   );
 }
 
-export function PartiesConsole() {
+export function PartiesConsole({ initialTab = 'customers' }: { initialTab?: Tab }) {
   const { user, authenticatedFetch } = useAuth();
   const queryClient = useQueryClient();
-  const [tab, setTab] = useState<Tab>('customers');
+  const [tab, setTab] = useState<Tab>(initialTab);
   const [search, setSearch] = useState('');
   const [selectedId, setSelectedId] = useState('');
   const [message, setMessage] = useState('');

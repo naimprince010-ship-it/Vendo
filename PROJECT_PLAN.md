@@ -132,10 +132,10 @@ Gate evidence: additive 13th migration with clean replay/live schema equality, 9
 - [x] Add source-owned reusable UI primitives in `packages/ui`
 - [x] Add focused component tests and preserve the legacy `StatusBadge` import
 - [x] Pass frozen install, formatting, lint, strict TypeScript, UI build, and Next.js production build
-- [ ] Pass interactive production-browser smoke and clean-console verification
+- [x] Pass interactive production-browser smoke and clean-console verification
 - [x] Conditionally accept Stage 1 on the complete non-browser gate
 
-Current gate status: **CONDITIONALLY ACCEPTED** — every available application and non-browser gate passes. Interactive browser/console acceptance remains deferred under external-tooling `BUG-029` and is mandatory before final UI rollout acceptance.
+Current gate status: **PASS (2026-09-10)** — the previously deferred interactive production-browser smoke now passes with authenticated rendering, Geist/light semantic styling, responsive shell behavior, visible focus treatment, representative primitives, and a clean browser console. `BUG-029` is resolved.
 
 ## Approved V1 UI Redesign — Stage 2 Application Shell and Routing
 
@@ -144,10 +144,10 @@ Current gate status: **CONDITIONALLY ACCEPTED** — every available application 
 - [x] Centralize company/branch context without weakening API authorization
 - [x] Add route-addressable module navigation while preserving `/app`
 - [x] Pass available Stage 2 automated and HTTP gates
-- [ ] Obtain manual Chrome acceptance while `BUG-029` remains open
-- [ ] Complete Stage 2 gate
+- [x] Pass interactive browser acceptance after `BUG-029` recovery
+- [x] Complete Stage 2 gate
 
-Current gate status: **IMPLEMENTATION COMPLETE — MANUAL ACCEPTANCE PENDING**. The available tests, lint, strict TypeScript, production build, formatting, API readiness, and route/HTTP smoke gates pass. `BUG-029` remains an external Codex browser-runtime blocker, so human Chrome rendering, responsive, interaction, and console acceptance is required before Stage 2 is marked PASS or Stage 3 begins.
+Current gate status: **PASS (2026-09-10)**. Authenticated route navigation, `/app` compatibility, permission-aware navigation, branch context, 1440/1280/mobile responsive behavior, representative existing modules, session restoration/sign-out, API readiness, HTTP routes, and the clean-console gate pass. Browser acceptance found and resolved the expanded-label, Suppliers default-tab, mobile drawer lifecycle, and compact-link accessibility defects recorded in `BUG-030`.
 
 ## Phase Gate Log
 

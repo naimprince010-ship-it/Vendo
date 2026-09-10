@@ -11,7 +11,8 @@ All meaningful project changes are recorded here. This project follows a phase-o
 - Made Dashboard, POS, Sales, Purchases, Products, Inventory, Customers, Suppliers, Cash, Expenses, Reports, and Settings directly addressable under `/app`; `/app` remains compatible by directing clients to the dashboard.
 - Preserved the verified real consoles, register/shift behavior, request payloads, and V1 business logic; detailed module and POS screen redesign remains outside Stage 2.
 - Verified Stage 2 tests, lint, strict TypeScript, production build, formatting, API readiness, and HTTP smoke for every primary route plus representative nested plan routes.
-- Stage 2 implementation is complete but its final gate remains pending human Chrome rendering, responsive, interaction, and console acceptance under open external-tooling `BUG-029`.
+- Completed interactive production-browser acceptance after the Codex runtime recovered. Corrected expanded-sidebar labels, the Suppliers initial tab, mobile drawer navigation lifecycle, and compact navigation accessible names; authenticated desktop/mobile rendering and the browser console now pass.
+- Stage 2 is PASS. Stage 3 POS redesign has not started.
 
 ### V1 UI redesign — Stage 1 foundation (conditionally accepted)
 
@@ -19,7 +20,7 @@ All meaningful project changes are recorded here. This project follows a phase-o
 - Added source-owned accessible component foundations for actions, persistent-label forms, badges/statuses, cards, tables, pagination, dialogs, alerts, tooltips, loading/empty/error states, and presentation-only money/quantity values.
 - Kept existing workflows and `StatusBadge` imports compatible; no route, backend, API, database, authentication, authorization, inventory, or financial behavior changed.
 - Added focused UI component tests and verified frozen install, formatting, lint, strict TypeScript, UI build, Next.js production build, generated semantic CSS, dependency audit, API readiness, and HTTP web smoke.
-- Stage 1 passed every available non-browser gate and is conditionally accepted. External browser-runtime `BUG-029` remains open; interactive browser/console acceptance is deferred and must pass before final UI rollout acceptance.
+- Stage 1 is PASS after completing its deferred authenticated browser/rendering/console gate on 2026-09-10; external runtime `BUG-029` is resolved.
 
 ### Production rollout preparation
 

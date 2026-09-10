@@ -389,5 +389,17 @@ No Critical/High audit, authorization, tenant/branch, inventory, financial, migr
 - **Reproduction:** Initialize the approved in-app browser control runtime before navigating to `http://localhost:3000/login`.
 - **Expected:** Browser connection initializes, the existing application routes can be smoke-tested, and the browser console can be inspected.
 - **Actual:** Initialization fails twice before browser selection or navigation with `failed to write kernel assets: The system cannot find the path specified. (os error 3)`.
-- **Status:** Open — deferred external-tooling blocker. Stage 1 is conditionally accepted and Stage 2 implementation plus every available automated/HTTP gate passes; no application failure is indicated. Human Chrome acceptance is required before Stage 2 PASS, and the deferred automated browser gate remains mandatory before final UI rollout acceptance.
+- **Status:** Resolved — on 2026-09-10 the fresh Codex in-app browser runtime initialized successfully. Login, authenticated routes, responsive shell behavior, representative module rendering, sign-out/anonymous redirect, and console inspection completed. The prior error remains classified as an external runtime failure rather than a Vendo defect.
 - **Related task:** Approved V1 UI redesign — Stage 1 deferred browser gate and Stage 2 manual acceptance
+
+## BUG-030 — Stage 2 browser acceptance exposed shell routing/accessibility defects
+
+- **ID:** BUG-030
+- **Severity:** Medium
+- **Area:** V1 UI redesign Stage 2 application shell
+- **Description:** Interactive acceptance found four bounded shell defects: expanded sidebar labels remained hidden at 1440 px, `/app/suppliers` opened the Customers tab, closing the mobile drawer during link activation could cancel navigation, and compact icon-only links lacked accessible names.
+- **Reproduction:** Open the production build at 1440 × 900, `/app/suppliers`, 390 × 844, and 1280 × 720 respectively; inspect the sidebar labels, initial party tab, mobile route activation, and compact navigation accessibility tree.
+- **Expected:** Expanded labels are visible, Suppliers opens supplier content, mobile navigation changes route then closes, and compact links retain route names.
+- **Actual:** Labels were hidden, Suppliers defaulted to Customers, the drawer unmounted before navigation could complete, and compact link names were absent.
+- **Status:** Resolved — breakpoint visibility was corrected, `PartiesConsole` now accepts the Suppliers initial tab, drawer visibility is tied to the pathname that opened it so route activation completes before closure, and every navigation link has an explicit accessible label. Production browser retest and clean-console inspection pass.
+- **Related task:** Approved V1 UI redesign — Stage 2 browser acceptance
