@@ -4,6 +4,15 @@ All meaningful project changes are recorded here. This project follows a phase-o
 
 ## Unreleased
 
+### V1 UI redesign — Stage 2 application shell and routing
+
+- Added an authenticated light-first application shell with responsive grouped navigation, route context, branch selector, session restoration, and sign-out while retaining backend authorization as the authority.
+- Added centralized typed route metadata, permission filtering, shared authenticated API/branch context, and focused navigation tests.
+- Made Dashboard, POS, Sales, Purchases, Products, Inventory, Customers, Suppliers, Cash, Expenses, Reports, and Settings directly addressable under `/app`; `/app` remains compatible by directing clients to the dashboard.
+- Preserved the verified real consoles, register/shift behavior, request payloads, and V1 business logic; detailed module and POS screen redesign remains outside Stage 2.
+- Verified Stage 2 tests, lint, strict TypeScript, production build, formatting, API readiness, and HTTP smoke for every primary route plus representative nested plan routes.
+- Stage 2 implementation is complete but its final gate remains pending human Chrome rendering, responsive, interaction, and console acceptance under open external-tooling `BUG-029`.
+
 ### V1 UI redesign — Stage 1 foundation (conditionally accepted)
 
 - Added the approved light-first semantic color, radius, control-size, shadow, and typography tokens; Geist is now the canonical global application font.

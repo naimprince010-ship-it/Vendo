@@ -384,10 +384,10 @@ No Critical/High audit, authorization, tenant/branch, inventory, financial, migr
 
 - **ID:** BUG-029
 - **Severity:** Medium
-- **Area:** Verification environment / V1 UI redesign Stage 1
-- **Description:** The Codex Desktop browser-control runtime cannot initialize, so the required interactive production browser smoke and console inspection cannot run.
+- **Area:** Verification environment / V1 UI redesign Stages 1–2
+- **Description:** The Codex Desktop browser-control runtime cannot initialize, so the required interactive production browser smoke and console inspection cannot run for the UI foundation or application shell.
 - **Reproduction:** Initialize the approved in-app browser control runtime before navigating to `http://localhost:3000/login`.
 - **Expected:** Browser connection initializes, the existing application routes can be smoke-tested, and the browser console can be inspected.
 - **Actual:** Initialization fails twice before browser selection or navigation with `failed to write kernel assets: The system cannot find the path specified. (os error 3)`.
-- **Status:** Open — deferred external-tooling blocker. API readiness and HTTP web smoke both return 200; no application failure is indicated. It does not block Stage 2 implementation but must pass before final UI rollout acceptance.
-- **Related task:** Approved V1 UI redesign — Stage 1 foundation gate
+- **Status:** Open — deferred external-tooling blocker. Stage 1 is conditionally accepted and Stage 2 implementation plus every available automated/HTTP gate passes; no application failure is indicated. Human Chrome acceptance is required before Stage 2 PASS, and the deferred automated browser gate remains mandatory before final UI rollout acceptance.
+- **Related task:** Approved V1 UI redesign — Stage 1 deferred browser gate and Stage 2 manual acceptance

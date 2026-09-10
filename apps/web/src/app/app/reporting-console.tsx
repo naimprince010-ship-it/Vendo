@@ -3,6 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useMemo, useState, type ReactNode } from 'react';
 import { useAuth } from '../../auth/auth-context';
+import { useBranchContext } from '../../contexts/branch-context';
 
 type Page<T> = { items: T[]; total: number };
 type Branch = { id: string; name: string; isActive: boolean };
@@ -135,8 +136,8 @@ function Money({ value, currency = 'BDT' }: { value: unknown; currency?: string 
 
 export function DashboardConsole() {
   const { user } = useAuth();
+  const { activeBranchId: branchId, setActiveBranchId: setBranchId } = useBranchContext();
   const { branches, api } = useBranches();
-  const [branchId, setBranchId] = useState('');
   const activeBranchId = branchId || branches.data?.items.find((row) => row.isActive)?.id || '';
   const dashboard = useQuery({
     queryKey: ['reports', 'dashboard', activeBranchId],
@@ -282,8 +283,8 @@ function SimpleRows({
 
 export function ReportsConsole() {
   const { user, authenticatedFetch } = useAuth();
+  const { activeBranchId: branchId, setActiveBranchId: setBranchId } = useBranchContext();
   const { branches, api } = useBranches();
-  const [branchId, setBranchId] = useState('');
   const [kind, setKind] = useState<(typeof reportKinds)[number]>('sales');
   const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
   const [from, setFrom] = useState(today);

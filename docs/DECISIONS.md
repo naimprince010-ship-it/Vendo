@@ -242,3 +242,12 @@
 - **Alternatives:** Adopt a large component framework; duplicate per-screen Tailwind palettes; hand-roll modal focus management; migrate application routes during the foundation stage.
 - **Rationale:** A small source-owned layer preserves control, limits dependencies, aligns with the approved Figma tokens, and enables later screen-by-screen migration without touching business logic.
 - **Consequences:** Existing application screens are not visually migrated in Stage 1. Popover and Dropdown Menu dependencies remain deferred until an approved screen needs them. Money and quantity components format authoritative values only and contain no business calculation logic.
+
+## ADR-028 — Route-Addressable Shell with Shared Branch Context
+
+- **Date:** 2026-09-10
+- **Context:** The verified V1 application used one local-state `/app` console container. The approved redesign needs scalable direct module URLs and a consistent shell without changing authentication, API authorization, or business workflows.
+- **Decision:** Use an authenticated Next.js `/app` layout with typed route metadata, permission-filtered navigation, and one shared branch context. Keep backend guards authoritative, pass the selected branch through the existing `x-branch-id` contract, redirect `/app` to `/app/dashboard`, and render the existing real consoles through route pages. Representative nested plan URLs resolve through module catch-all routes until later approved stages decompose each console.
+- **Alternatives:** Retain local-state tabs; redesign every screen during the shell stage; duplicate branch selection per route; trust frontend navigation visibility as authorization.
+- **Rationale:** Route ownership enables refreshable, bookmarkable navigation while the compatibility layer preserves tested workflows and confines Stage 2 to presentation architecture.
+- **Consequences:** Permission filtering improves navigation relevance but never replaces API enforcement. Branch changes invalidate branch-bound queries. Existing console interiors retain their current visuals until their approved redesign stages. Human Chrome acceptance remains required while external-tooling `BUG-029` prevents Codex browser automation.

@@ -139,13 +139,15 @@ Current gate status: **CONDITIONALLY ACCEPTED** — every available application 
 
 ## Approved V1 UI Redesign — Stage 2 Application Shell and Routing
 
-- [ ] Add authenticated light-first application shell
-- [ ] Add scalable, permission-aware sidebar and header
-- [ ] Centralize company/branch context without weakening API authorization
-- [ ] Add route-addressable module navigation while preserving `/app`
-- [ ] Pass available Stage 2 automated and HTTP gates
+- [x] Add authenticated light-first application shell
+- [x] Add scalable, permission-aware sidebar and header
+- [x] Centralize company/branch context without weakening API authorization
+- [x] Add route-addressable module navigation while preserving `/app`
+- [x] Pass available Stage 2 automated and HTTP gates
 - [ ] Obtain manual Chrome acceptance while `BUG-029` remains open
 - [ ] Complete Stage 2 gate
+
+Current gate status: **IMPLEMENTATION COMPLETE — MANUAL ACCEPTANCE PENDING**. The available tests, lint, strict TypeScript, production build, formatting, API readiness, and route/HTTP smoke gates pass. `BUG-029` remains an external Codex browser-runtime blocker, so human Chrome rendering, responsive, interaction, and console acceptance is required before Stage 2 is marked PASS or Stage 3 begins.
 
 ## Phase Gate Log
 

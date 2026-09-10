@@ -3,6 +3,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState, type ReactNode } from 'react';
 import { useAuth } from '../../auth/auth-context';
+import { useBranchContext } from '../../contexts/branch-context';
 
 type Page<T> = { items: T[]; total: number };
 type Named = { id: string; code: string; name: string };
@@ -91,9 +92,9 @@ const key = (type: string) => `${type}-ui-${crypto.randomUUID()}`;
 
 export function Phase10Console() {
   const { user, authenticatedFetch } = useAuth();
+  const { activeBranchId: branchId, setActiveBranchId: setBranchId } = useBranchContext();
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<Tab>('collection');
-  const [branchId, setBranchId] = useState('');
   const [customerId, setCustomerId] = useState('');
   const [saleId, setSaleId] = useState('');
   const [saleItemId, setSaleItemId] = useState('');

@@ -3,6 +3,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState, type FormEvent, type ReactNode } from 'react';
 import { useAuth } from '../../auth/auth-context';
+import { useBranchContext } from '../../contexts/branch-context';
 
 type Page<T> = { items: T[]; total: number };
 type Branch = { id: string; code: string; name: string; isActive: boolean };
@@ -114,9 +115,9 @@ function Card({ title, children }: { title: string; children: ReactNode }) {
 
 export function PurchasingConsole() {
   const { user, authenticatedFetch } = useAuth();
+  const { activeBranchId: branchId, setActiveBranchId: setBranchId } = useBranchContext();
   const client = useQueryClient();
   const [tab, setTab] = useState<Tab>('orders');
-  const [branchId, setBranchId] = useState('');
   const [selectedOrderId, setSelectedOrderId] = useState('');
   const [selectedReceiptId, setSelectedReceiptId] = useState('');
   const [selectedInvoiceId, setSelectedInvoiceId] = useState('');

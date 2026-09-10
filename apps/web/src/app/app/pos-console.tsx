@@ -3,6 +3,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { useAuth } from '../../auth/auth-context';
+import { useBranchContext } from '../../contexts/branch-context';
 
 type Page<T> = { items: T[]; total: number };
 type Branch = { id: string; code: string; name: string; isActive: boolean };
@@ -122,9 +123,9 @@ function configuredPrice(product: PosProduct, unitId: string, mode: 'RETAIL' | '
 
 export function PosConsole() {
   const { authenticatedFetch } = useAuth();
+  const { activeBranchId: branchId, setActiveBranchId: setBranchId } = useBranchContext();
   const queryClient = useQueryClient();
   const searchRef = useRef<HTMLInputElement>(null);
-  const [branchId, setBranchId] = useState('');
   const [search, setSearch] = useState('');
   const [debounced, setDebounced] = useState('');
   const [mode, setMode] = useState<'RETAIL' | 'WHOLESALE'>('RETAIL');

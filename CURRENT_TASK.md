@@ -4,7 +4,7 @@ Approved V1 UI Redesign — Stage 2 Application Shell and Routing
 
 # Current Task
 
-Implement the approved authenticated light-first application shell, scalable navigation, header, shared branch context, and route-addressable module foundation without redesigning POS or changing verified V1 workflows.
+Obtain human Chrome acceptance for the implemented Stage 2 application shell and routing while `BUG-029` remains open as an external Codex browser-runtime blocker.
 
 # Objective
 
@@ -52,7 +52,7 @@ Replace the local-state `/app` navigation container with a URL-addressable shell
 
 # Status
 
-IN PROGRESS — Stage 1 is conditionally accepted on its complete non-browser gate. Stage 2 application shell and routing is now the only approved implementation scope.
+IMPLEMENTATION COMPLETE — MANUAL ACCEPTANCE PENDING. The authenticated shell, permission-aware navigation, shared branch context, route-addressable modules, `/app` compatibility, automated frontend checks, production build, and HTTP route smoke are verified. Interactive rendering and console acceptance remain deferred to the documented manual Chrome checklist because `BUG-029` is external to Vendo.
 
 # Blockers
 
@@ -61,4 +61,4 @@ IN PROGRESS — Stage 1 is conditionally accepted on its complete non-browser ga
 
 # Next Approved Task
 
-Implement only the Stage 2 authenticated application shell, route foundation, permission-aware navigation, and shared branch context. Stop before Stage 3 POS redesign until automated gates and human Chrome acceptance are reported.
+Run and report the Stage 2 manual Chrome acceptance checklist in `docs/UI_STAGE2_MANUAL_ACCEPTANCE.md`. Do not begin Stage 3 POS redesign until the human result is recorded and the Stage 2 gate is evaluated.

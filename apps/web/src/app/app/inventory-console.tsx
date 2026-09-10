@@ -3,6 +3,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo, useState, type ReactNode } from 'react';
 import { useAuth } from '../../auth/auth-context';
+import { useBranchContext } from '../../contexts/branch-context';
 
 type Page<T> = { items: T[]; total: number };
 type Branch = { id: string; code: string; name: string };
@@ -76,9 +77,9 @@ function Card({ title, children }: { title: string; children: ReactNode }) {
 
 export function InventoryConsole() {
   const { user, authenticatedFetch } = useAuth();
+  const { activeBranchId: branchId, setActiveBranchId: setBranchId } = useBranchContext();
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<Tab>('stock');
-  const [branchId, setBranchId] = useState('');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const can = (permission: string) => Boolean(user?.permissions.includes(permission));
