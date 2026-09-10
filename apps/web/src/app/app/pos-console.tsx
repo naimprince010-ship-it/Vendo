@@ -1,134 +1,84 @@
 'use client';
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
+import {
+  Alert,
+  Badge,
+  BarcodeSearchInput,
+  Button,
+  Card,
+  EmptyState,
+  FormField,
+  Input,
+  Select,
+  StatusBadge,
+} from '@vendo/ui';
+import { useMemo, useRef, useState, type FormEvent } from 'react';
 import { useAuth } from '../../auth/auth-context';
 import { useBranchContext } from '../../contexts/branch-context';
+import {
+  CartEmpty,
+  CheckoutSummary,
+  CustomerContext,
+  HeldSaleItem,
+  PaymentRow,
+  PosCartRow,
+  ProductResult,
+  SaleHistoryDialog,
+} from '../../features/pos/components';
+import {
+  checkoutPreview,
+  configuredPrice,
+  decimalAdd,
+  decimalCompare,
+  decimalMax,
+  decimalSubtract,
+  decimalSum,
+} from '../../features/pos/decimal';
+import type {
+  CartLine,
+  Customer,
+  Page,
+  PosContext,
+  PosProduct,
+  PricingMode,
+  ProductFilter,
+  Sale,
+} from '../../features/pos/types';
 
-type Page<T> = { items: T[]; total: number };
-type Branch = { id: string; code: string; name: string; isActive: boolean };
-type Named = { id: string; code: string; name: string };
-type Register = Named & { cashShifts: { id: string; cashierId: string; openedAt: string }[] };
-type Customer = Named & { phone?: string | null; isWalkIn: boolean; creditLimit: string };
-type PaymentMethod = Named & { isCash: boolean };
-type Unit = Named & { decimalScale?: number };
-type Price = { unitId: string; type: 'RETAIL' | 'WHOLESALE' | 'MINIMUM'; amount: string };
-type Batch = {
-  id: string;
-  batchNumber: string;
-  lotNumber: string | null;
-  shade: string | null;
-  baseQuantity: string;
-};
-type PosProduct = {
-  id: string;
-  sku: string;
-  name: string;
-  type: string;
-  model: string | null;
-  primaryBarcode: string | null;
-  scannedUnitId: string;
-  baseUnit: Unit;
-  units: { unit: Unit; factorToBase: string }[];
-  prices: Price[];
-  batchTracking: boolean;
-  trackInventory: boolean;
-  availability: Batch[] | { baseQuantity: string | null };
-  tile: { displaySize: string | null; color: string | null } | null;
-};
-type CartLine = {
-  product: PosProduct;
-  unitId: string;
-  batchId: string;
-  quantity: string;
-  unitPrice: string;
-  discount: string;
-  tax: string;
-  overrideReason: string;
-};
-type SaleLine = {
-  id: string;
-  productId: string;
-  unitId: string;
-  batchId: string | null;
-  quantity: string;
-  baseQuantity: string;
-  configuredPrice: string;
-  unitPrice: string;
-  discount: string;
-  tax: string;
-  lineTotal: string;
-  priceOverrideReason: string | null;
-  product: PosProduct;
-  unit: Unit;
-  batch: Batch | null;
-};
-type Sale = {
-  id: string;
-  invoiceNumber: string;
-  status: 'DRAFT' | 'HELD' | 'COMPLETED';
-  pricingMode: 'RETAIL' | 'WHOLESALE';
-  warehouseId: string;
-  registerId: string;
-  customerId: string;
-  subtotal: string;
-  discount: string;
-  tax: string;
-  total: string;
-  paid: string;
-  due: string;
-  change: string;
-  saleDate: string;
-  customer: Customer;
-  register: Named;
-  items?: SaleLine[];
-  currentOutstanding?: string;
-  lifecycleStatus?: string;
-  paymentAllocations?: {
-    amount: string;
-    payment: {
-      paymentNumber: string;
-      direction: 'INBOUND' | 'OUTBOUND';
-      method: Named;
-    };
-  }[];
-  returns?: {
-    id: string;
-    returnNumber: string;
-    kind: 'RETURN' | 'VOID';
-    totalCredit: string;
-    receivableApplied: string;
-    refunds: { amount: string; payment: { paymentNumber: string; method: Named } }[];
-    exchange: { exchangeNumber: string; creditApplied: string; difference: string } | null;
-  }[];
-};
-type PosContext = {
-  warehouses: Named[];
-  registers: Register[];
-  paymentMethods: PaymentMethod[];
-  walkIn: Customer;
-};
-type Api = <T>(path: string, init?: RequestInit, branchId?: string) => Promise<T>;
+type Api = <T>(path: string, init?: RequestInit) => Promise<T>;
+type PendingAction = '' | 'hold' | 'resume' | 'complete';
 
-const field =
-  'w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-amber-400';
-const primary =
-  'rounded-lg bg-amber-400 px-4 py-2 text-sm font-semibold text-slate-950 disabled:opacity-50';
-const secondary = 'rounded-lg border border-slate-700 px-3 py-2 text-sm disabled:opacity-50';
 const operationKey = () => `sale-ui-${crypto.randomUUID()}`;
 
-function configuredPrice(product: PosProduct, unitId: string, mode: 'RETAIL' | 'WHOLESALE') {
-  return product.prices.find((row) => row.unitId === unitId && row.type === mode)?.amount ?? '';
+function FilterButton({
+  active,
+  children,
+  onClick,
+}: {
+  active: boolean;
+  children: string;
+  onClick: () => void;
+}) {
+  return (
+    <Button variant={active ? 'secondary' : 'ghost'} size="sm" onClick={onClick}>
+      {children}
+    </Button>
+  );
 }
 
-export function PosConsole() {
-  const { authenticatedFetch } = useAuth();
-  const { activeBranchId: branchId, setActiveBranchId: setBranchId } = useBranchContext();
+function PosSession({ branchId }: { branchId: string }) {
+  const { authenticatedFetch, user } = useAuth();
   const queryClient = useQueryClient();
   const searchRef = useRef<HTMLInputElement>(null);
+  const customerRef = useRef<HTMLSelectElement>(null);
+  const paymentRef = useRef<HTMLInputElement>(null);
+  const holdRef = useRef<HTMLButtonElement>(null);
+  const completeRef = useRef<HTMLButtonElement>(null);
+  const completionOperation = useRef<{ key: string; signature: string } | null>(null);
   const [search, setSearch] = useState('');
-  const [debounced, setDebounced] = useState('');
-  const [mode, setMode] = useState<'RETAIL' | 'WHOLESALE'>('RETAIL');
+  const [mode, setMode] = useState<PricingMode>('RETAIL');
+  const [filter, setFilter] = useState<ProductFilter>('ALL');
   const [cart, setCart] = useState<CartLine[]>([]);
   const [customerId, setCustomerId] = useState('');
   const [warehouseId, setWarehouseId] = useState('');
@@ -143,12 +93,14 @@ export function PosConsole() {
   const [invoiceTax, setInvoiceTax] = useState('0');
   const [draftId, setDraftId] = useState('');
   const [selectedSaleId, setSelectedSaleId] = useState('');
+  const [historyOpen, setHistoryOpen] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [pendingAction, setPendingAction] = useState<PendingAction>('');
 
-  const api: Api = async (path, init = {}, activeBranch = branchId) => {
+  const api: Api = async (path, init = {}) => {
     const headers = new Headers(init.headers);
-    if (activeBranch) headers.set('x-branch-id', activeBranch);
+    headers.set('x-branch-id', branchId);
     if (init.body) headers.set('content-type', 'application/json');
     const response = await authenticatedFetch(path, { ...init, headers });
     if (!response.ok) {
@@ -161,6 +113,7 @@ export function PosConsole() {
     }
     return response.json() as Promise<never>;
   };
+
   const run = async <T,>(work: () => Promise<T>, success: string) => {
     setError('');
     setMessage('');
@@ -170,19 +123,13 @@ export function PosConsole() {
       setMessage(success);
       return value;
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Request failed');
+      setError(cause instanceof Error ? cause.message : 'The operation could not be completed.');
     }
   };
 
-  const branches = useQuery({
-    queryKey: ['sales', 'branches'],
-    queryFn: () => api<Page<Branch>>('/branches?limit=100', {}, ''),
-  });
-  const activeBranchId = branchId || branches.data?.items.find((row) => row.isActive)?.id || '';
   const context = useQuery({
-    queryKey: ['sales', 'context', activeBranchId],
-    queryFn: () => api<PosContext>('/sales/pos/context', {}, activeBranchId),
-    enabled: Boolean(activeBranchId),
+    queryKey: ['sales', 'context', branchId],
+    queryFn: () => api<PosContext>('/sales/pos/context'),
   });
   const activeWarehouseId = warehouseId || context.data?.warehouses[0]?.id || '';
   const activeRegisterId = registerId || context.data?.registers[0]?.id || '';
@@ -194,67 +141,84 @@ export function PosConsole() {
     context.data?.paymentMethods.find((row) => row.id !== activeMethodId)?.id ||
     '';
   const customers = useQuery({
-    queryKey: ['sales', 'customers', activeBranchId],
-    queryFn: () => api<Customer[]>('/sales/pos/customers?limit=50', {}, activeBranchId),
-    enabled: Boolean(activeBranchId),
+    queryKey: ['sales', 'customers', branchId],
+    queryFn: () => api<Customer[]>('/sales/pos/customers?limit=50'),
   });
   const products = useQuery({
-    queryKey: ['sales', 'products', activeBranchId, activeWarehouseId, debounced],
+    queryKey: ['sales', 'products', branchId, activeWarehouseId, search.trim()],
     queryFn: () =>
       api<{ items: PosProduct[] }>(
-        `/sales/pos/products?warehouseId=${activeWarehouseId}&search=${encodeURIComponent(debounced)}`,
-        {},
-        activeBranchId,
+        `/sales/pos/products?warehouseId=${activeWarehouseId}&search=${encodeURIComponent(search.trim())}`,
       ),
-    enabled: Boolean(activeBranchId && activeWarehouseId && debounced.length >= 2),
+    enabled: Boolean(activeWarehouseId && search.trim().length >= 2),
   });
   const held = useQuery({
-    queryKey: ['sales', 'held', activeBranchId],
-    queryFn: () => api<Page<Sale>>('/sales?status=HELD&limit=20', {}, activeBranchId),
-    enabled: Boolean(activeBranchId),
+    queryKey: ['sales', 'held', branchId],
+    queryFn: () => api<Page<Sale>>('/sales?status=HELD&limit=20'),
   });
   const history = useQuery({
-    queryKey: ['sales', 'history', activeBranchId],
-    queryFn: () => api<Page<Sale>>('/sales?status=COMPLETED&limit=25', {}, activeBranchId),
-    enabled: Boolean(activeBranchId),
+    queryKey: ['sales', 'history', branchId],
+    queryFn: () => api<Page<Sale>>('/sales?status=COMPLETED&limit=25'),
   });
   const selectedSale = useQuery({
     queryKey: ['sales', 'detail', selectedSaleId],
-    queryFn: () => api<Sale>(`/sales/${selectedSaleId}`, {}, activeBranchId),
+    queryFn: () => api<Sale>(`/sales/${selectedSaleId}`),
     enabled: Boolean(selectedSaleId),
   });
 
-  useEffect(() => {
-    const timer = window.setTimeout(() => setDebounced(search.trim()), 250);
-    return () => window.clearTimeout(timer);
-  }, [search]);
-  useEffect(() => {
-    const keyboard = (event: KeyboardEvent) => {
-      if ((event.altKey && event.key.toLowerCase() === 's') || event.key === '/') {
-        event.preventDefault();
-        searchRef.current?.focus();
-      }
-    };
-    window.addEventListener('keydown', keyboard);
-    return () => window.removeEventListener('keydown', keyboard);
-  }, []);
-
-  const estimate = useMemo(() => {
-    const lines = cart.reduce(
-      (sum, row) =>
-        sum +
-        Number(row.quantity || 0) * Number(row.unitPrice || 0) -
-        Number(row.discount || 0) +
-        Number(row.tax || 0),
-      0,
-    );
-    return Math.max(0, lines - Number(invoiceDiscount || 0) + Number(invoiceTax || 0));
-  }, [cart, invoiceDiscount, invoiceTax]);
+  const activeCustomer = customers.data?.find((customer) => customer.id === activeCustomerId);
+  const canDiscount = user?.permissions.includes('sale.discount') ?? false;
+  const canOverridePrice = user?.permissions.includes('sale.override_price') ?? false;
+  const filteredProducts = useMemo(
+    () =>
+      (products.data?.items ?? []).filter((product) => {
+        if (filter === 'ALL') return true;
+        if (filter === 'OTHER') return !['TILE', 'SANITARY'].includes(product.type);
+        return product.type === filter;
+      }),
+    [filter, products.data?.items],
+  );
+  const preview = useMemo(
+    () =>
+      checkoutPreview(
+        cart,
+        invoiceDiscount,
+        invoiceTax,
+        [
+          { methodId: activeMethodId, amount: paid, tendered },
+          { methodId: activeSecondMethodId, amount: secondPaid, tendered: secondTendered },
+        ],
+        context.data?.paymentMethods ?? [],
+      ),
+    [
+      activeMethodId,
+      activeSecondMethodId,
+      cart,
+      context.data?.paymentMethods,
+      invoiceDiscount,
+      invoiceTax,
+      paid,
+      secondPaid,
+      secondTendered,
+      tendered,
+    ],
+  );
+  const cashPaymentRequested = [
+    { methodId: activeMethodId, amount: paid },
+    { methodId: activeSecondMethodId, amount: secondPaid },
+  ].some(
+    (payment) =>
+      decimalCompare(payment.amount || '0', '0') > 0 &&
+      context.data?.paymentMethods.find((method) => method.id === payment.methodId)?.isCash,
+  );
+  const missingShift = cashPaymentRequested && !activeRegister?.cashShifts.length;
+  const walkInDue = Boolean(activeCustomer?.isWalkIn && decimalCompare(preview.due, '0') > 0);
+  const batchMissing = cart.some((line) => line.product.batchTracking && !line.batchId);
 
   const addProduct = (product: PosProduct) => {
     const unitId = product.scannedUnitId || product.baseUnit.id;
     const defaultBatch = Array.isArray(product.availability)
-      ? product.availability[0]?.id || ''
+      ? product.availability.find((batch) => decimalCompare(batch.baseQuantity, '0') > 0)?.id || ''
       : '';
     setCart((rows) => {
       const index = rows.findIndex(
@@ -263,7 +227,7 @@ export function PosConsole() {
       );
       if (index >= 0) {
         return rows.map((row, current) =>
-          current === index ? { ...row, quantity: String(Number(row.quantity) + 1) } : row,
+          current === index ? { ...row, quantity: decimalAdd(row.quantity, '1') } : row,
         );
       }
       return [
@@ -281,24 +245,24 @@ export function PosConsole() {
       ];
     });
     setSearch('');
-    setDebounced('');
-    searchRef.current?.focus();
+    requestAnimationFrame(() => searchRef.current?.focus());
   };
+
   const scan = async (event: FormEvent) => {
     event.preventDefault();
     if (!search.trim() || !activeWarehouseId) return;
     await run(async () => {
       const result = await api<{ items: PosProduct[] }>(
         `/sales/pos/products?warehouseId=${activeWarehouseId}&barcode=${encodeURIComponent(search.trim())}`,
-        {},
-        activeBranchId,
       );
-      if (!result.items[0]) throw new Error('Barcode not found');
+      if (!result.items[0]) throw new Error('No sellable product matches this barcode.');
       addProduct(result.items[0]);
-    }, 'Barcode added to cart');
+    }, 'Barcode added to the current sale.');
   };
+
   const updateLine = (index: number, patch: Partial<CartLine>) =>
     setCart((rows) => rows.map((row, current) => (current === index ? { ...row, ...patch } : row)));
+
   const payload = () => ({
     warehouseId: activeWarehouseId,
     registerId: activeRegisterId,
@@ -317,583 +281,550 @@ export function PosConsole() {
       tax: row.tax,
     })),
   });
+
   const holdSale = async () => {
-    const result = await run(async () => {
-      let id = draftId;
-      if (id) {
-        await api(
-          `/sales/drafts/${id}`,
-          { method: 'PUT', body: JSON.stringify(payload()) },
-          activeBranchId,
-        );
-      } else {
-        const draft = await api<Sale>(
-          '/sales/drafts',
-          { method: 'POST', body: JSON.stringify(payload()) },
-          activeBranchId,
-        );
-        id = draft.id;
+    if (pendingAction) return;
+    setPendingAction('hold');
+    try {
+      const result = await run(async () => {
+        let id = draftId;
+        if (id) {
+          await api(`/sales/drafts/${id}`, { method: 'PUT', body: JSON.stringify(payload()) });
+        } else {
+          const draft = await api<Sale>('/sales/drafts', {
+            method: 'POST',
+            body: JSON.stringify(payload()),
+          });
+          id = draft.id;
+        }
+        return api<Sale>(`/sales/drafts/${id}/hold`, { method: 'POST' });
+      }, 'Sale held without stock or financial effects.');
+      if (result) {
+        setDraftId('');
+        setCart([]);
+        setInvoiceDiscount('0');
+        setInvoiceTax('0');
       }
-      return api<Sale>(`/sales/drafts/${id}/hold`, { method: 'POST' }, activeBranchId);
-    }, 'Sale held without stock or financial effects');
-    if (result) {
-      setDraftId('');
-      setCart([]);
+    } finally {
+      setPendingAction('');
     }
   };
+
   const resumeSale = async (id: string) => {
-    const restored = await run(async () => {
-      const sale = await api<Sale>(
-        `/sales/drafts/${id}/resume`,
-        { method: 'POST' },
-        activeBranchId,
-      );
-      const products = await Promise.all(
-        (sale.items ?? []).map(async (line) => {
-          const result = await api<{ items: PosProduct[] }>(
-            `/sales/pos/products?warehouseId=${sale.warehouseId}&search=${encodeURIComponent(line.product.sku)}`,
-            {},
-            activeBranchId,
-          );
-          return result.items.find((product) => product.id === line.productId);
-        }),
-      );
-      if (products.some((product) => !product))
-        throw new Error('A held-sale product is no longer sellable');
-      return { sale, products: products as PosProduct[] };
-    }, 'Held sale resumed; prices and stock will be revalidated at completion');
-    if (!restored) return;
-    const saleItems = restored.sale.items;
-    if (!saleItems) return;
-    const { sale, products: restoredProducts } = restored;
-    setDraftId(sale.id);
-    setWarehouseId(sale.warehouseId);
-    setRegisterId(sale.registerId);
-    setCustomerId(sale.customerId);
-    setMode(sale.pricingMode);
-    setCart(
-      saleItems.map((row, index) => ({
-        product: restoredProducts[index],
-        unitId: row.unitId,
-        batchId: row.batchId ?? '',
-        quantity: row.quantity,
-        unitPrice: row.unitPrice,
-        discount: row.discount,
-        tax: row.tax,
-        overrideReason: row.priceOverrideReason ?? '',
-      })),
-    );
-  };
-  const complete = async () => {
-    const result = await run(
-      () =>
-        api<Sale>(
-          '/sales/complete',
-          {
-            method: 'POST',
-            headers: { 'Idempotency-Key': operationKey() },
-            body: JSON.stringify({
-              ...payload(),
-              draftSaleId: draftId || undefined,
-              payments: [
-                ...(Number(paid) > 0
-                  ? [
-                      {
-                        methodId: activeMethodId,
-                        amount: paid,
-                        tendered: tendered || undefined,
-                      },
-                    ]
-                  : []),
-                ...(Number(secondPaid) > 0
-                  ? [
-                      {
-                        methodId: activeSecondMethodId,
-                        amount: secondPaid,
-                        tendered: secondTendered || undefined,
-                      },
-                    ]
-                  : []),
-              ],
-            }),
-          },
-          activeBranchId,
+    if (pendingAction) return;
+    setPendingAction('resume');
+    try {
+      const restored = await run(async () => {
+        const sale = await api<Sale>(`/sales/drafts/${id}/resume`, { method: 'POST' });
+        const restoredProducts = await Promise.all(
+          (sale.items ?? []).map(async (line) => {
+            const result = await api<{ items: PosProduct[] }>(
+              `/sales/pos/products?warehouseId=${sale.warehouseId}&search=${encodeURIComponent(line.product.sku)}`,
+            );
+            return result.items.find((product) => product.id === line.productId);
+          }),
+        );
+        if (restoredProducts.some((product) => !product)) {
+          throw new Error('A held-sale product is no longer sellable.');
+        }
+        return { sale, products: restoredProducts as PosProduct[] };
+      }, 'Held sale resumed. Prices and stock will be revalidated at completion.');
+      if (!restored?.sale.items) return;
+      setDraftId(restored.sale.id);
+      setWarehouseId(restored.sale.warehouseId);
+      setRegisterId(restored.sale.registerId);
+      setCustomerId(restored.sale.customerId);
+      setMode(restored.sale.pricingMode);
+      setInvoiceDiscount(
+        decimalMax(
+          decimalSubtract(
+            restored.sale.discount,
+            decimalSum(restored.sale.items.map((line) => line.discount)),
+          ),
         ),
-      'Sale completed atomically',
-    );
-    if (result) {
-      setSelectedSaleId(result.id);
-      setDraftId('');
-      setCart([]);
-      setPaid('0');
-      setTendered('');
-      setSecondPaid('0');
-      setSecondTendered('');
+      );
+      setInvoiceTax(
+        decimalMax(
+          decimalSubtract(
+            restored.sale.tax,
+            decimalSum(restored.sale.items.map((line) => line.tax)),
+          ),
+        ),
+      );
+      setCart(
+        restored.sale.items.map((line, index) => ({
+          product: restored.products[index],
+          unitId: line.unitId,
+          batchId: line.batchId ?? '',
+          quantity: line.quantity,
+          unitPrice: line.unitPrice,
+          discount: line.discount,
+          tax: line.tax,
+          overrideReason: line.priceOverrideReason ?? '',
+        })),
+      );
+    } finally {
+      setPendingAction('');
+    }
+  };
+
+  const complete = async () => {
+    if (pendingAction) return;
+    const body = {
+      ...payload(),
+      draftSaleId: draftId || undefined,
+      payments: [
+        ...(decimalCompare(paid || '0', '0') > 0
+          ? [{ methodId: activeMethodId, amount: paid, tendered: tendered || undefined }]
+          : []),
+        ...(decimalCompare(secondPaid || '0', '0') > 0
+          ? [
+              {
+                methodId: activeSecondMethodId,
+                amount: secondPaid,
+                tendered: secondTendered || undefined,
+              },
+            ]
+          : []),
+      ],
+    };
+    const signature = JSON.stringify(body);
+    const existing = completionOperation.current;
+    const key = existing?.signature === signature ? existing.key : operationKey();
+    completionOperation.current = { key, signature };
+    setPendingAction('complete');
+    try {
+      const result = await run(
+        () =>
+          api<Sale>('/sales/complete', {
+            method: 'POST',
+            headers: { 'Idempotency-Key': key },
+            body: signature,
+          }),
+        'Sale completed atomically.',
+      );
+      if (result) {
+        completionOperation.current = null;
+        setSelectedSaleId(result.id);
+        setDraftId('');
+        setCart([]);
+        setPaid('0');
+        setTendered('');
+        setSecondPaid('0');
+        setSecondTendered('');
+        setInvoiceDiscount('0');
+        setInvoiceTax('0');
+      }
+    } finally {
+      setPendingAction('');
+    }
+  };
+
+  const clearSale = () => {
+    setCart([]);
+    setDraftId('');
+    setPaid('0');
+    setTendered('');
+    setSecondPaid('0');
+    setSecondTendered('');
+    setInvoiceDiscount('0');
+    setInvoiceTax('0');
+    setError('');
+    setMessage('');
+  };
+
+  const handleKeyboard = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'F2' || (event.altKey && event.key.toLowerCase() === 's')) {
+      event.preventDefault();
+      searchRef.current?.focus();
+    } else if (event.key === 'F4') {
+      event.preventDefault();
+      customerRef.current?.focus();
+    } else if (event.key === 'F6') {
+      event.preventDefault();
+      holdRef.current?.click();
+    } else if (event.key === 'F8') {
+      event.preventDefault();
+      paymentRef.current?.focus();
+    } else if (event.ctrlKey && event.key === 'Enter') {
+      event.preventDefault();
+      completeRef.current?.click();
     }
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap gap-2 rounded-xl border border-slate-800 bg-slate-900 p-3">
-        <select
-          className={`${field} max-w-xs`}
-          aria-label="POS branch"
-          value={activeBranchId}
-          onChange={(event) => {
-            setBranchId(event.target.value);
-            setWarehouseId('');
-            setRegisterId('');
-            setCart([]);
-          }}
-        >
-          {(branches.data?.items ?? [])
-            .filter((row) => row.isActive)
-            .map((row) => (
-              <option key={row.id} value={row.id}>
-                {row.code} · {row.name}
+    <div
+      className="-my-4 -mr-4 flex min-h-[calc(100vh-4rem)] flex-col bg-canvas p-3 sm:-my-6 sm:-mr-6 lg:-my-8 lg:-mr-8 xl:h-[calc(100vh-4rem)] xl:overflow-hidden"
+      onKeyDown={handleKeyboard}
+    >
+      <div className="mb-3 flex min-h-11 flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-surface px-3 py-2 shadow-sm">
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
+          <strong className="text-sm">Point of Sale</strong>
+          <span className="hidden text-text-muted sm:inline">·</span>
+          <Select
+            className="h-control-sm w-44"
+            value={activeWarehouseId}
+            onChange={(event) => {
+              setWarehouseId(event.target.value);
+              setCart([]);
+            }}
+            aria-label="POS warehouse"
+          >
+            {(context.data?.warehouses ?? []).map((warehouse) => (
+              <option key={warehouse.id} value={warehouse.id}>
+                {warehouse.code} · {warehouse.name}
               </option>
             ))}
-        </select>
-        <select
-          className={`${field} max-w-xs`}
-          value={activeWarehouseId}
-          onChange={(e) => setWarehouseId(e.target.value)}
-          aria-label="POS warehouse"
-        >
-          {(context.data?.warehouses ?? []).map((row) => (
-            <option key={row.id} value={row.id}>
-              {row.code} · {row.name}
-            </option>
-          ))}
-        </select>
-        <select
-          className={`${field} max-w-xs`}
-          value={activeRegisterId}
-          onChange={(e) => setRegisterId(e.target.value)}
-          aria-label="POS register"
-        >
-          {(context.data?.registers ?? []).map((row) => (
-            <option key={row.id} value={row.id}>
-              {row.code} · {row.name}
-            </option>
-          ))}
-        </select>
-        <span
-          className={`rounded-lg px-3 py-2 text-xs font-semibold ${
-            activeRegister?.cashShifts.length
-              ? 'bg-emerald-950 text-emerald-300'
-              : 'bg-rose-950 text-rose-300'
-          }`}
-        >
-          {activeRegister?.cashShifts.length ? 'Shift open' : 'No shift open'}
-        </span>
+          </Select>
+          <Select
+            className="h-control-sm w-40"
+            value={activeRegisterId}
+            onChange={(event) => setRegisterId(event.target.value)}
+            aria-label="POS register"
+          >
+            {(context.data?.registers ?? []).map((register) => (
+              <option key={register.id} value={register.id}>
+                {register.code} · {register.name}
+              </option>
+            ))}
+          </Select>
+          <StatusBadge tone={activeRegister?.cashShifts.length ? 'success' : 'danger'}>
+            {activeRegister?.cashShifts.length ? 'Shift open' : 'No shift open'}
+          </StatusBadge>
+          {draftId ? <Badge tone="info">Resumed draft</Badge> : null}
+        </div>
+        <div className="flex items-center gap-2">
+          <Badge tone="neutral">{held.data?.total ?? 0} held</Badge>
+          <Button variant="outline" size="sm" onClick={() => setHistoryOpen(true)}>
+            Recent sales
+          </Button>
+        </div>
       </div>
-      {message && (
-        <p className="rounded-lg bg-emerald-950 p-3 text-sm text-emerald-300">{message}</p>
-      )}
-      {error && <p className="rounded-lg bg-rose-950 p-3 text-sm text-rose-300">{error}</p>}
-      <div className="grid gap-4 xl:grid-cols-[1.7fr_0.85fr]">
-        <section className="space-y-4">
-          <div className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
+
+      {message ? <Alert tone="success">{message}</Alert> : null}
+      {error ? <Alert tone="danger">{error}</Alert> : null}
+      {context.isError ? (
+        <Alert tone="danger">
+          POS context could not be loaded. Your current sale was preserved.
+        </Alert>
+      ) : null}
+
+      <div className="mt-3 grid min-h-0 flex-1 gap-3 xl:grid-cols-[minmax(250px,0.82fr)_minmax(380px,1.18fr)_minmax(300px,0.9fr)]">
+        <Card className="flex min-h-[480px] min-w-0 flex-col overflow-hidden xl:min-h-0">
+          <div className="border-b border-divider p-3">
+            <h2 className="mb-2 text-sm font-semibold">Find products</h2>
             <form className="flex gap-2" onSubmit={scan}>
-              <input
+              <BarcodeSearchInput
                 ref={searchRef}
                 autoFocus
-                className={field}
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Scan barcode or search SKU, name, brand, model, tile size… (Alt+S)"
-                aria-label="POS product search"
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Barcode, SKU, name, brand…"
+                accessibleLabel="POS product search"
               />
-              <button className={primary}>Scan exact</button>
+              <Button type="submit" variant="outline" disabled={!search.trim()}>
+                Exact
+              </Button>
             </form>
-            {debounced.length >= 2 && (
-              <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                {(products.data?.items ?? []).map((product) => (
-                  <button
+            <div className="mt-2 flex flex-wrap gap-1" aria-label="Product result filters">
+              <FilterButton active={filter === 'ALL'} onClick={() => setFilter('ALL')}>
+                All
+              </FilterButton>
+              <FilterButton active={filter === 'TILE'} onClick={() => setFilter('TILE')}>
+                Tiles
+              </FilterButton>
+              <FilterButton active={filter === 'SANITARY'} onClick={() => setFilter('SANITARY')}>
+                Sanitary
+              </FilterButton>
+              <FilterButton active={filter === 'OTHER'} onClick={() => setFilter('OTHER')}>
+                Other
+              </FilterButton>
+            </div>
+          </div>
+          <div className="min-h-0 flex-1 overflow-y-auto p-3">
+            {products.isFetching ? (
+              <p className="py-8 text-center text-sm text-text-secondary" role="status">
+                Searching products…
+              </p>
+            ) : products.isError ? (
+              <Alert tone="danger">Search failed. The current sale was not changed.</Alert>
+            ) : search.trim().length < 2 ? (
+              <EmptyState
+                className="min-h-48"
+                title="Scanner ready"
+                description="Scan an exact barcode or enter at least two characters to search. F2 focuses this field."
+              />
+            ) : filteredProducts.length ? (
+              <div className="space-y-2">
+                {filteredProducts.map((product) => (
+                  <ProductResult
                     key={product.id}
-                    type="button"
-                    onClick={() => addProduct(product)}
-                    className="rounded-lg border border-slate-700 p-3 text-left hover:border-amber-400"
-                  >
-                    <b>{product.name}</b>
-                    <span className="block text-xs text-slate-400">
-                      {product.sku}{' '}
-                      {product.tile?.displaySize ? `· ${product.tile.displaySize}` : ''}
-                    </span>
-                  </button>
+                    product={product}
+                    mode={mode}
+                    onAdd={() => addProduct(product)}
+                  />
                 ))}
               </div>
+            ) : (
+              <EmptyState
+                title="No matching products"
+                description="Try another SKU, name, brand, model, or barcode."
+              />
             )}
           </div>
-          <div className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
-            <div className="mb-3 flex items-center justify-between">
-              <h2 className="font-semibold">Cart</h2>
-              <span className="text-xs text-slate-400">{cart.length} line(s)</span>
+          <div className="border-t border-divider px-3 py-2 text-[11px] text-text-muted">
+            F2 Search · Enter exact barcode · Scanner focus returns after add
+          </div>
+        </Card>
+
+        <Card className="flex min-h-[560px] min-w-0 flex-col overflow-hidden xl:min-h-0">
+          <div className="border-b border-divider p-3">
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <div>
+                <h2 className="text-sm font-semibold">Current sale</h2>
+                <p className="text-xs text-text-muted">{cart.length} item lines</p>
+              </div>
+              <Button variant="ghost" size="sm" disabled={!cart.length} onClick={clearSale}>
+                Clear
+              </Button>
             </div>
-            <div className="space-y-3">
-              {cart.map((row, index) => {
-                const batches = Array.isArray(row.product.availability)
-                  ? row.product.availability
-                  : [];
-                return (
-                  <div
-                    key={`${row.product.id}-${row.batchId}-${index}`}
-                    className="rounded-xl border border-slate-700 p-3"
+            <FormField htmlFor="pos-customer" label="Customer">
+              <Select
+                ref={customerRef}
+                id="pos-customer"
+                aria-label="Customer"
+                value={activeCustomerId}
+                onChange={(event) => setCustomerId(event.target.value)}
+              >
+                {(customers.data ?? []).map((customer) => (
+                  <option key={customer.id} value={customer.id}>
+                    {customer.code} · {customer.name}
+                    {customer.isWalkIn ? ' (Walk-in)' : ''}
+                  </option>
+                ))}
+              </Select>
+            </FormField>
+            <div className="mt-2 flex items-center justify-between gap-3">
+              <CustomerContext customer={activeCustomer} />
+              <div className="flex shrink-0 rounded-md border border-border bg-surface p-1">
+                {(['RETAIL', 'WHOLESALE'] as const).map((pricingMode) => (
+                  <Button
+                    key={pricingMode}
+                    variant={mode === pricingMode ? 'secondary' : 'ghost'}
+                    size="sm"
+                    onClick={() => {
+                      setMode(pricingMode);
+                      setCart((rows) =>
+                        rows.map((line) => ({
+                          ...line,
+                          unitPrice: configuredPrice(line.product, line.unitId, pricingMode),
+                        })),
+                      );
+                    }}
                   >
-                    <div className="flex justify-between gap-2">
-                      <div>
-                        <b>{row.product.name}</b>
-                        <p className="text-xs text-slate-400">
-                          {row.product.sku}{' '}
-                          {row.product.tile?.displaySize ? `· ${row.product.tile.displaySize}` : ''}
-                        </p>
-                      </div>
-                      <button
-                        className="text-sm text-rose-300"
-                        onClick={() =>
-                          setCart((items) => items.filter((_, current) => current !== index))
-                        }
-                      >
-                        Remove
-                      </button>
-                    </div>
-                    <div className="mt-3 grid gap-2 md:grid-cols-4">
-                      <select
-                        className={field}
-                        aria-label="Sale unit"
-                        value={row.unitId}
-                        onChange={(e) =>
-                          updateLine(index, {
-                            unitId: e.target.value,
-                            unitPrice: configuredPrice(row.product, e.target.value, mode),
-                          })
-                        }
-                      >
-                        {row.product.units.map(({ unit }) => (
-                          <option key={unit.id} value={unit.id}>
-                            {unit.code}
-                          </option>
-                        ))}
-                      </select>
-                      <input
-                        className={field}
-                        aria-label="Sale quantity"
-                        value={row.quantity}
-                        onChange={(e) => updateLine(index, { quantity: e.target.value })}
-                        placeholder="Quantity"
-                      />
-                      <input
-                        className={field}
-                        aria-label="Unit price"
-                        value={row.unitPrice}
-                        onChange={(e) => updateLine(index, { unitPrice: e.target.value })}
-                        placeholder="Unit price"
-                      />
-                      <input
-                        className={field}
-                        aria-label="Line discount"
-                        value={row.discount}
-                        onChange={(e) => updateLine(index, { discount: e.target.value })}
-                        placeholder="Discount"
-                      />
-                      {row.product.batchTracking && (
-                        <select
-                          className={`${field} md:col-span-2`}
-                          aria-label="Sale batch and shade"
-                          value={row.batchId}
-                          onChange={(e) => updateLine(index, { batchId: e.target.value })}
-                        >
-                          <option value="">Select batch/shade</option>
-                          {batches.map((batch) => (
-                            <option key={batch.id} value={batch.id}>
-                              {batch.batchNumber} · Shade {batch.shade ?? '—'} ·{' '}
-                              {batch.baseQuantity} base available
-                            </option>
-                          ))}
-                        </select>
-                      )}
-                      <input
-                        className={field}
-                        aria-label="Line tax"
-                        value={row.tax}
-                        onChange={(e) => updateLine(index, { tax: e.target.value })}
-                        placeholder="Tax"
-                      />
-                      <input
-                        className={`${field} md:col-span-2`}
-                        aria-label="Price override reason"
-                        value={row.overrideReason}
-                        onChange={(e) => updateLine(index, { overrideReason: e.target.value })}
-                        placeholder="Override reason when price differs"
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-              {!cart.length && (
-                <p className="py-8 text-center text-sm text-slate-400">
-                  Scan or search to add products.
-                </p>
-              )}
+                    {pricingMode === 'RETAIL' ? 'Retail' : 'Wholesale'}
+                  </Button>
+                ))}
+              </div>
             </div>
           </div>
-        </section>
-        <aside className="space-y-4">
-          <div className="rounded-2xl border border-slate-800 bg-slate-900 p-4 space-y-3">
-            <h2 className="font-semibold">Sale</h2>
-            <select
-              className={field}
-              aria-label="Pricing mode"
-              value={mode}
-              onChange={(e) => {
-                const next = e.target.value as 'RETAIL' | 'WHOLESALE';
-                setMode(next);
-                setCart((rows) =>
-                  rows.map((row) => ({
-                    ...row,
-                    unitPrice: configuredPrice(row.product, row.unitId, next),
-                  })),
-                );
-              }}
-            >
-              <option value="RETAIL">Retail pricing</option>
-              <option value="WHOLESALE">Wholesale pricing</option>
-            </select>
-            <select
-              className={field}
-              aria-label="Customer"
-              value={activeCustomerId}
-              onChange={(e) => setCustomerId(e.target.value)}
-            >
-              {(customers.data ?? []).map((row) => (
-                <option key={row.id} value={row.id}>
-                  {row.code} · {row.name}
-                  {row.isWalkIn ? ' (Walk-in)' : ''}
-                </option>
-              ))}
-            </select>
-            <input
-              className={field}
-              value={invoiceDiscount}
-              onChange={(e) => setInvoiceDiscount(e.target.value)}
-              placeholder="Invoice discount"
-              aria-label="Invoice discount"
-            />
-            <input
-              className={field}
-              value={invoiceTax}
-              onChange={(e) => setInvoiceTax(e.target.value)}
-              placeholder="Invoice tax"
-              aria-label="Invoice tax"
-            />
-            <div className="rounded-lg bg-slate-950 p-3">
-              <p className="text-xs text-slate-400">Client estimate only — backend recalculates</p>
-              <p className="text-2xl font-semibold">BDT {estimate.toFixed(2)}</p>
-            </div>
-            <select
-              className={field}
-              aria-label="Payment method"
-              value={activeMethodId}
-              onChange={(e) => setMethodId(e.target.value)}
-            >
-              {(context.data?.paymentMethods ?? []).map((row) => (
-                <option key={row.id} value={row.id}>
-                  {row.code} · {row.name}
-                </option>
-              ))}
-            </select>
-            <input
-              className={field}
-              aria-label="Paid amount"
-              value={paid}
-              onChange={(e) => setPaid(e.target.value)}
-              placeholder="Applied payment"
-            />
-            <input
-              className={field}
-              aria-label="Cash tendered"
-              value={tendered}
-              onChange={(e) => setTendered(e.target.value)}
-              placeholder="Cash tendered (cash only)"
-            />
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-              Optional second payment
-            </p>
-            <select
-              className={field}
-              aria-label="Second payment method"
-              value={activeSecondMethodId}
-              onChange={(e) => setSecondMethodId(e.target.value)}
-            >
-              {(context.data?.paymentMethods ?? []).map((row) => (
-                <option key={row.id} value={row.id}>
-                  {row.code} · {row.name}
-                </option>
-              ))}
-            </select>
-            <input
-              className={field}
-              aria-label="Second paid amount"
-              value={secondPaid}
-              onChange={(e) => setSecondPaid(e.target.value)}
-              placeholder="Second payment amount"
-            />
-            <input
-              className={field}
-              aria-label="Second cash tendered"
-              value={secondTendered}
-              onChange={(e) => setSecondTendered(e.target.value)}
-              placeholder="Second cash tendered (cash only)"
-            />
-            <div className="flex flex-wrap gap-2">
-              <button
-                className={secondary}
-                type="button"
-                onClick={() => setPaid(estimate.toFixed(4))}
-              >
-                Pay estimate
-              </button>
-              <button
-                className={secondary}
-                disabled={!cart.length}
-                type="button"
+          <div className="min-h-0 flex-1 overflow-y-auto bg-surface-secondary/60 p-3">
+            {cart.length ? (
+              <div className="space-y-2">
+                {cart.map((line, index) => (
+                  <PosCartRow
+                    key={`${line.product.id}-${line.batchId}-${index}`}
+                    index={index}
+                    line={line}
+                    mode={mode}
+                    canDiscount={canDiscount}
+                    canOverridePrice={canOverridePrice}
+                    onChange={(patch) => updateLine(index, patch)}
+                    onRemove={() =>
+                      setCart((rows) => rows.filter((_, current) => current !== index))
+                    }
+                  />
+                ))}
+              </div>
+            ) : (
+              <CartEmpty />
+            )}
+          </div>
+          <div className="border-t border-divider bg-surface p-3">
+            <div className="flex items-center justify-between gap-2">
+              <div>
+                <p className="text-xs font-semibold">Held sales</p>
+                <p className="text-[11px] text-text-muted">Resume without stock reservation.</p>
+              </div>
+              <Button
+                ref={holdRef}
+                variant="outline"
+                size="sm"
+                loading={pendingAction === 'hold'}
+                disabled={!cart.length || Boolean(pendingAction)}
                 onClick={() => void holdSale()}
               >
-                Hold sale
-              </button>
-              <button
-                className={primary}
-                disabled={
-                  !cart.length || !activeWarehouseId || !activeRegisterId || !activeCustomerId
-                }
-                type="button"
-                onClick={() => void complete()}
-              >
-                Review & complete
-              </button>
+                Hold sale · F6
+              </Button>
             </div>
-            <p className="text-xs text-slate-400">
-              Register is required. Cash payments require an open register shift. Any unpaid
-              remainder is customer receivable, never a fake payment method.
+            {held.data?.items.length ? (
+              <div className="mt-2 grid max-h-24 gap-2 overflow-y-auto sm:grid-cols-2">
+                {held.data.items.map((sale) => (
+                  <HeldSaleItem
+                    key={sale.id}
+                    sale={sale}
+                    onResume={() => void resumeSale(sale.id)}
+                  />
+                ))}
+              </div>
+            ) : null}
+          </div>
+        </Card>
+
+        <Card className="flex min-h-[620px] min-w-0 flex-col overflow-hidden xl:min-h-0">
+          <div className="border-b border-divider px-4 py-3">
+            <h2 className="text-sm font-semibold">Checkout</h2>
+            <p className="text-xs text-text-muted">Preview only · API recalculates on completion</p>
+          </div>
+          <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-4">
+            <CheckoutSummary
+              values={preview}
+              invoiceDiscount={invoiceDiscount}
+              invoiceTax={invoiceTax}
+            />
+            <div className="grid grid-cols-2 gap-2">
+              {canDiscount ? (
+                <FormField htmlFor="invoice-discount" label="Invoice discount">
+                  <Input
+                    id="invoice-discount"
+                    inputMode="decimal"
+                    value={invoiceDiscount}
+                    onChange={(event) => setInvoiceDiscount(event.target.value)}
+                  />
+                </FormField>
+              ) : null}
+              <FormField htmlFor="invoice-tax" label="Invoice tax">
+                <Input
+                  id="invoice-tax"
+                  inputMode="decimal"
+                  value={invoiceTax}
+                  onChange={(event) => setInvoiceTax(event.target.value)}
+                />
+              </FormField>
+            </div>
+            <div>
+              <div className="mb-2 flex items-center justify-between">
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-text-muted">
+                  Payment methods
+                </h3>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setPaid(preview.total);
+                    setSecondPaid('0');
+                    setSecondTendered('');
+                  }}
+                  disabled={!cart.length}
+                >
+                  Pay total
+                </Button>
+              </div>
+              <div className="space-y-2">
+                <PaymentRow
+                  label="Payment 1"
+                  methods={context.data?.paymentMethods ?? []}
+                  methodId={activeMethodId}
+                  amount={paid}
+                  tendered={tendered}
+                  amountRef={paymentRef}
+                  onMethodChange={setMethodId}
+                  onAmountChange={setPaid}
+                  onTenderedChange={setTendered}
+                />
+                <PaymentRow
+                  label="Payment 2 (optional)"
+                  methods={context.data?.paymentMethods ?? []}
+                  methodId={activeSecondMethodId}
+                  amount={secondPaid}
+                  tendered={secondTendered}
+                  onMethodChange={setSecondMethodId}
+                  onAmountChange={setSecondPaid}
+                  onTenderedChange={setSecondTendered}
+                />
+              </div>
+            </div>
+            {missingShift ? (
+              <Alert tone="warning">
+                Open this register&apos;s cash shift before accepting cash.
+              </Alert>
+            ) : null}
+            {walkInDue ? (
+              <Alert tone="warning">Select a named customer before leaving an unpaid due.</Alert>
+            ) : null}
+            {batchMissing ? (
+              <Alert tone="warning">Select the exact batch and shade for every tracked tile.</Alert>
+            ) : null}
+          </div>
+          <div className="border-t border-divider bg-surface p-4">
+            {selectedSale.data ? (
+              <Alert tone="success" className="mb-3">
+                <div className="flex items-center justify-between gap-3">
+                  <span>
+                    Sale completed · <strong>{selectedSale.data.invoiceNumber}</strong>
+                  </span>
+                  <Button variant="outline" size="sm" onClick={() => setHistoryOpen(true)}>
+                    View invoice
+                  </Button>
+                </div>
+              </Alert>
+            ) : null}
+            <Button
+              ref={completeRef}
+              size="lg"
+              className="w-full"
+              loading={pendingAction === 'complete'}
+              disabled={
+                Boolean(pendingAction) ||
+                !cart.length ||
+                !activeWarehouseId ||
+                !activeRegisterId ||
+                !activeCustomerId ||
+                missingShift ||
+                walkInDue ||
+                batchMissing
+              }
+              onClick={() => void complete()}
+            >
+              Complete sale · Ctrl+Enter
+            </Button>
+            <p className="mt-2 text-center text-[11px] text-text-muted">
+              F2 Search · F4 Customer · F6 Hold · F8 Payment
             </p>
           </div>
-          <div className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
-            <h2 className="mb-2 font-semibold">Held sales</h2>
-            {(held.data?.items ?? []).map((sale) => (
-              <button
-                className="mb-2 block w-full rounded-lg border border-slate-700 p-2 text-left"
-                key={sale.id}
-                onClick={() => void resumeSale(sale.id)}
-              >
-                {sale.invoiceNumber}
-                <span className="block text-xs text-slate-400">
-                  {sale.customer.name} · {sale.total}
-                </span>
-              </button>
-            ))}
-            {!held.data?.items.length && <p className="text-sm text-slate-400">No held sales.</p>}
-          </div>
-        </aside>
+        </Card>
       </div>
-      <section className="grid gap-4 lg:grid-cols-2">
-        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
-          <h2 className="mb-3 font-semibold">Sales history</h2>
-          {(history.data?.items ?? []).map((sale) => (
-            <button
-              key={sale.id}
-              onClick={() => setSelectedSaleId(sale.id)}
-              className="mb-2 block w-full rounded-lg border border-slate-700 p-3 text-left"
-            >
-              <b>{sale.invoiceNumber}</b>
-              <span className="block text-xs text-slate-400">
-                {sale.customer.name} · Total {sale.total} · Paid {sale.paid} · Due {sale.due}
-              </span>
-            </button>
-          ))}
-        </div>
-        <div className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
-          <h2 className="mb-3 font-semibold">Receipt-ready sale detail</h2>
-          {selectedSale.data ? (
-            <div className="space-y-2">
-              <p>
-                <b>{selectedSale.data.invoiceNumber}</b> · {selectedSale.data.customer.name}
-              </p>
-              {selectedSale.data.items?.map((line) => (
-                <div key={line.id} className="rounded-lg border border-slate-700 p-2">
-                  <b>{line.product.name}</b>
-                  <p className="text-xs text-slate-400">
-                    {line.quantity} {line.unit.code} / {line.baseQuantity}{' '}
-                    {line.product.baseUnit.code}
-                    {line.batch
-                      ? ` · Batch ${line.batch.batchNumber} / Shade ${line.batch.shade ?? '—'}`
-                      : ''}
-                  </p>
-                  <p className="text-sm">
-                    {line.unitPrice} × {line.quantity} · Discount {line.discount} · Tax {line.tax} ={' '}
-                    {line.lineTotal}
-                  </p>
-                </div>
-              ))}
-              <p className="text-lg font-semibold">
-                Total {selectedSale.data.total} · Paid {selectedSale.data.paid} · Due{' '}
-                {selectedSale.data.due} · Change {selectedSale.data.change}
-              </p>
-              <p className="rounded-lg bg-slate-950 p-3 text-sm">
-                Current status{' '}
-                <b>{selectedSale.data.lifecycleStatus ?? selectedSale.data.status}</b> · Current
-                outstanding{' '}
-                <b>{selectedSale.data.currentOutstanding ?? selectedSale.data.due} BDT</b>
-              </p>
-              {!!selectedSale.data.paymentAllocations?.length && (
-                <div>
-                  <h3 className="mb-2 text-sm font-semibold">Payment timeline</h3>
-                  {selectedSale.data.paymentAllocations.map((allocation) => (
-                    <p
-                      key={`${allocation.payment.paymentNumber}-${allocation.amount}`}
-                      className="mb-1 text-xs text-slate-300"
-                    >
-                      {allocation.payment.paymentNumber} · {allocation.amount} ·{' '}
-                      {allocation.payment.method.name}
-                    </p>
-                  ))}
-                </div>
-              )}
-              {!!selectedSale.data.returns?.length && (
-                <div>
-                  <h3 className="mb-2 text-sm font-semibold">Returns, refunds and exchanges</h3>
-                  {selectedSale.data.returns.map((saleReturn) => (
-                    <div
-                      key={saleReturn.id}
-                      className="mb-2 rounded-lg border border-slate-700 p-2"
-                    >
-                      <p className="text-sm font-semibold">
-                        {saleReturn.returnNumber} · {saleReturn.kind}
-                      </p>
-                      <p className="text-xs text-slate-300">
-                        Credit {saleReturn.totalCredit} · Applied to due{' '}
-                        {saleReturn.receivableApplied} · Refunded{' '}
-                        {saleReturn.refunds
-                          .reduce((sum, refund) => sum + Number(refund.amount), 0)
-                          .toFixed(4)}
-                      </p>
-                      {saleReturn.exchange && (
-                        <p className="text-xs text-amber-300">
-                          {saleReturn.exchange.exchangeNumber} · Credit applied{' '}
-                          {saleReturn.exchange.creditApplied} · Difference{' '}
-                          {saleReturn.exchange.difference}
-                        </p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          ) : (
-            <p className="text-sm text-slate-400">Select a completed sale.</p>
-          )}
-        </div>
-      </section>
+
+      <SaleHistoryDialog
+        open={historyOpen}
+        onOpenChange={setHistoryOpen}
+        sales={history.data?.items ?? []}
+        sale={selectedSale.data}
+        onSelect={setSelectedSaleId}
+      />
     </div>
   );
+}
+
+export function PosConsole() {
+  const { activeBranchId } = useBranchContext();
+  if (!activeBranchId) {
+    return (
+      <EmptyState
+        title="Select an active branch"
+        description="The POS needs a verified branch context before it can load warehouses and registers."
+      />
+    );
+  }
+  return <PosSession key={activeBranchId} branchId={activeBranchId} />;
 }

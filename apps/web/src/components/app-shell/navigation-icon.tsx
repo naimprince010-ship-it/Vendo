@@ -20,11 +20,12 @@ const paths: Record<NavigationIconName, string> = {
 
 export function NavigationIcon({
   name,
+  className,
   ...props
 }: SVGProps<SVGSVGElement> & { name: NavigationIconName }) {
   const strokeOnly = name !== 'dashboard';
   return (
-    <svg aria-hidden="true" viewBox="0 0 24 24" className="size-5" {...props}>
+    <svg aria-hidden="true" viewBox="0 0 24 24" className={`size-5 ${className ?? ''}`} {...props}>
       <path
         d={paths[name]}
         fill={strokeOnly ? 'none' : 'currentColor'}

@@ -149,6 +149,29 @@ Current gate status: **PASS (2026-09-10)** — the previously deferred interacti
 
 Current gate status: **PASS (2026-09-10)**. Authenticated route navigation, `/app` compatibility, permission-aware navigation, branch context, 1440/1280/mobile responsive behavior, representative existing modules, session restoration/sign-out, API readiness, HTTP routes, and the clean-console gate pass. Browser acceptance found and resolved the expanded-label, Suppliers default-tab, mobile drawer lifecycle, and compact-link accessibility defects recorded in `BUG-030`.
 
+## Approved V1 UI Redesign — Stage 3 POS Cashier Workspace
+
+- [x] Add characterization coverage for POS display helpers and preserve request payloads
+- [x] Refactor the cashier workspace into focused product, cart, context, payment, and held-sale presentation components
+- [x] Implement approved light-first 1440 × 900 and compact 1280 × 720 layouts
+- [x] Preserve scanner focus, tile conversion, exact batch/shade, pricing, discounts, hold/resume, split payment, tender/change, due, and idempotent completion behavior
+- [x] Pass affected Phase 9/10 regressions, frontend gates, production browser workflow, clean console, and Figma comparison
+- [x] Complete Stage 3 gate
+
+Current gate status: **PASS (2026-09-10)**. Stage 3 is complete within the approved POS cashier scope; backend/API/database behavior was not redesigned, and Stage 4 sale-detail redesign has not started.
+
+### Stage 3 Gate — PASS (2026-09-10)
+
+- Decimal-safe POS display helpers and focused web tests: PASS (5/5 web tests, including tile conversion and split-payment preview)
+- Existing Phase 9 and Phase 10 API regression suites: PASS (2 suites, 14/14 tests)
+- Web formatting, ESLint, strict TypeScript, production build, route generation, and Git whitespace checks: PASS
+- Production API readiness and `/login`/`/app` HTTP smoke: PASS
+- Interactive production workflow: PASS (exact tile and sanitary barcodes, BOX/PCS/SQFT, exact batch/shade, named customer, pricing, invoice discount, hold/resume, split payment, cash tender/change, due, completion, invoice history, and inventory deduction)
+- Approved 1440 × 900 expanded-shell and 1280 × 720 compact-shell layouts: PASS with no horizontal page overflow
+- Browser console: PASS (no errors, warnings, hydration failures, React errors, or missing asset/style reports)
+- Backend, Prisma schema, and API contract diff: PASS (no changes)
+- Browser-discovered `BUG-031` and `BUG-032`: resolved before the final gate
+
 ## Phase Gate Log
 
 ### Phase 1 — PASS (2026-09-04)

@@ -4,6 +4,17 @@ All meaningful project changes are recorded here. This project follows a phase-o
 
 ## Unreleased
 
+### V1 UI redesign — Stage 3 POS cashier workspace
+
+- Rebuilt the POS console as the approved light-first three-column cashier workspace with focused product discovery, current-sale, customer/pricing, checkout, payment, held-sale, and invoice-history components.
+- Added scanner-first exact barcode handling, keyboard focus shortcuts, compact product filters, tile BOX/PCS/SQFT equivalents, exact batch/lot/shade context, and adaptive sanitary/general-item presentation without adding independent stock counters.
+- Added Decimal-safe presentation helpers for conversion, pricing, totals, split payments, due, and cash tender/change; backend calculation and completion remain authoritative and the existing request contracts are unchanged.
+- Preserved retail/wholesale pricing, permission-sensitive price/discount controls, hold/resume, stable retry idempotency, named-customer due, split payment, and atomic completion behavior.
+- Reset invoice-level adjustments after hold/completion and deterministically reconstruct them from immutable line/document totals when a held sale is resumed, including after reload.
+- Corrected two browser-confirmed shell defects affecting the approved 1440 layout: navigation icon sizing was overwritten by caller classes, and expanded sidebar content retained the compact 72px offset.
+- Verified the production cashier workflow at 1440 × 900 and 1280 × 720, exact tile and sanitary barcodes, conversion/batch context, hold/resume, split payment/change/due, invoice detail/history, stock deduction, keyboard shortcuts, and a clean browser console.
+- Verified 5/5 web tests, ESLint, strict TypeScript, formatting, the Next.js production build, and 14/14 affected Phase 9/10 API regression tests. Stage 3 is PASS; Stage 4 has not started.
+
 ### V1 UI redesign — Stage 2 application shell and routing
 
 - Added an authenticated light-first application shell with responsive grouped navigation, route context, branch selector, session restoration, and sign-out while retaining backend authorization as the authority.

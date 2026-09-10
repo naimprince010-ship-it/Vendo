@@ -138,7 +138,7 @@ function ShellFrame({ children }: { children: ReactNode }) {
           </div>
         ) : null}
 
-        <div className="min-w-0 md:pl-[72px] min-[1400px]:pl-64">
+        <div className="min-w-0 md:pl-[72px] min-[1400px]:!pl-64">
           <header className="sticky top-0 z-30 flex min-h-16 items-center gap-3 border-b border-divider bg-surface/95 px-4 backdrop-blur sm:px-6">
             <Button
               variant="ghost"

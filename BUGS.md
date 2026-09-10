@@ -403,3 +403,31 @@ No Critical/High audit, authorization, tenant/branch, inventory, financial, migr
 - **Actual:** Labels were hidden, Suppliers defaulted to Customers, the drawer unmounted before navigation could complete, and compact link names were absent.
 - **Status:** Resolved — breakpoint visibility was corrected, `PartiesConsole` now accepts the Suppliers initial tab, drawer visibility is tied to the pathname that opened it so route activation completes before closure, and every navigation link has an explicit accessible label. Production browser retest and clean-console inspection pass.
 - **Related task:** Approved V1 UI redesign — Stage 2 browser acceptance
+
+## BUG-031 — Expanded shell obscured the Stage 3 POS workspace
+
+- **ID:** BUG-031
+- **Severity:** High
+- **Area:** V1 UI redesign Stage 3 browser acceptance / Stage 2 shell
+- **Description:** At 1440 × 900, navigation SVGs expanded to the sidebar width and the main content retained a 72px offset while the sidebar expanded to 256px, obscuring the left POS column.
+- **Reproduction:** Open the production POS at 1440 × 900 before the fix and inspect navigation icon bounds and the main/sidebar x coordinates.
+- **Expected:** Navigation icons remain 20px, the 256px expanded sidebar has a matching 256px content offset, and all three POS columns remain visible without horizontal page scrolling.
+- **Actual:** Caller classes replaced the icon `size-5` class, producing 207px SVGs; the expanded sidebar was 256px while main content started at 72px, placing product search beneath the fixed sidebar.
+- **Status:** Resolved — `NavigationIcon` now merges its required size with caller classes, and the expanded shell explicitly overrides the compact content offset. Production verification reports 256px/256px at 1440 and 72px/72px at 1280 with viewport-width documents and a clean console.
+- **Related task:** Approved V1 UI redesign — Stage 3 POS cashier workspace
+
+## BUG-032 — Invoice adjustments leaked into a new cart after hold/completion
+
+- **ID:** BUG-032
+- **Severity:** High
+- **Area:** V1 UI redesign Stage 3 POS state lifecycle
+- **Description:** Invoice discount/tax remained visible after holding or completing a sale, and a held sale resumed after reload had no deterministic reconstruction of its invoice-level adjustments.
+- **Reproduction:** Apply an invoice discount, hold or complete the sale, then inspect the empty cart; separately reload before resuming the held sale.
+- **Expected:** A fresh cart starts with zero invoice adjustments, while a resumed sale restores its original invoice-only discount and tax without duplicating line-level values.
+- **Actual:** Local component state retained the previous adjustment; same-session resume appeared correct accidentally, while a reload could lose the held invoice adjustment.
+- **Status:** Resolved — hold/completion now clear invoice adjustments, and resume derives invoice-only values by subtracting immutable line totals from the sale document totals with Decimal-safe helpers. Production browser verification observed `50 → 0 → 50` across hold/resume and `50 → 0` on completion.
+- **Related task:** Approved V1 UI redesign — Stage 3 POS cashier workspace
+
+## Stage 3 Verification Note — 2026-09-10
+
+No Critical/High POS presentation, scanner, tile conversion, batch/shade, pricing, hold/resume, split-payment, due, completion, responsive-layout, regression, or browser-console blocker remains. `BUG-031` and `BUG-032` were resolved during interactive acceptance. The production browser completed invoice `INV-000003` with a named-customer due, verified exact inventory deduction, and completed invoice `INV-000004` while proving held adjustment restoration and post-completion reset; five web tests and the 14 affected Phase 9/10 API tests pass. The existing Low deferred `BUG-008` remains unchanged.
