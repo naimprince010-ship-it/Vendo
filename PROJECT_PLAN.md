@@ -172,6 +172,31 @@ Current gate status: **PASS (2026-09-10)**. Stage 3 is complete within the appro
 - Backend, Prisma schema, and API contract diff: PASS (no changes)
 - Browser-discovered `BUG-031` and `BUG-032`: resolved before the final gate
 
+## Approved V1 UI Redesign — Stage 4 Sale Detail and Post-Sale Workflows
+
+- [x] Add route-addressable sale history and sale-detail workspaces
+- [x] Present immutable sale, tile, batch/shade, price, discount, tax, and payment snapshots
+- [x] Present backend-derived outstanding, financial summary, and chronological transaction history
+- [x] Move collection, return, refund, exchange, and void workflows out of POS into deliberate dialogs
+- [x] Preserve permission visibility, idempotency, inventory restoration, customer-ledger, and immutable-sale behavior
+- [x] Preserve thermal/A4 print access and add bidirectional linked-exchange navigation
+- [x] Pass affected Phase 9/10 regressions, frontend gates, production browser workflows, responsive review, and clean console
+- [x] Complete Stage 4 gate
+
+Current gate status: **PASS (2026-09-11)**. Stage 4 is complete within the approved sale-detail and post-sale scope; backend/API/database behavior was not redesigned, and Stage 5 catalog redesign has not started.
+
+### Stage 4 Gate — PASS (2026-09-11)
+
+- Decimal-safe sale finance presentation helpers and focused web tests: PASS (8/8 web tests overall)
+- Existing Phase 9 and Phase 10 API regression suites: PASS (2 suites, 14/14 tests)
+- Web formatting, warning-free ESLint, strict TypeScript, production build, 18-route generation, and Git whitespace checks: PASS
+- Interactive production workflows: PASS (partial collection, persisted ledger/outstanding, exact-batch tile return, paid return/refund, atomic exchange with linked invoices and settlement difference, compensating void, and print/reprint access)
+- Inventory and customer-ledger checks: PASS (exact UAT batch/shade reconciled; immutable collection/return/refund/exchange/void ledger entries visible)
+- Approved 1440 × 900 and 1280 × 720 layouts: PASS with readable stacked content and no observed whole-page horizontal overflow
+- Browser console: PASS (no errors, warnings, hydration failures, React errors, or missing asset/style reports)
+- Backend, Prisma schema, migration, and API contract diff: PASS (no changes)
+- Browser-discovered `BUG-033`: resolved before the final gate
+
 ## Phase Gate Log
 
 ### Phase 1 — PASS (2026-09-04)

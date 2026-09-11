@@ -254,6 +254,8 @@ Commit: `ui: redesign POS cashier workspace`
 
 ### Stage 4 — Sale detail and post-sale operations (very high)
 
+Status: **PASS (2026-09-11)** — route-addressable Sale Detail, immutable historical line presentation, backend-derived financial state, collection/return/refund/exchange/void dialogs, linked exchange invoices, print access, responsive browser acceptance, and affected Phase 9/10 regressions pass. Stage 5 has not started.
+
 Move Phase 10 workflows out of the POS page and compose them in sale detail with deliberate dialogs and a financial timeline.
 
 Expected files:
@@ -263,7 +265,7 @@ Expected files:
 
 Acceptance: collection, advance, partial/full return, exact batch restoration, non-resellable disposition, refund limit, exchange, void permission/reason, current outstanding, immutable original invoice, and print/reprint pass.
 
-Commit: `ui: implement sale detail and post-sale workflows`
+Commit: `ui: redesign sale detail and post-sale workflows`
 
 ### Stage 5 — Catalog (high)
 

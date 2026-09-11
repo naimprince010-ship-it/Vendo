@@ -22,7 +22,7 @@ type ReportResponse = {
   summary?: Record<string, unknown>;
   items: Record<string, unknown>[];
 };
-type InvoiceData = {
+export type InvoiceData = {
   company: {
     name: string;
     legalName: string | null;
@@ -475,7 +475,7 @@ function ReportTable({ rows }: { rows: Record<string, unknown>[] }) {
   );
 }
 
-function InvoiceDocument({ data, mode }: { data: InvoiceData; mode: 'thermal' | 'a4' }) {
+export function InvoiceDocument({ data, mode }: { data: InvoiceData; mode: 'thermal' | 'a4' }) {
   return (
     <article
       data-testid="print-document"

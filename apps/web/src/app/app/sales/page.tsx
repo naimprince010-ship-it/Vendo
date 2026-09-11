@@ -1,10 +1,10 @@
 import { PermissionGate } from '../../../components/app-shell/permission-gate';
-import { Phase10Console } from '../phase10-console';
+import { SalesWorkspace } from '../../../features/sales/sales-workspace';
 
 export default function SalesPage() {
   return (
     <PermissionGate permissions={['sale.view']}>
-      <Phase10Console />
+      <SalesWorkspace />
     </PermissionGate>
   );
 }

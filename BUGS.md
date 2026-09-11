@@ -431,3 +431,19 @@ No Critical/High audit, authorization, tenant/branch, inventory, financial, migr
 ## Stage 3 Verification Note — 2026-09-10
 
 No Critical/High POS presentation, scanner, tile conversion, batch/shade, pricing, hold/resume, split-payment, due, completion, responsive-layout, regression, or browser-console blocker remains. `BUG-031` and `BUG-032` were resolved during interactive acceptance. The production browser completed invoice `INV-000003` with a named-customer due, verified exact inventory deduction, and completed invoice `INV-000004` while proving held adjustment restoration and post-completion reset; five web tests and the 14 affected Phase 9/10 API tests pass. The existing Low deferred `BUG-008` remains unchanged.
+
+## BUG-033 — Completed exchange lacked visible linked-sale navigation
+
+- **ID:** BUG-033
+- **Severity:** Medium
+- **Area:** V1 UI redesign Stage 4 exchange history
+- **Description:** After an atomic exchange completed, the original Sale Detail timeline showed the exchange reference and financial values but did not expose the replacement sale, while the replacement invoice did not expose its original sale.
+- **Reproduction:** Complete an exchange, reload the original and replacement Sale Detail routes, and inspect the human-readable transaction history.
+- **Expected:** Both immutable sale records expose their exchange reference and direct navigation to the linked counterpart.
+- **Actual:** The backend relation was present but no linked-sale navigation was rendered.
+- **Status:** Resolved — Sale Detail now renders a bidirectional linked-exchange card with exchange reference, applied credit/settlement context, and direct original/replacement sale links. Production browser verification passed on both sides with a clean console.
+- **Related task:** Approved V1 UI redesign — Stage 4 sale detail and post-sale workflows
+
+## Stage 4 Verification Note — 2026-09-11
+
+No Critical/High sale-detail, historical snapshot, outstanding, collection, return, exact batch/shade restoration, refund-capacity, exchange, void, print-access, responsive-layout, regression, or browser-console blocker remains. `BUG-033` was found and resolved during interactive acceptance. Production browser workflows created only synthetic local UAT events, verified the customer ledger and exact inventory position, and left the preserved UAT data intact. Eight web tests, the 14 affected Phase 9/10 API tests, formatting, warning-free lint, strict TypeScript, the 18-route Next.js production build, and clean-console inspection pass. The existing Low deferred `BUG-008` remains unchanged.

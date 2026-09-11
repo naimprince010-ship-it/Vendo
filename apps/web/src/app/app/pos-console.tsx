@@ -14,6 +14,7 @@ import {
   StatusBadge,
 } from '@vendo/ui';
 import { useMemo, useRef, useState, type FormEvent } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '../../auth/auth-context';
 import { useBranchContext } from '../../contexts/branch-context';
 import {
@@ -68,6 +69,7 @@ function FilterButton({
 }
 
 function PosSession({ branchId }: { branchId: string }) {
+  const router = useRouter();
   const { authenticatedFetch, user } = useAuth();
   const queryClient = useQueryClient();
   const searchRef = useRef<HTMLInputElement>(null);
@@ -773,8 +775,12 @@ function PosSession({ branchId }: { branchId: string }) {
                   <span>
                     Sale completed · <strong>{selectedSale.data.invoiceNumber}</strong>
                   </span>
-                  <Button variant="outline" size="sm" onClick={() => setHistoryOpen(true)}>
-                    View invoice
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => router.push(`/app/sales/${selectedSale.data.id}`)}
+                  >
+                    Open sale detail
                   </Button>
                 </div>
               </Alert>

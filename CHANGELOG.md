@@ -4,6 +4,16 @@ All meaningful project changes are recorded here. This project follows a phase-o
 
 ## Unreleased
 
+### V1 UI redesign — Stage 4 sale detail and post-sale workflows
+
+- Added route-addressable sales history and sale detail with immutable invoice-line snapshots, tile size, conversion, exact batch/lot/shade, pricing mode, customer/register/cashier context, and a backend-derived outstanding state.
+- Added a stable financial summary and chronological transaction timeline for original split payments, collections, return credits, refunds, exchanges, and void reversals without changing authoritative backend calculations.
+- Moved collection, partial/full return, exact restock/non-resellable disposition, refund, atomic exchange, and compensating void into permission-aware Radix dialogs with loading, retry, duplicate-submit, and explicit high-risk review states.
+- Added bidirectional original/replacement sale navigation for atomic exchanges and retained existing verified thermal/A4 invoice projection for print/reprint access.
+- Removed post-sale operations from the POS workspace while retaining direct navigation from invoice completion/history to Sale Detail.
+- Verified local production browser workflows for partial collection and persisted customer ledger, exact-batch tile return and inventory reconciliation, paid return/refund, exchange settlement and linked records, void reversal, and print access at 1440 × 900 and 1280 × 720 with a clean console.
+- Verified 8/8 web tests, warning-free ESLint, strict TypeScript, formatting, the Next.js production build (18 routes), and 14/14 affected Phase 9/10 API regression tests. Stage 4 is PASS; Stage 5 has not started.
+
 ### V1 UI redesign — Stage 3 POS cashier workspace
 
 - Rebuilt the POS console as the approved light-first three-column cashier workspace with focused product discovery, current-sale, customer/pricing, checkout, payment, held-sale, and invoice-history components.

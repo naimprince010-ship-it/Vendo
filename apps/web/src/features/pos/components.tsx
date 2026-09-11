@@ -14,6 +14,7 @@ import {
   Select,
   StatusBadge,
 } from '@vendo/ui';
+import Link from 'next/link';
 import type { Ref } from 'react';
 import {
   baseQuantityForLine,
@@ -573,6 +574,13 @@ export function SaleHistoryDialog({
                     <MoneyDisplay value={sale.currentOutstanding ?? sale.due} />
                   </div>
                 </div>
+                <Link
+                  href={`/app/sales/${sale.id}`}
+                  className="inline-flex h-control-md items-center rounded-md bg-primary px-4 text-sm font-semibold text-white outline-none hover:bg-primary-hover focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                  onClick={() => onOpenChange(false)}
+                >
+                  Open full sale detail
+                </Link>
                 {sale.paymentAllocations?.length ? (
                   <div>
                     <h4 className="mb-2 text-sm font-semibold">Payments</h4>
