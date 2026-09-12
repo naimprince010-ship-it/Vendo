@@ -487,3 +487,19 @@ No Critical/High catalog, adaptive-product-form, tile/sanitary separation, comme
 - **Actual:** API returned the inherited positive-regex validation error and created no draft.
 - **Status:** Resolved — Physical Count now has a dedicated non-negative DTO, count-only domain resolution permits zero, the UI maps validation failures to `Counted quantity must be zero or greater.`, and additive migration `20260912064000_phase6_zero_physical_count` updates only the count-item constraint. UAT count `COUNT-UAT-ZERO-1789203188` posted idempotently with snapshot 1, counted 0, exactly one −1 PCS movement, and a final zero balance. Human Chrome reload/presentation acceptance and independent API/database reconciliation pass.
 - **Related task:** Approved V1 UI redesign — Stage 6 physical-count acceptance
+
+## BUG-037 — Purchasing detail assumed a full product projection
+
+- **ID:** BUG-037
+- **Severity:** High
+- **Area:** V1 UI redesign Stage 7 / Purchase Order and Goods Receipt detail
+- **Description:** The redesigned document detail type required `product.baseUnit`, but the existing Phase 8 Purchase Order and Goods Receipt endpoints intentionally return a narrow historical product projection without that relation. Opening a real PO detail therefore raised a React runtime `TypeError` before the document could render.
+- **Reproduction:** Open `/app/purchases/orders/02c2aa19-7a69-4099-948b-599ac9f23816` against the unchanged Phase 8 API response and render the ordered/base quantity presentation.
+- **Expected:** The detail uses the bounded catalog reference already loaded by the Purchasing workspace to resolve the base-unit label while preserving the historical document quantities and conversion snapshot.
+- **Actual:** The view read `item.product.baseUnit.code` from a relation that the API does not return.
+- **Status:** Resolved — the Stage 7 projection type now reflects the optional relation, a presentation helper resolves the base-unit code from bounded product references with a safe `BASE` fallback, and a focused regression test covers the narrow API projection. The complete browser workflow and clean-console retest pass without changing the backend contract.
+- **Related task:** Approved V1 UI redesign — Stage 7 Purchasing acceptance
+
+## Stage 7 Verification Note — 2026-09-12
+
+No Critical/High Purchase Order, partial-receipt, batch/shade, invoice, supplier-payment allocation, payable, purchase-return, responsive-layout, regression, or browser-console blocker remains. `BUG-037` was found and resolved during production-browser acceptance. Synthetic local UAT documents reconcile to the scoped database: two +8 PCS receipts and two −4 PCS returns leave 8 PCS in the Stage 7 batch; PI-000001 reconciles to BDT 2,600 total, BDT 1,000 paid, BDT 1,250 credited, and BDT 350 outstanding. Backend purchasing rules, Prisma schema, migrations, and API contracts are unchanged. Existing Low deferred `BUG-008` and external Stage 6 tooling issue `BUG-034` remain unchanged.

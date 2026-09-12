@@ -248,6 +248,33 @@ Current gate status: **PASS (2026-09-12)**. Database reconciliation identified f
 - Human Chrome Inventory workflows, responsive checks at 1440 × 900 and 1280 × 720, and console inspection: PASS
 - Codex automated browser control: unavailable under external tooling issue `BUG-034`; not recorded as an application/browser PASS and does not invalidate the completed human acceptance
 
+## Approved V1 UI Redesign — Stage 7 Purchasing
+
+- [x] Split Purchasing into route-addressable Purchase Order, Goods Receipt, Supplier Invoice, Supplier Payment, and Purchase Return workspaces
+- [x] Preserve backend-owned lifecycle, document numbering, Decimal totals, idempotency, concurrency, permissions, and company/branch isolation
+- [x] Present partial receiving, explicit warehouse selection, direct conversion snapshots, and tile batch/lot/shade context
+- [x] Present invoice draft/post, supplier allocation/advance, payable, and received-only versus invoiced return effects from real APIs
+- [x] Add consistent document details, related-document navigation, reviewed high-risk dialogs, bounded search, and permission-aware actions
+- [x] Pass web/UI tests, lint, strict TypeScript, formatting, production build, Phase 8 and Phase 6 regressions, secret scan, and Git whitespace checks
+- [x] Pass production-browser purchasing workflows, responsive checks, clean-console inspection, and scoped API/database reconciliation
+- [x] Complete Stage 7 gate
+
+Current gate status: **PASS (2026-09-12)**. Stage 7 is complete within the approved Purchasing UI scope. The browser completed PO confirmation, two partial receipts with exact tile batch/shade, supplier invoice posting, partial allocation, received-only and invoiced returns, and related-document navigation. Scoped database reconciliation confirms the document, inventory, conversion, supplier-credit, and outstanding results. Backend APIs, Prisma schema, migrations, and business rules were not changed. Stage 8 has not started.
+
+### Stage 7 Gate — PASS (2026-09-12)
+
+- Web presentation tests and shared UI tests: PASS
+- Phase 8 purchasing and Phase 6 inventory integration regressions: PASS
+- Monorepo lint, strict TypeScript, formatting, Next.js production build, secret scan, and Git whitespace: PASS
+- Production browser UAT: PASS (PO-000001, GR-000001/000002, PI-000001, SP-000001, PR-000001/000002)
+- Partial receiving and exact tile conversion/batch/shade: PASS (4 BOX ordered, two 2 BOX receipts, factor 4, 16 PCS received)
+- Received-only versus invoiced return semantics: PASS (zero financial credit versus BDT 1,250 supplier credit)
+- Scoped inventory reconciliation: PASS (two +8 PCS receipts, two −4 PCS returns, final Stage 7 batch balance 8 PCS)
+- Supplier invoice reconciliation: PASS (BDT 2,600 total, BDT 1,000 paid, BDT 1,250 credited, BDT 350 outstanding)
+- Approved 1440 × 900 and 1280 × 720 layouts: PASS with no whole-page horizontal overflow
+- Browser console: PASS; browser-discovered `BUG-037` resolved before the final gate
+- Backend, Prisma schema, migration, and API contract diff: PASS (no changes)
+
 ## Phase Gate Log
 
 ### Phase 1 — PASS (2026-09-04)

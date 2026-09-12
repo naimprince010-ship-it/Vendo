@@ -4,6 +4,15 @@ All meaningful project changes are recorded here. This project follows a phase-o
 
 ## Unreleased
 
+### V1 UI redesign — Stage 7 Purchasing
+
+- Replaced the legacy Purchasing console with route-addressable Purchase Order, Goods Receipt, Supplier Invoice, Supplier Payment, and Purchase Return list, create, and detail workspaces using consistent light-first document patterns.
+- Added permission-aware lifecycle actions, reviewed high-impact dialogs, bounded search and pagination, explicit warehouse context, partial-receipt progress, adaptive tile batch/lot/shade receiving, backend-returned financial summaries, payment allocation/advance presentation, and received-only versus invoiced return impacts.
+- Added bidirectional related-document navigation across PO, receipt, invoice, payment, and return records without changing existing REST contracts or backend business rules.
+- Resolved `BUG-037`: PO and receipt details now tolerate the Phase 8 API's intentionally narrow product projection and resolve base-unit labels from bounded catalog references; focused tests prevent recurrence.
+- Production-browser UAT created and reconciled PO-000001, two partial receipts, PI-000001, SP-000001, and two return modes. Exact conversion and batch/shade movements leave 8 PCS; the invoice reconciles to BDT 2,600 total, BDT 1,000 paid, BDT 1,250 credited, and BDT 350 outstanding.
+- Verified responsive behavior at 1440 × 900 and 1280 × 720, related-document navigation, and a clean browser console, plus web/UI tests, Phase 8/6 regressions, lint, strict TypeScript, formatting, Next.js production build, secret scan, and Git whitespace checks. No backend, Prisma, migration, or API-contract changes were introduced.
+
 ### V1 UI redesign — Stage 6 Inventory
 
 - Replaced the legacy tabbed Inventory console with route-addressable Overview, Stock, Product Stock Detail, Low Stock, Batches, Counts, Transfers, and immutable Movement History workspaces.

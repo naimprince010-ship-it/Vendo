@@ -293,6 +293,8 @@ Commit: `ui: redesign inventory operations`
 
 ### Stage 7 — Purchasing (very high)
 
+Status: **PASS (2026-09-12)** — Purchase Orders, Goods Receipts, Supplier Invoices, Supplier Payments, and Purchase Returns are route-addressable and use consistent light-first document list/detail patterns. Production-browser UAT passes the PO lifecycle, two-stage partial tile receiving, exact conversion/batch/shade, invoice draft/post, partial allocation, received-only and invoiced returns, linked-document navigation, responsive layouts, and clean console. Scoped API/database reconciliation and Phase 8/6 regressions pass; backend contracts, Prisma, migrations, and business rules remain unchanged. Stage 8 has not started.
+
 Decompose the current purchasing console by document aggregate. Preserve PO, receipt, invoice, payment, and return separation.
 
 Expected files: modify/move `purchasing-console.tsx`; add purchase routes and `features/purchasing/*`.
