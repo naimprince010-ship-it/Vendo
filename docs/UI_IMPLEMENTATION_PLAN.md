@@ -281,13 +281,15 @@ Commit: `ui: redesign catalog and adaptive product editor`
 
 ### Stage 6 — Inventory (very high)
 
+Status: **PASS (2026-09-12)** — route-addressable Inventory overview, stock/detail, low-stock, batch/shade, deliberate opening/adjustment/damage/loss/transfer operations, physical-count lifecycle, and immutable movement presentation pass. Form-state defect `BUG-035` and physical-count zero-quantity defect `BUG-036` are resolved through focused tests, production builds, clean 16-migration replay, exact API/database reconciliation, and human Chrome acceptance at 1440 × 900 and 1280 × 720 with a clean console. External Codex browser-control issue `BUG-034` remains separately documented; no automated-browser PASS is claimed. Stage 7 has not started.
+
 Split stock, operations, batches, counts, transfers, and history into explicit views. Dangerous operations use reviewed dialogs, never browser confirmation.
 
 Expected files: modify/move `inventory-console.tsx`; add inventory routes and `features/inventory/*`.
 
 Acceptance: one base balance with derived equivalents, exact batch/shade, stock policy, opening/adjustment/damage/loss, transfer, count/reconciliation, idempotency, and movement/balance reconciliation pass.
 
-Commit: `ui: redesign inventory operations and movement history`
+Commit: `ui: redesign inventory operations`
 
 ### Stage 7 — Purchasing (very high)
 

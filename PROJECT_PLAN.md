@@ -223,6 +223,31 @@ Current gate status: **PASS (2026-09-12)**. Stage 5 is complete within the appro
 - Secret scan: PASS for the Stage 5 change set
 - No new Critical/High blocker remains; existing Low deferred `BUG-008` is unchanged
 
+## Approved V1 UI Redesign — Stage 6 Inventory
+
+- [x] Split Inventory into route-addressable overview, stock/detail, low-stock, batches, counts, transfers, and movements
+- [x] Present one authoritative base quantity with backend-provided derived equivalents and exact batch/shade context
+- [x] Build deliberate opening, adjustment, damage/loss, transfer, and reconciliation workflows against existing APIs
+- [x] Preserve permission-aware actions, bounded queries, idempotency keys, Decimal-safe presentation, and backend authority
+- [x] Pass web/UI tests, lint, strict TypeScript, formatting, production build, HTTP smoke, and affected Phase 6/8/9/10 regressions
+- [x] Pass interactive production browser workflows, responsive checks, and clean-console inspection
+- [x] Complete Stage 6 gate
+
+Current gate status: **PASS (2026-09-12)**. Database reconciliation identified frontend form-state defect `BUG-035`, and follow-up acceptance identified physical-count zero-quantity defect `BUG-036`; both are resolved and covered by focused tests. Human Chrome acceptance completed every required Inventory workflow at 1440 × 900 and 1280 × 720 with a clean console. API/database reconciliation confirms the zero-count 1→0 result, exact movement history, and transfer pair. Codex browser automation remained unavailable under external tooling issue `BUG-034`, so the gate records human Chrome acceptance rather than a false automated-browser PASS. Stage 7 has not started.
+
+### Stage 6 Gate — PASS (2026-09-12)
+
+- Web tests: PASS (17/17, including synchronous base-unit form state, non-negative count validation, and friendly count errors)
+- Shared UI tests: PASS (5/5)
+- Phase 6 plus affected Phase 8/9/10 API regression: PASS (4 suites, 28/28 tests, including 9/9 Phase 6 tests)
+- Monorepo lint and strict TypeScript: PASS (5/5 packages)
+- Next.js production build: PASS (18 routes, including dynamic Inventory subroutes)
+- API and Next.js production builds, Prisma validation/status, clean 16-migration replay, Prettier, Git whitespace, scoped secret scan, API health and Inventory HTTP route smoke: PASS
+- Active environment identity/direct API/database reconciliation: PASS (one intended API/database; exact opening, adjustments, damage, count variance, transfer pair, conversion snapshots, actor/timestamps, and final balances verified)
+- Zero-count validation/migration/UAT control: PASS (normal stock operations remain positive-only; count snapshot 1, counted 0, one −1 PCS reconciliation movement, final balance 0, idempotent retry, and clean 16-migration replay)
+- Human Chrome Inventory workflows, responsive checks at 1440 × 900 and 1280 × 720, and console inspection: PASS
+- Codex automated browser control: unavailable under external tooling issue `BUG-034`; not recorded as an application/browser PASS and does not invalidate the completed human acceptance
+
 ## Phase Gate Log
 
 ### Phase 1 — PASS (2026-09-04)

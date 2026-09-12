@@ -4,6 +4,17 @@ All meaningful project changes are recorded here. This project follows a phase-o
 
 ## Unreleased
 
+### V1 UI redesign — Stage 6 Inventory
+
+- Replaced the legacy tabbed Inventory console with route-addressable Overview, Stock, Product Stock Detail, Low Stock, Batches, Counts, Transfers, and immutable Movement History workspaces.
+- Added light-first, permission-aware stock operations for opening, explicit add/remove adjustment, damage/loss, and atomic warehouse transfer with multi-line entry, exact batch/shade selection, backend conversion previews, stable idempotency keys, and reviewed high-impact confirmation dialogs.
+- Added physical-count creation, draft entry editing, review/reopen/post reconciliation, expected/counted/variance presentation, and a human-readable stale-snapshot failure while retaining backend authority.
+- Found and fixed `BUG-035`: the shared Inventory stock-line editor visually showed a base unit while controlled state retained an empty `unitId`, so mutation review/create actions could remain silently blocked before any API request. Product selection now synchronously assigns the known base unit and all required-field failures are explicitly displayed.
+- Verified the active local environment identity and a direct authenticated control request, then reconciled opening stock, add/remove adjustment, rejected negative stock without mutation, exact-batch damage, physical-count variance reconciliation, and the correlated atomic BOX transfer through the same API/database. Final UAT balances and immutable movements match the accepted human workflows.
+- Post-fix human Chrome acceptance passes all required Inventory workflows, responsive checks at 1440 × 900 and 1280 × 720, reload persistence, and clean-console inspection. `BUG-034` remains separately documented as an external Codex browser-control issue; no automated-browser PASS is claimed.
+- Resolved `BUG-036` without relaxing normal stock operations: Physical Count uses a dedicated non-negative quantity DTO/domain path, raw nested regex failures are mapped to a human-readable message, and migration `20260912064000_phase6_zero_physical_count` permits zero only in count-item entered quantity. An isolated 16-migration replay and live UAT 1→0 count both pass; the latter produced exactly one −1 PCS reconciliation movement and no idempotent retry duplicate.
+- Final Stage 6 gate passes with 17/17 web tests, 5/5 shared UI tests, 9/9 focused Phase 6 tests, 28/28 combined Phase 6/8/9/10 tests, monorepo lint/typecheck, API and Next.js production builds, Prisma validation/status, clean migration replay, formatting, secret scan, Git whitespace, human Chrome acceptance, and API/database reconciliation.
+
 ### V1 UI redesign — Stage 5 catalog and product management
 
 - Replaced the monolithic catalog console with route-addressable product list, create/edit, detail, category, brand, manufacturer, and unit workspaces inside the approved light-first shell.

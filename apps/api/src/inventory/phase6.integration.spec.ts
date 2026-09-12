@@ -426,6 +426,136 @@ describe('Phase 6 inventory API', () => {
     expect(balance.baseQuantity.toFixed()).toBe('3');
   });
 
+  it('keeps stock transactions positive while validating physical counts as non-negative', async () => {
+    const positiveOnlyRequests = [
+      request(app.getHttpServer())
+        .post('/inventory/opening')
+        .set(auth(ownerToken))
+        .set('Idempotency-Key', key())
+        .send({
+          warehouseId,
+          reason: 'Zero opening is invalid',
+          lines: [{ productId: generalId, unitId: pcsId, quantity: '0' }],
+        }),
+      request(app.getHttpServer())
+        .post('/inventory/adjustments')
+        .set(auth(ownerToken))
+        .set('Idempotency-Key', key())
+        .send({
+          warehouseId,
+          direction: 'IN',
+          reason: 'Zero adjustment is invalid',
+          lines: [{ productId: generalId, unitId: pcsId, quantity: '0' }],
+        }),
+      request(app.getHttpServer())
+        .post('/inventory/damage')
+        .set(auth(ownerToken))
+        .set('Idempotency-Key', key())
+        .send({
+          warehouseId,
+          reason: 'Zero damage is invalid',
+          lines: [{ productId: generalId, unitId: pcsId, quantity: '0' }],
+        }),
+      request(app.getHttpServer())
+        .post('/inventory/loss')
+        .set(auth(ownerToken))
+        .set('Idempotency-Key', key())
+        .send({
+          warehouseId,
+          reason: 'Zero loss is invalid',
+          lines: [{ productId: generalId, unitId: pcsId, quantity: '0' }],
+        }),
+      request(app.getHttpServer())
+        .post('/inventory/transfers')
+        .set(auth(ownerToken))
+        .set('Idempotency-Key', key())
+        .send({
+          sourceWarehouseId: warehouseId,
+          destinationWarehouseId: warehouse2Id,
+          reason: 'Zero transfer is invalid',
+          lines: [{ productId: generalId, unitId: pcsId, quantity: '0' }],
+        }),
+    ];
+    const positiveOnlyResponses = await Promise.all(positiveOnlyRequests);
+    expect(positiveOnlyResponses.map((response) => response.status)).toEqual([
+      400, 400, 400, 400, 400,
+    ]);
+
+    const invalidCounts = await Promise.all([
+      request(app.getHttpServer())
+        .post('/inventory/counts')
+        .set(auth(ownerToken))
+        .send({
+          warehouseId,
+          countNumber: `COUNT-${suffix}-NEGATIVE`,
+          items: [{ productId: generalId, unitId: pcsId, quantity: '-1' }],
+        }),
+      request(app.getHttpServer())
+        .post('/inventory/counts')
+        .set(auth(ownerToken))
+        .send({
+          warehouseId,
+          countNumber: `COUNT-${suffix}-INVALID`,
+          items: [{ productId: generalId, unitId: pcsId, quantity: 'not-a-decimal' }],
+        }),
+    ]);
+    expect(invalidCounts.map((response) => response.status)).toEqual([400, 400]);
+    for (const response of invalidCounts) {
+      expect(
+        response.body.message.some((message: string) =>
+          message.endsWith('Counted quantity must be zero or greater.'),
+        ),
+      ).toBe(true);
+    }
+  });
+
+  it('accepts a zero physical count and posts only its reconciliation variance', async () => {
+    const count = await request(app.getHttpServer())
+      .post('/inventory/counts')
+      .set(auth(ownerToken))
+      .send({
+        warehouseId,
+        countNumber: `COUNT-${suffix}-ZERO`,
+        items: [{ productId: generalId, unitId: pcsId, quantity: '0' }],
+      })
+      .expect(201);
+    expect(count.body.items[0].snapshotQuantity).toBe('3');
+    expect(count.body.items[0].countedQuantity).toBe('0');
+    expect(count.body.items[0].transactionQuantity).toBe('0');
+
+    await request(app.getHttpServer())
+      .post(`/inventory/counts/${count.body.id}/review`)
+      .set(auth(ownerToken))
+      .expect(201);
+    const idempotencyKey = key();
+    const first = await request(app.getHttpServer())
+      .post(`/inventory/counts/${count.body.id}/post`)
+      .set(auth(ownerToken))
+      .set('Idempotency-Key', idempotencyKey)
+      .expect(201);
+    const retry = await request(app.getHttpServer())
+      .post(`/inventory/counts/${count.body.id}/post`)
+      .set(auth(ownerToken))
+      .set('Idempotency-Key', idempotencyKey)
+      .expect(201);
+    expect(retry.body.operationId).toBe(first.body.operationId);
+
+    const movements = await db.inventoryMovement.findMany({
+      where: {
+        companyId,
+        type: 'COUNT_RECONCILIATION',
+        referenceType: 'PHYSICAL_COUNT',
+        referenceId: count.body.id,
+      },
+    });
+    expect(movements).toHaveLength(1);
+    expect(movements[0].baseQuantity.toFixed()).toBe('-3');
+    const balance = await db.inventoryBalance.findFirstOrThrow({
+      where: { companyId, warehouseId, productId: generalId, batchId: null },
+    });
+    expect(balance.baseQuantity.toFixed()).toBe('0');
+  });
+
   it('returns base and derived stock, low stock and immutable movement history', async () => {
     const balances = await request(app.getHttpServer())
       .get('/inventory/balances')

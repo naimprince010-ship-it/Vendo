@@ -48,7 +48,7 @@ There are no independent box, piece, square-foot, or square-metre stock columns.
 
 Phase 6 adds `InventoryOperation`, `PhysicalCount`, and `PhysicalCountItem`. `InventoryOperation` owns a company-unique idempotency key, payload hash, operation type, actor, and stored result. A count belongs to one company/branch/warehouse, follows `DRAFT → IN_REVIEW → POSTED`, and stores line snapshots of base quantity and balance version. Count items retain the entered transaction unit, quantity, and factor while `countedQuantity` is the resolved authoritative base quantity.
 
-Nullable batch identities for batches, balances, and count positions use PostgreSQL `NULLS NOT DISTINCT`. Composite foreign keys prevent cross-company product/unit/batch and cross-branch warehouse relationships. Check constraints enforce positive conversion/transaction quantities, non-negative counted quantities, valid snapshot versions, consistent count state timestamps/actors, and SHA-256 operation hashes.
+Nullable batch identities for batches, balances, and count positions use PostgreSQL `NULLS NOT DISTINCT`. Composite foreign keys prevent cross-company product/unit/batch and cross-branch warehouse relationships. Check constraints enforce positive conversion and stock-movement transaction quantities, non-negative physical-count entered/resolved quantities, valid snapshot versions, consistent count state timestamps/actors, and SHA-256 operation hashes. A count may store zero `transactionQuantity`/`countedQuantity`; if reconciliation is required, the resulting movement still stores the positive absolute variance and a signed base delta.
 
 ## Cash, Expenses, Settings, and Audit
 
@@ -79,6 +79,8 @@ Only a future double-entry general ledger remains deliberately deferred. Purchas
 Phase 5 migration `20260906043323_phase5_catalog_foundation` normalizes company-owned manufacturers, adds a separate sanitary profile, permits unit-bound barcodes, and enforces one active conversion per company/product/unit. Existing manufacturer text is migrated before its legacy column is removed. Commercial factors remain `numeric(24,10)`; money remains `numeric(19,4)`.
 
 Phase 6 migrations `20260906060435_phase6_inventory_engine` and `20260906062000_phase6_inventory_constraints` add idempotent posting and physical counts, then restore/extend PostgreSQL-only null-safe indexes and checks after generated-SQL inspection. A clean five-migration replay has no drift.
+
+Corrective migration `20260912064000_phase6_zero_physical_count` changes only `PhysicalCountItem.transactionQuantity` from strictly positive to non-negative so a legitimate zero physical count can be drafted. Opening, adjustment, damage/loss, transfer, and immutable `InventoryMovement.transactionQuantity` remain strictly positive at the DTO/domain/database boundaries. All 16 migrations replay cleanly in an isolated database.
 
 Phase 9 migration `20260906220000_phase9_sales_pos` extends the existing sale aggregate with salesperson, pricing mode, configured-price snapshot, and override reason. `SalesDocumentSequence` allocates company-local invoice/payment numbers atomically; `SalesOperation` stores company-scoped completion idempotency keys, request hashes, and committed sale references. Composite register/cashier/salesperson indexes support branch history and operator reporting. PostgreSQL checks enforce completed-header settlement arithmetic and line snapshot arithmetic, while triggers reject completed `Sale`/`SaleItem` update or deletion.
 

@@ -451,3 +451,39 @@ No Critical/High sale-detail, historical snapshot, outstanding, collection, retu
 ## Stage 5 Verification Note — 2026-09-12
 
 No Critical/High catalog, adaptive-product-form, tile/sanitary separation, commercial conversion, unit-price, barcode, master-data lifecycle, search/pagination, responsive-layout, regression, or browser-console blocker remains. Production browser workflows used only synthetic local UAT records and verified product creation/editing, detail presentation, independent pricing, barcode search, category lifecycle, adaptive TILE/SANITARY fields, and clean-console behavior. Full API regression (15 suites/92 tests), 11 web tests, 5 shared UI tests, formatting, lint, strict TypeScript, and production builds pass. The transient Docker/PostgreSQL startup interruption was an environment availability issue; PostgreSQL recovered cleanly and the complete gate passed. The existing Low deferred `BUG-008` remains unchanged.
+
+## BUG-034 — Stage 6 browser-control runtime fails before navigation
+
+- **ID:** BUG-034
+- **Severity:** Medium
+- **Area:** Verification environment / V1 UI redesign Stage 6
+- **Description:** The Codex Desktop browser-control runtime cannot initialize, so the required interactive Inventory workflows, responsive checks, and browser-console inspection cannot run.
+- **Reproduction:** Initialize browser control for `http://localhost:3000/app/inventory` after the production web and API services are healthy.
+- **Expected:** Browser control initializes and can run the required tile stock, opening, adjustment, damage/loss, physical count, transfer, movement-history, responsive, and console checks.
+- **Actual:** Initialization fails before browser selection or Vendo navigation with `failed to write kernel assets: The system cannot find the path specified. (os error 3)`.
+- **Status:** Open — external Codex tooling issue, non-blocking for Stage 6 after the approved human-Chrome fallback. Human Inventory workflows, responsive checks, clean-console inspection, and independent API/database reconciliation pass; Codex automated browser control remains unverified and this is not a Vendo application defect.
+- **Related task:** Approved V1 UI redesign — Stage 6 Inventory acceptance
+
+## BUG-035 — Inventory mutation forms retained an empty unit ID
+
+- **ID:** BUG-035
+- **Severity:** High
+- **Area:** V1 UI redesign Stage 6 / Inventory mutation integration
+- **Description:** Selecting a product reset the controlled stock-line `unitId` to an empty string while the native unit selector visually displayed its first option. An asynchronous product-detail effect was expected to repair the state later, so every shared mutation form could look complete while client preflight remained invalid.
+- **Reproduction:** In Opening Stock, Adjustment, Damage/Loss, Transfer, or Physical Count, select a product and complete the visible fields before the product-detail synchronization repairs `unitId`; the review/create action remains silently disabled and no API request or database record is produced.
+- **Expected:** Product selection synchronously assigns the product base unit, all required-field failures are visible, and a valid submit reaches the existing authenticated Inventory API.
+- **Actual:** The displayed unit and controlled form value could disagree; validation silently blocked the mutation before the request layer.
+- **Status:** Resolved — product selection now synchronously sets the base-unit ID from the already-loaded catalog reference, the fragile effect was removed, and explicit line/location/reason/batch validation is surfaced. Focused tests, production builds, direct API controls, exact database reconciliation, Phase 6/8/9/10 regressions, and post-fix human Chrome mutation acceptance all pass.
+- **Related task:** Approved V1 UI redesign — Stage 6 Inventory mutation acceptance
+
+## BUG-036 — Physical Count rejected an exact zero quantity
+
+- **ID:** BUG-036
+- **Severity:** High
+- **Area:** Phase 6 Inventory / physical-count validation
+- **Description:** Physical Count reused the positive-only stock-operation line DTO and domain resolver, while its database check also required positive entered transaction quantity. A legitimate count of zero was rejected before draft creation.
+- **Reproduction:** In UAT-WH-2, create a count for `UAT-BASIN-01` with system stock 1 PCS and counted quantity 0 PCS.
+- **Expected:** Draft stores snapshot 1 and counted 0; posting creates one −1 PCS reconciliation movement and leaves balance at zero.
+- **Actual:** API returned the inherited positive-regex validation error and created no draft.
+- **Status:** Resolved — Physical Count now has a dedicated non-negative DTO, count-only domain resolution permits zero, the UI maps validation failures to `Counted quantity must be zero or greater.`, and additive migration `20260912064000_phase6_zero_physical_count` updates only the count-item constraint. UAT count `COUNT-UAT-ZERO-1789203188` posted idempotently with snapshot 1, counted 0, exactly one −1 PCS movement, and a final zero balance. Human Chrome reload/presentation acceptance and independent API/database reconciliation pass.
+- **Related task:** Approved V1 UI redesign — Stage 6 physical-count acceptance

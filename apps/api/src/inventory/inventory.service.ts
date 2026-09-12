@@ -20,6 +20,7 @@ import type {
   AdjustmentDto,
   BatchListQueryDto,
   BatchStatusDto,
+  CountLineDto,
   CountListQueryDto,
   CreateBatchDto,
   CreatePhysicalCountDto,
@@ -832,10 +833,10 @@ export class InventoryService {
     companyId: string,
     countId: string,
     warehouseId: string,
-    items: StockLineDto[],
+    items: CountLineDto[],
   ) {
     for (const input of items) {
-      const position = await this.resolvePosition(tx, companyId, input);
+      const position = await this.resolvePosition(tx, companyId, input, true);
       await this.lock(tx, companyId, warehouseId, position.productId, position.batchId);
       const balance = await this.currentBalance(
         tx,
@@ -888,7 +889,12 @@ export class InventoryService {
     return count;
   }
 
-  private async resolvePosition(tx: Tx, companyId: string, line: StockLineDto): Promise<Position> {
+  private async resolvePosition(
+    tx: Tx,
+    companyId: string,
+    line: StockLineDto | CountLineDto,
+    allowZero = false,
+  ): Promise<Position> {
     const product = await tx.product.findFirst({
       where: { id: line.productId, companyId, isActive: true, trackInventory: true },
       select: {
@@ -925,8 +931,16 @@ export class InventoryService {
     }
     const transactionQuantity = q6(line.quantity);
     const baseQuantity = q6(transactionQuantity.mul(conversionFactor));
-    if (!transactionQuantity.isPositive() || !baseQuantity.isPositive())
-      throw new BadRequestException('Quantity must resolve to a positive base quantity');
+    const invalidQuantity = allowZero
+      ? transactionQuantity.isNegative() || baseQuantity.isNegative()
+      : !transactionQuantity.isPositive() || !baseQuantity.isPositive();
+    if (invalidQuantity) {
+      throw new BadRequestException(
+        allowZero
+          ? 'Counted quantity must be zero or greater.'
+          : 'Quantity must resolve to a positive base quantity',
+      );
+    }
     return {
       productId: product.id,
       batchId,

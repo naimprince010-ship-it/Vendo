@@ -23,7 +23,7 @@ Each movement records company, branch, warehouse, product, optional batch, signe
 - Adjustments support explicit IN/OUT direction and a required reason. Damage and loss are distinct outbound types.
 - A batch is required exactly when `Product.batchTracking` is enabled. Batch masters store batch/lot/shade metadata; availability exists only in batch-keyed balances.
 - Transfers atomically post correlated `TRANSFER_OUT` and `TRANSFER_IN` movements. Source and destination positions are locked in sorted order, and both branches must be available to the actor.
-- Physical counts capture the live balance/version in draft, permit draft item replacement, move through review, can be reopened, and reject posting if any snapshot is stale. Only the variance becomes `COUNT_RECONCILIATION` movement(s).
+- Physical counts capture the live balance/version in draft, permit a counted quantity of zero or greater, permit draft item replacement, move through review, can be reopened, and reject posting if any snapshot is stale. Only the absolute non-zero variance becomes the positive transaction quantity of a signed `COUNT_RECONCILIATION` movement; a zero count never relaxes the strictly-positive quantity rule for other inventory operations.
 - Balance, batch, low-stock, count, and immutable movement-history endpoints are paginated/bounded and company/branch scoped.
 
 ## Concurrency and Retry

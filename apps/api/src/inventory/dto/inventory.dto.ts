@@ -20,11 +20,15 @@ import { InventoryMovementType, PhysicalCountStatus } from '../../generated/pris
 const trim = ({ value }: { value: unknown }): unknown =>
   typeof value === 'string' ? value.trim() : value;
 const positiveDecimal = /^(?:0\.\d*[1-9]\d*|[1-9]\d*(?:\.\d+)?)$/;
+const nonNegativeDecimal = /^(?:0(?:\.\d+)?|[1-9]\d*(?:\.\d+)?)$/;
 
-export class StockLineDto {
+class InventoryLineIdentityDto {
   @IsUUID('4') productId!: string;
   @IsUUID('4') unitId!: string;
   @IsUUID('4') @IsOptional() batchId?: string;
+}
+
+export class StockLineDto extends InventoryLineIdentityDto {
   @Transform(trim) @Matches(positiveDecimal) quantity!: string;
 }
 
@@ -89,7 +93,11 @@ export class BatchListQueryDto extends InventoryListQueryDto {
   isActive?: boolean;
 }
 
-export class CountLineDto extends StockLineDto {}
+export class CountLineDto extends InventoryLineIdentityDto {
+  @Transform(trim)
+  @Matches(nonNegativeDecimal, { message: 'Counted quantity must be zero or greater.' })
+  quantity!: string;
+}
 
 export class CreatePhysicalCountDto {
   @IsUUID('4') warehouseId!: string;
