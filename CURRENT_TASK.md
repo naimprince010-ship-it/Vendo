@@ -1,61 +1,59 @@
 # Current Phase
 
-Approved V1 UI Redesign — Stage 4 Sale Detail and Post-Sale Workflows
+Approved V1 UI Redesign — Stage 5 Catalog
 
 # Current Task
 
-Move the verified Phase 10 post-sale workflows out of the cashier POS screen into a route-addressable, light-first sale-detail workspace without changing backend business rules or request contracts.
+Redesign the existing catalog and product-management experience into route-addressable, light-first workspaces without changing backend business logic, database schema, or API contracts.
 
 # Objective
 
-Deliver a professional immutable invoice view with backend-derived financial state, chronological payment history, deliberate collection/return/refund/exchange/void workflows, and print/reprint access at the approved desktop breakpoints.
+Deliver professional product list, adaptive product editor, product detail, category, brand, manufacturer, and unit workspaces that preserve the verified reusable product core, tile/sanitary separation, Decimal conversions, unit pricing, barcode behavior, lifecycle rules, company isolation, and permission enforcement.
 
 # Dependencies
 
-- Verified Stage 3 commit `78841d96602c6cc6663046e61ca9fef686a33202`
-- Approved Vendo light-first design direction and Stage 2 application shell
-- Verified Phase 9 sale and Phase 10 split-payment/due/return foundations
-- `docs/UI_IMPLEMENTATION_PLAN.md`, `docs/FIGMA_FUNCTIONAL_MAP.md`, and existing UI audit artifacts
-- Existing production-rollout preparation remains paused and preserved; no external deployment is authorized
+- Verified Stage 4 sale-detail and post-sale implementation
+- Approved Vendo light-first design system and Stage 2 application shell
+- Verified Phase 5 catalog APIs, permissions, Decimal conversion rules, and tenant boundaries
+- `docs/UI_IMPLEMENTATION_PLAN.md`, `docs/TILE_DOMAIN.md`, and `docs/UNIT_CONVERSION.md`
+- Existing production-rollout preparation and UI-audit artifacts remain preserved
 
 # Expected Files To Change
 
-- `apps/web/src/app/app/sales/*`
-- `apps/web/src/features/sales/*`
-- Bounded navigation links from the existing POS/history surfaces
-- Existing invoice presentation export for print/reprint reuse
-- Focused frontend characterization tests
+- `apps/web/src/app/app/catalog-console.tsx`
+- `apps/web/src/features/catalog/*`
+- Focused catalog presentation tests
 - Governance documentation
 
 # Acceptance Criteria
 
-- Sale history and direct sale-detail routes show immutable product, unit, conversion, tile, batch, shade, pricing, discount, tax, and payment snapshots.
-- Current outstanding, credits, refunds, collections, and exchange effects use backend-derived state without duplicate financial arithmetic.
-- Collection, partial/full return, exact restock, refund, atomic exchange, and compensating void workflows are deliberate, permission-aware, idempotent, and recoverable.
-- Linked exchange invoices and thermal/A4 print access remain directly reachable from sale detail.
-- Sale Detail fits 1440 × 900 and 1280 × 720 without whole-page horizontal scrolling.
-- Existing payloads, backend authority, inventory/ledger invariants, branch/register/warehouse context, and Stage 2 shell remain unchanged.
-- Affected Phase 9/10 regression suites and all required frontend/browser gates pass.
+- Products, categories, brands, manufacturers, and units are route-addressable inside the approved shell.
+- Product search/filtering/pagination use real server APIs and barcode lookup remains reusable for POS.
+- Product create/edit adapts to TILE, SANITARY, ACCESSORY, and GENERAL without exposing irrelevant fields.
+- Tile dimensions and nominal coverage remain informational while configured commercial conversions remain authoritative.
+- Product-specific direct-to-base conversions, independent unit prices, barcodes, lifecycle controls, and cost visibility preserve backend validation and permissions.
+- No fake stock, backend logic, database schema, migration, or API contract change is introduced.
+- Browser workflows, responsive layouts, full regressions, lint, TypeScript, formatting, and production builds pass.
 
 # Verification Required
 
 - `pnpm format:check`
-- Web lint, strict TypeScript, and tests
-- `pnpm --filter @vendo/web build`
-- Affected Phase 9 and Phase 10 API regression tests, including concurrency/invariants
-- Production browser POS workflow and console inspection
-- Figma comparison at 1440 × 900 and 1280 × 720
-- `git diff --check` and backend/schema/API-contract diff review
+- Full monorepo lint, strict TypeScript, tests, and production build
+- Phase 5 API regression tests
+- Production browser catalog workflows and console inspection
+- 1440 × 900 and 1280 × 720 responsive checks
+- `git diff --check`, secret scan, and backend/schema/API-contract diff review
 
 # Status
 
-PASS (2026-09-11). The approved light-first Sale Detail and post-sale workspace is implemented and verified. Eight web tests, warning-free ESLint, strict TypeScript, formatting, the Next.js production build, Phase 9/10 API regressions (14/14), production browser collection/return/refund/exchange/void workflows, customer-ledger and exact batch/shade inventory verification, linked exchange navigation, print/reprint access, responsive checks, and clean browser console inspection all pass. No backend, Prisma schema, migration, or API contract changed.
+PASS (2026-09-12). The approved light-first catalog and product-management workspaces are implemented and verified. Product/master-data routes, adaptive product creation/editing, tile/sanitary detail presentation, direct-to-base conversions, independent unit prices, multiple barcodes, lifecycle actions, server-side search/filtering/pagination, unsaved-change protection, and permission-aware cost controls use the existing real APIs. Full monorepo tests pass (API 15 suites/92 tests, web 11 tests, UI 5 tests), as do lint, strict TypeScript, formatting, production builds, responsive browser acceptance, and clean-console inspection. No backend, Prisma schema, migration, or API contract changed.
 
 # Blockers
 
-- No Stage 4 blocker remains.
+- No Stage 5 blocker remains.
+- The existing Low deferred `BUG-008` remains unchanged.
 - Pre-existing uncommitted production-rollout and UI-audit artifacts remain preserved and must not be discarded.
 
 # Next Approved Task
 
-Stage 5 — Catalog only after explicit approval. Do not begin it automatically.
+Stage 6 — Inventory only after explicit approval. Do not begin it automatically.

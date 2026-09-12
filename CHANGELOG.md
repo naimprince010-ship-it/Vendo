@@ -4,6 +4,15 @@ All meaningful project changes are recorded here. This project follows a phase-o
 
 ## Unreleased
 
+### V1 UI redesign — Stage 5 catalog and product management
+
+- Replaced the monolithic catalog console with route-addressable product list, create/edit, detail, category, brand, manufacturer, and unit workspaces inside the approved light-first shell.
+- Added real server-side search, filters, pagination, barcode lookup, lifecycle controls, and adaptive product forms for TILE, SANITARY, ACCESSORY, and GENERAL products.
+- Presented tile dimensions and nominal coverage as informational metadata while retaining configured commercial coverage and direct-to-base conversions as authoritative; independent unit-specific prices remain unchanged.
+- Added product-detail management for conversions, retail/wholesale/minimum prices, and multiple unit barcodes, with existing permission-aware cost visibility and backend validation preserved.
+- Added unsaved-change protection and focused deterministic catalog presentation tests without changing backend logic, Prisma schema, migrations, or API contracts.
+- Verified production browser workflows at 1440 × 900 and 1280 × 720 with a clean console, full API regression (15 suites/92 tests), 11/11 web tests, 5/5 UI tests, monorepo lint/typecheck/build, formatting, Git whitespace, and secret checks. Stage 5 is PASS; Stage 6 has not started.
+
 ### V1 UI redesign — Stage 4 sale detail and post-sale workflows
 
 - Added route-addressable sales history and sale detail with immutable invoice-line snapshots, tile size, conversion, exact batch/lot/shade, pricing mode, customer/register/cashier context, and a backend-derived outstanding state.

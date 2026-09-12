@@ -269,6 +269,8 @@ Commit: `ui: redesign sale detail and post-sale workflows`
 
 ### Stage 5 — Catalog (high)
 
+Status: **PASS (2026-09-12)** — route-addressable product and master-data workspaces, adaptive TILE/SANITARY/ACCESSORY/GENERAL editing, real server-side search, coherent Decimal conversion and independent pricing presentation, barcode/lifecycle operations, responsive browser acceptance, and full regressions pass. Stage 6 has not started.
+
 Split the current catalog console into route-level product list/detail/editor and master-data workspaces. Use adaptive sections for TILE, SANITARY, ACCESSORY, and GENERAL.
 
 Expected files: modify/move `catalog-console.tsx`; add product routes and `features/catalog/*`.

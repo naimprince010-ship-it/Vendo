@@ -197,6 +197,32 @@ Current gate status: **PASS (2026-09-11)**. Stage 4 is complete within the appro
 - Backend, Prisma schema, migration, and API contract diff: PASS (no changes)
 - Browser-discovered `BUG-033`: resolved before the final gate
 
+## Approved V1 UI Redesign — Stage 5 Catalog
+
+- [x] Split catalog navigation into route-addressable product and master-data workspaces
+- [x] Build server-side product search, filters, pagination, and barcode lookup
+- [x] Build adaptive TILE, SANITARY, ACCESSORY, and GENERAL product creation/editing
+- [x] Present tile dimensions, commercial coverage, direct-to-base conversions, prices, and barcodes coherently
+- [x] Preserve product lifecycle, permissions, tenant isolation, and unsaved-change protection
+- [x] Preserve backend/API/database contracts and avoid fake inventory state
+- [x] Pass full regressions, frontend gates, production browser workflows, responsive review, and clean console
+- [x] Complete Stage 5 gate
+
+Current gate status: **PASS (2026-09-12)**. Stage 5 is complete within the approved catalog scope; backend/API/database behavior was not redesigned, and Stage 6 inventory redesign has not started.
+
+### Stage 5 Gate — PASS (2026-09-12)
+
+- Catalog presentation helpers and focused web tests: PASS (11/11 web tests overall)
+- Full API regression suite: PASS (15 suites, 92/92 tests), including Phase 5 catalog integration
+- Shared UI regression suite: PASS (5/5 tests)
+- Monorepo formatting, lint, strict TypeScript, production builds, and Git whitespace checks: PASS
+- Interactive production workflows: PASS (product list/search/filter, adaptive create/edit, tile and general detail, conversion/price/barcode management, and master-data lifecycle)
+- Approved 1440 × 900 and 1280 × 720 layouts: PASS with no observed whole-page horizontal overflow
+- Browser console: PASS (no errors, warnings, hydration failures, React errors, or missing asset/style reports)
+- Backend, Prisma schema, migration, and API contract diff: PASS (no changes)
+- Secret scan: PASS for the Stage 5 change set
+- No new Critical/High blocker remains; existing Low deferred `BUG-008` is unchanged
+
 ## Phase Gate Log
 
 ### Phase 1 — PASS (2026-09-04)
