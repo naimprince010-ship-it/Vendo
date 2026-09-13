@@ -4,7 +4,7 @@ import { PartiesConsole } from '../parties-console';
 export default function SuppliersPage() {
   return (
     <PermissionGate permissions={['supplier.view']}>
-      <PartiesConsole initialTab="suppliers" />
+      <PartiesConsole />
     </PermissionGate>
   );
 }

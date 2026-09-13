@@ -584,7 +584,7 @@ export class PartiesService {
         ? await this.db.$transaction([
             this.db.customerLedgerEntry.findMany({
               where: where as Prisma.CustomerLedgerEntryWhereInput,
-              orderBy: [{ effectiveAt: 'desc' }, { id: 'desc' }],
+              orderBy: [{ effectiveAt: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
               skip,
               take: query.limit,
               include: { createdBy: { select: { id: true, firstName: true, lastName: true } } },
@@ -600,7 +600,7 @@ export class PartiesService {
         : await this.db.$transaction([
             this.db.supplierLedgerEntry.findMany({
               where: where as Prisma.SupplierLedgerEntryWhereInput,
-              orderBy: [{ effectiveAt: 'desc' }, { id: 'desc' }],
+              orderBy: [{ effectiveAt: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
               skip,
               take: query.limit,
               include: { createdBy: { select: { id: true, firstName: true, lastName: true } } },

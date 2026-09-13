@@ -305,6 +305,8 @@ Commit: `ui: redesign purchasing document workflows`
 
 ### Stage 8 — Customers and suppliers (high)
 
+Status: **PASS (2026-09-13)** — route-addressable Customer Groups, Customers, protected Walk-in Customer, Customer Detail/Ledger, Suppliers, and Supplier Detail/Ledger workspaces use company-scoped real APIs, bounded search/pagination, permission-aware reviewed actions, exact Decimal balance semantics, and related Sales/Purchasing navigation. Production-browser UAT passes customer and supplier lifecycle, credit-limit, opening/correction/adjustment, receivable/advance and payable/advance interpretation, same-effective-date order after reload, 1440 × 900 and 1280 × 720 layouts, and clean-console inspection. `BUG-038` is resolved by deterministic ledger query ordering with focused regression coverage; no Prisma schema, migration, API shape, or financial semantic changed. Stage 9 has not started.
+
 Compose shared party-list/contact/ledger primitives without creating a polymorphic backend abstraction.
 
 Expected files: modify/move `parties-console.tsx`; add customer/supplier routes and `features/parties/*`.

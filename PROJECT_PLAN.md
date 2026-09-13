@@ -275,6 +275,30 @@ Current gate status: **PASS (2026-09-12)**. Stage 7 is complete within the appro
 - Browser console: PASS; browser-discovered `BUG-037` resolved before the final gate
 - Backend, Prisma schema, migration, and API contract diff: PASS (no changes)
 
+## Approved V1 UI Redesign — Stage 8 Customers and Suppliers
+
+- [x] Split Customers, Customer Groups, Customer Detail, Suppliers, and Supplier Detail into route-addressable workspaces
+- [x] Preserve company-scoped lifecycle, Walk-in protection, Decimal balances, immutable ledgers, idempotency, permissions, and tenant isolation
+- [x] Present customer receivable/advance and supplier payable/advance semantics from backend-authoritative balances
+- [x] Add deliberate credit-limit, opening-balance, correction, adjustment, and lifecycle workflows with related Sales/Purchasing navigation
+- [x] Add bounded server-side search, active-state filtering, pagination, permission-aware controls, responsive layouts, and clean-console browser acceptance
+- [x] Resolve `BUG-038` with deterministic same-effective-date ledger ordering and focused customer/supplier regression coverage
+- [x] Pass web/UI tests, full API and Phase 7/8/9/10 regressions, lint, strict TypeScript, formatting, production builds, Prisma validation/status, secret scan, and Git whitespace checks
+- [x] Complete Stage 8 gate
+
+Current gate status: **PASS (2026-09-13)**. Stage 8 is complete within the approved Customers and Suppliers UI scope. Production-browser acceptance verifies company-scoped list/detail/lifecycle workflows, protected Walk-in behavior, credit-limit review, opening/correction/adjustment history, signed customer/supplier balances, related Sales/Purchasing context, deterministic same-effective-date ledger ordering after reload, 1440 × 900 and 1280 × 720 layouts, and a clean console. `BUG-038` changed query ordering only; Prisma schema, migrations, API response shapes, ledger amounts, sign conventions, posting logic, idempotency, and immutability remain unchanged. Stage 9 has not started.
+
+### Stage 8 Gate — PASS (2026-09-13)
+
+- Web presentation tests and shared UI tests: PASS (25/25 and 5/5)
+- Focused Phase 7/8/9/10 regressions: PASS (26/26); complete API regression: PASS (15 suites, 95 tests)
+- BUG-038 same-effective-date order, running balance, final balance, immutability, and pagination stability: PASS
+- Monorepo lint, strict TypeScript, API/Next.js production builds, Prisma validation/status, formatting, secret scan, and Git whitespace: PASS
+- Production browser Customer/Walk-in/Supplier/lifecycle/ledger/related-document UAT: PASS
+- Approved 1440 × 900 and 1280 × 720 layouts: PASS with no whole-page horizontal overflow
+- Browser console: PASS; zero application errors or warnings
+- Backend scope review: PASS (only approved ledger ordering changed; no schema, migration, API-shape, or financial-rule change)
+
 ## Phase Gate Log
 
 ### Phase 1 — PASS (2026-09-04)

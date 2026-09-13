@@ -503,3 +503,19 @@ No Critical/High catalog, adaptive-product-form, tile/sanitary separation, comme
 ## Stage 7 Verification Note — 2026-09-12
 
 No Critical/High Purchase Order, partial-receipt, batch/shade, invoice, supplier-payment allocation, payable, purchase-return, responsive-layout, regression, or browser-console blocker remains. `BUG-037` was found and resolved during production-browser acceptance. Synthetic local UAT documents reconcile to the scoped database: two +8 PCS receipts and two −4 PCS returns leave 8 PCS in the Stage 7 batch; PI-000001 reconciles to BDT 2,600 total, BDT 1,000 paid, BDT 1,250 credited, and BDT 350 outstanding. Backend purchasing rules, Prisma schema, migrations, and API contracts are unchanged. Existing Low deferred `BUG-008` and external Stage 6 tooling issue `BUG-034` remain unchanged.
+
+## BUG-038 — Same-date party ledger entries return misleading running balances
+
+- **ID:** BUG-038
+- **Severity:** High
+- **Area:** Phase 7 party ledger API / Stage 8 Customers and Suppliers acceptance
+- **Description:** Party ledger history sorts entries by `effectiveAt DESC, id DESC`. The UI posts date-only opening balances and corrections at the same effective timestamp, while UUID IDs are random. The API can therefore calculate per-entry running balances in a different order from posting chronology.
+- **Reproduction:** Post a customer opening receivable of BDT 1,200.1250 and then correct the opening balance to BDT 1,000.1000 using the same effective date. The final authoritative customer balance is BDT 1,000.1000, but the returned rows show BDT 1,000.1000 beside the opening entry and −BDT 200.0250 beside the later correction.
+- **Expected:** The newest correction row shows the final BDT 1,000.1000 balance and the earlier opening row shows BDT 1,200.1250, with deterministic ordering for entries sharing an effective timestamp.
+- **Actual:** Random UUID ordering can place the opening entry ahead of the later correction, making otherwise correctly calculated row balances misleading.
+- **Status:** Resolved — both customer and supplier ledger queries now order by `effectiveAt DESC`, `createdAt DESC`, then `id DESC`. Focused integration coverage verifies identical-effective-date opening/correction order, correct per-entry running balances, unchanged final balances, immutable rows, and stable pagination. Production-browser reloads preserve customer and supplier order/sign semantics with a clean console. No schema, migration, API shape, financial sign, posting, idempotency, or immutability rule changed.
+- **Related task:** Approved V1 UI redesign — Stage 8 Customers and Suppliers acceptance
+
+## Stage 8 Verification Note — 2026-09-13
+
+No Critical/High Customer Group, Customer, Walk-in, credit-limit, opening/correction, immutable-ledger, Supplier, search/pagination, permission, responsive-layout, or browser-console blocker remains. `BUG-038` was found during production-browser acceptance and resolved with deterministic query ordering plus focused regression coverage. Existing Low deferred `BUG-008` and external tooling issue `BUG-034` remain unchanged and do not represent Stage 8 application defects.

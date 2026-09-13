@@ -253,6 +253,62 @@ describe('Phase 7 customer and supplier API', () => {
     ).rejects.toThrow(/immutable/i);
   });
 
+  it('orders same-effective-date customer entries chronologically with stable running balances', async () => {
+    const sameDateCustomer = await request(app.getHttpServer())
+      .post('/customers')
+      .set(auth(ownerToken))
+      .send({ code: 'CUS-SAME-DATE', name: 'Same Date Customer' })
+      .expect(201);
+    const effectiveAt = '2026-02-01T00:00:00.000Z';
+    const opening = await request(app.getHttpServer())
+      .post(`/customers/${sameDateCustomer.body.id}/ledger/opening`)
+      .set(auth(ownerToken))
+      .set('Idempotency-Key', key())
+      .send({ amount: '1200.1250', effectiveAt, description: 'Same-date opening' })
+      .expect(201);
+    await new Promise((resolve) => setTimeout(resolve, 5));
+    const correction = await request(app.getHttpServer())
+      .post(`/customers/${sameDateCustomer.body.id}/ledger/opening-corrections`)
+      .set(auth(ownerToken))
+      .set('Idempotency-Key', key())
+      .send({ correctedAmount: '1000.1000', effectiveAt, reason: 'Same-date correction' })
+      .expect(201);
+
+    const ledger = await request(app.getHttpServer())
+      .get(`/customers/${sameDateCustomer.body.id}/ledger?limit=10`)
+      .set(auth(ownerToken))
+      .expect(200);
+    expect(ledger.body.balance).toBe('1000.1000');
+    expect(ledger.body.items.map(({ id }: { id: string }) => id)).toEqual([
+      correction.body.id,
+      opening.body.id,
+    ]);
+    expect(
+      ledger.body.items.map(({ runningBalance }: { runningBalance: string }) => runningBalance),
+    ).toEqual(['1000.1000', '1200.1250']);
+
+    const firstPages = await Promise.all(
+      Array.from({ length: 3 }, () =>
+        request(app.getHttpServer())
+          .get(`/customers/${sameDateCustomer.body.id}/ledger?page=1&limit=1`)
+          .set(auth(ownerToken))
+          .expect(200),
+      ),
+    );
+    const secondPages = await Promise.all(
+      Array.from({ length: 3 }, () =>
+        request(app.getHttpServer())
+          .get(`/customers/${sameDateCustomer.body.id}/ledger?page=2&limit=1`)
+          .set(auth(ownerToken))
+          .expect(200),
+      ),
+    );
+    expect(firstPages.map(({ body }) => body.items[0].id)).toEqual(
+      Array(3).fill(correction.body.id),
+    );
+    expect(secondPages.map(({ body }) => body.items[0].id)).toEqual(Array(3).fill(opening.body.id));
+  });
+
   it('serializes concurrent opening posts without creating duplicate financial history', async () => {
     const concurrentCustomer = await request(app.getHttpServer())
       .post('/customers')
@@ -306,7 +362,7 @@ describe('Phase 7 customer and supplier API', () => {
       .set(auth(ownerToken))
       .expect(200);
     expect(found.body.items[0].id).toBe(supplierId);
-    await request(app.getHttpServer())
+    const opening = await request(app.getHttpServer())
       .post(`/suppliers/${supplierId}/ledger/opening`)
       .set(auth(ownerToken))
       .set('Idempotency-Key', key())
@@ -316,7 +372,8 @@ describe('Phase 7 customer and supplier API', () => {
         description: 'Opening supplier payable',
       })
       .expect(201);
-    await request(app.getHttpServer())
+    await new Promise((resolve) => setTimeout(resolve, 5));
+    const correction = await request(app.getHttpServer())
       .post(`/suppliers/${supplierId}/ledger/opening-corrections`)
       .set(auth(ownerToken))
       .set('Idempotency-Key', key())
@@ -332,6 +389,19 @@ describe('Phase 7 customer and supplier API', () => {
       .expect(200);
     expect(ledger.body.balance).toBe('-25.2500');
     expect(ledger.body.items[0].debit).not.toBe('0.0000');
+    expect(ledger.body.items.map(({ id }: { id: string }) => id)).toEqual([
+      correction.body.id,
+      opening.body.id,
+    ]);
+    expect(
+      ledger.body.items.map(({ runningBalance }: { runningBalance: string }) => runningBalance),
+    ).toEqual(['-25.2500', '999.9999']);
+    await expect(
+      db.supplierLedgerEntry.update({
+        where: { id: correction.body.id },
+        data: { amount: '-1.0000' },
+      }),
+    ).rejects.toThrow(/immutable/i);
   });
 
   it('enforces permissions and rejects cross-company party and ledger access', async () => {

@@ -4,6 +4,14 @@ All meaningful project changes are recorded here. This project follows a phase-o
 
 ## Unreleased
 
+### V1 UI redesign — Stage 8 Customers and Suppliers
+
+- Replaced the legacy party console with route-addressable Customer Groups, Customers, protected Walk-in Customer, Customer Detail/Ledger, Suppliers, and Supplier Detail/Ledger workspaces using the approved light-first list/detail patterns.
+- Added real company-scoped search, active-state filtering, bounded pagination, lifecycle actions, credit-limit review, opening/correction/adjustment workflows, exact Decimal receivable/advance and payable/advance presentation, and related Sales/Purchasing navigation.
+- Resolved `BUG-038` with deterministic customer and supplier ledger ordering by effective time, creation time, and ID; focused regressions cover identical-effective-date ordering, running-balance mapping, unchanged final balances, immutability, and pagination stability.
+- Production-browser UAT verified customer/group/supplier workflows, Walk-in protection, same-date ledger ordering after reload, signed balance semantics, 1440 × 900 and 1280 × 720 layouts, and a clean console.
+- Verified 25/25 web tests, 5/5 shared UI tests, 26/26 focused Phase 7/8/9/10 regressions, complete API regression (15 suites/95 tests), monorepo lint/typecheck, API and Next.js production builds, Prisma validation/status, formatting, secret scan, and Git whitespace. No Prisma schema, migration, API response shape, ledger amount, sign convention, posting, idempotency, or immutability change was introduced.
+
 ### V1 UI redesign — Stage 7 Purchasing
 
 - Replaced the legacy Purchasing console with route-addressable Purchase Order, Goods Receipt, Supplier Invoice, Supplier Payment, and Purchase Return list, create, and detail workspaces using consistent light-first document patterns.
