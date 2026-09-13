@@ -329,13 +329,15 @@ Commit: `ui: redesign cash shifts and expenses`
 
 ### Stage 10 — Dashboard and reports (high)
 
+Status: **PASS (2026-09-13)** — the operational Dashboard and Sales, Products/Tiles, Inventory, Purchasing, Customer, Supplier, Expense, Cash, and Financial Summary reports are route-addressable light-first workspaces backed by the verified Phase 12 APIs. Browser and database reconciliation confirm event-period sales/return semantics, collection non-revenue treatment, authoritative base stock, ledger-derived party positions, expense/cash definitions, restricted profit visibility, responsive layouts, and clean consoles. Server CSV responses pass with active filters and permissions; the in-app browser did not expose its blob download event, so no browser-download event PASS is claimed. `BUG-039` remains separately open and did not block Stage 10. Stage 11 has not started.
+
 Apply the approved operational hierarchy to real report data. Replace dynamic generic presentation only where a domain column schema can be defined without changing API definitions.
 
 Expected files: modify/move `reporting-console.tsx`; add dashboard/report routes, `features/reporting/*`, and shared metric/report-table components.
 
 Acceptance: report permissions, branch/date/search filters, all current report kinds, event-period definitions, gross-profit rules, CSV exports, empty/loading/error states, and bounded pagination pass.
 
-Commit: `ui: redesign dashboard and report workspaces`
+Commit: `ui: redesign dashboard and reports`
 
 ### Stage 11 — Administration and settings (high)
 

@@ -535,3 +535,7 @@ No Critical/High Customer Group, Customer, Walk-in, credit-limit, opening/correc
 ## Stage 9 Verification Note — 2026-09-13
 
 No Critical/High Current Shift, opening-float, Expected Cash, cash-source mapping, manual movement, expense, reversal, closing, variance, responsive-layout, or Stage 9 console blocker remains. Production-browser UAT and PostgreSQL reconciliation pass, including exact cash versus non-cash collection/supplier-payment behavior and unique automatic source movements. `BUG-039` is a separate Medium pre-existing Purchasing-list defect and did not require or receive an out-of-scope code change.
+
+## Stage 10 Verification Note — 2026-09-13
+
+No Critical/High Dashboard, Sales, Product/Tile, Inventory, Purchasing, Customer, Supplier, Expense, Cash, Financial Summary, permission, timezone, export-response, responsive-layout, or browser-console blocker remains. Production-browser results reconcile to the scoped API/PostgreSQL data, and profit data is absent for a restricted reporting user. `BUG-039` remains Open as a separate Medium pre-existing Purchasing payment-list defect; it did not block the Stage 10 Purchasing report and received no out-of-scope change.

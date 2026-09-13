@@ -1,5 +1,5 @@
 import { PermissionGate } from '../../../components/app-shell/permission-gate';
-import { ReportsConsole } from '../reporting-console';
+import { ReportsWorkspace } from '../../../features/reporting/reporting-workspace';
 
 const reportPermissions = [
   'report.view_sales',
@@ -14,7 +14,7 @@ const reportPermissions = [
 export default function ReportsPage() {
   return (
     <PermissionGate permissions={reportPermissions}>
-      <ReportsConsole />
+      <ReportsWorkspace />
     </PermissionGate>
   );
 }

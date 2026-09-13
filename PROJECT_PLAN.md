@@ -324,6 +324,31 @@ Current gate status: **PASS (2026-09-13)**. Stage 9 is complete within the appro
 - Monorepo lint, strict TypeScript, API/Next.js production builds, formatting, secret scan, and Git whitespace: PASS
 - Scope review: PASS (no backend cash/accounting, schema, migration, API-contract, auth/RBAC, inventory, sales, purchasing, or reporting change)
 
+## Approved V1 UI Redesign — Stage 10 Dashboard and Reports
+
+- [x] Implement the operational Dashboard and route-addressable Sales, Products/Tiles, Inventory, Purchasing, Customer, Supplier, Expense, Cash, and Financial Summary reports
+- [x] Preserve Phase 12 report definitions, Decimal precision, event-date, timezone, collection, refund, historical-cost, inventory, party-ledger, expense, and cash semantics
+- [x] Enforce report and profit permissions across navigation, cards, tables, direct routes, and server exports
+- [x] Add bounded filters, pagination, domain-specific tables, real empty/loading/error states, related navigation, and server CSV export access
+- [x] Reconcile representative Dashboard/report values against the same local API/PostgreSQL source data
+- [x] Pass 1440 × 900 and 1280 × 720 production-browser acceptance with no whole-page overflow and clean consoles
+- [x] Pass web/UI tests, Phase 12 and cross-stage regressions, lint, typecheck, production builds, formatting, secret scan, and Git whitespace checks
+- [x] Complete Stage 10 gate
+
+Current gate status: **PASS (2026-09-13)**. Browser results reconcile to database/API evidence for sales, inventory, customer/supplier positions, expenses, and cash/report definitions. Profit data and financial-report navigation are absent for a restricted reporting user. Server CSV export responses pass; the in-app browser did not expose a blob download event, so that browser event is recorded as unavailable rather than falsely passed. No backend report definition, Prisma schema, migration, API contract, authentication, RBAC, or transaction behavior changed. `BUG-039` remains a separate Medium pre-existing Purchasing-list defect. Stage 11 has not started.
+
+### Stage 10 Gate — PASS (2026-09-13)
+
+- Web presentation tests and shared UI tests: PASS (32/32 and 5/5)
+- Phase 12 reporting regression: PASS (5/5)
+- Phase 6–11 source-data integration regressions: PASS (39/39 across six suites)
+- Production-browser Dashboard, reports, restricted-profit, responsive, navigation, and console acceptance: PASS
+- PostgreSQL/API reconciliation: PASS for controlled sales, inventory, party-ledger, expense, and cash/report samples
+- Server CSV export content, filters, and permissions: PASS; browser blob-download event unavailable in the in-app runtime
+- Approved 1440 × 900 and 1280 × 720 layouts: PASS with no whole-page horizontal overflow
+- Monorepo lint, strict TypeScript, API/Next.js production builds, formatting, secret scan, and Git whitespace: PASS
+- Scope review: PASS (frontend-only; no report definition, schema, migration, API-contract, auth/RBAC, or transaction change)
+
 ## Phase Gate Log
 
 ### Phase 1 — PASS (2026-09-04)

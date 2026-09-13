@@ -4,6 +4,16 @@ All meaningful project changes are recorded here. This project follows a phase-o
 
 ## Unreleased
 
+### V1 UI redesign — Stage 10 Dashboard and Reports
+
+- Replaced the generic reporting presentation with an operational Dashboard and route-addressable Sales, Products/Tiles, Inventory, Purchasing, Customer, Supplier, Expense, Cash, and Financial Summary workspaces using explicit domain columns and the approved light-first patterns.
+- Added reusable report filters, metrics, bounded tables, empty/loading/error states, branch and company-timezone date context, related-module navigation, and server-backed CSV export access without changing Phase 12 API contracts or report definitions.
+- Preserved backend-authoritative sales, event-period return/void, historical cost, inventory base-stock, party-ledger, expense, cash, and financial-summary semantics. Customer collections remain separate from revenue, refunds are not double-deducted, and opening cash is identified as starting drawer balance rather than income.
+- Enforced profit visibility in navigation, KPI cards, tables, direct routes, and export access. Production-browser verification with a restricted UAT user found no profit values or financial-report navigation in the rendered DOM.
+- Reconciled browser results to PostgreSQL/API evidence: sales gross BDT 599.9700, return/void credits BDT 199.9900, net sales BDT 399.9800, three invoices, posted expenses BDT 75.0000, reversed expenses BDT 250.0000, customer advances BDT 3,800.0100, supplier payables BDT 335.0000, and supplier advances BDT 25.2500.
+- Verified 32/32 web tests, 5/5 shared UI tests, 5/5 Phase 12 reporting tests, 39/39 Phase 6–11 source-data regressions, monorepo lint/typecheck, API and Next.js production builds, responsive 1440 × 900 and 1280 × 720 layouts, clean browser consoles, formatting, server CSV responses, secret scan, and Git whitespace. The in-app browser could not expose the blob download event, so CSV download correctness is recorded from the verified server export response rather than a false browser-event claim.
+- Kept `BUG-039` open as a separate Medium pre-existing Purchasing payment-list defect; it did not block the Stage 10 Purchasing report and no Purchasing/API change was made.
+
 ### V1 UI redesign — Stage 9 Cash and Expenses
 
 - Replaced the legacy cash console with route-addressable Current Shift, Shift History/Detail, immutable Cash Movements, Expenses, and Expense Categories workspaces using the approved light-first operational and financial patterns.
