@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useMemo, useState, type ReactNode } from 'react';
 import { useAuth } from '../../auth/auth-context';
 import { useBranchContext } from '../../contexts/branch-context';
+import { InvoiceDocument, type InvoiceData } from '../../features/printing/invoice-document';
 
 type Page<T> = { items: T[]; total: number };
 type Branch = { id: string; name: string; isActive: boolean };
@@ -21,56 +22,6 @@ type ReportResponse = {
   meta: Record<string, unknown>;
   summary?: Record<string, unknown>;
   items: Record<string, unknown>[];
-};
-export type InvoiceData = {
-  company: {
-    name: string;
-    legalName: string | null;
-    phone: string | null;
-    email: string | null;
-    address: string | null;
-    currencyCode: string;
-    timezone: string;
-  };
-  branch: { name: string; phone: string | null; address: string | null };
-  invoice: {
-    invoiceNumber: string;
-    completedAt: string;
-    pricingMode: string;
-    status: string;
-    notes: string | null;
-  };
-  register: { name: string; code: string };
-  customer: { code: string; name: string; phone: string | null; address: string | null };
-  cashier: { name: string; email: string };
-  items: {
-    id: string;
-    productName: string;
-    sku: string;
-    tileSize: string | null;
-    batchNumber: string | null;
-    shade: string | null;
-    quantity: string;
-    unit: string;
-    baseQuantity: string;
-    unitPrice: string;
-    discount: string;
-    tax: string;
-    lineTotal: string;
-  }[];
-  totals: {
-    subtotal: string;
-    discount: string;
-    tax: string;
-    total: string;
-    paid: string;
-    returnCredits: string;
-    refunded: string;
-    outstanding: string;
-    change: string;
-  };
-  payments: { number: string; method: string; amount: string; reference: string | null }[];
-  returns: { number: string; kind: string; amount: string }[];
 };
 
 const field =
@@ -472,97 +423,5 @@ function ReportTable({ rows }: { rows: Record<string, unknown>[] }) {
         </tbody>
       </table>
     </div>
-  );
-}
-
-export function InvoiceDocument({ data, mode }: { data: InvoiceData; mode: 'thermal' | 'a4' }) {
-  return (
-    <article
-      data-testid="print-document"
-      className={`print-document ${mode === 'thermal' ? 'print-thermal' : 'print-a4'} rounded-xl bg-white p-6 text-slate-950`}
-    >
-      <header className="text-center">
-        <h1 className="text-xl font-bold">{data.company.legalName ?? data.company.name}</h1>
-        <p>{data.branch.name}</p>
-        <p className="text-xs">
-          {data.branch.address ?? data.company.address} {data.branch.phone ?? data.company.phone}
-        </p>
-        <h2 className="mt-3 font-bold">Invoice {data.invoice.invoiceNumber}</h2>
-      </header>
-      <div className="my-4 grid grid-cols-2 gap-2 text-xs">
-        <p>
-          Date:{' '}
-          {new Intl.DateTimeFormat('en-BD', {
-            dateStyle: 'medium',
-            timeStyle: 'short',
-            timeZone: data.company.timezone,
-          }).format(new Date(data.invoice.completedAt))}
-        </p>
-        <p>Register: {data.register.name}</p>
-        <p>Customer: {data.customer.name}</p>
-        <p>Cashier: {data.cashier.name}</p>
-      </div>
-      <table className="w-full text-left text-xs">
-        <thead>
-          <tr>
-            <th>Item</th>
-            <th>Qty</th>
-            <th className="text-right">Price</th>
-            <th className="text-right">Total</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.items.map((item) => (
-            <tr key={item.id} className="border-t border-slate-300">
-              <td className="py-2">
-                <strong>{item.productName}</strong>
-                <br />
-                {item.sku}
-                {item.tileSize ? ` · ${item.tileSize}` : ''}
-                {item.batchNumber ? (
-                  <>
-                    <br />
-                    Batch {item.batchNumber}
-                    {item.shade ? ` · Shade ${item.shade}` : ''}
-                  </>
-                ) : null}
-              </td>
-              <td>
-                {item.quantity} {item.unit}
-              </td>
-              <td className="text-right">{item.unitPrice}</td>
-              <td className="text-right">{item.lineTotal}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      <div className="ml-auto mt-4 w-64 space-y-1 text-xs">
-        {Object.entries(data.totals).map(([key, value]) => (
-          <div className="flex justify-between" key={key}>
-            <span>{key}</span>
-            <strong>
-              {value} {data.company.currencyCode}
-            </strong>
-          </div>
-        ))}
-      </div>
-      <div className="mt-4 text-xs">
-        <strong>Payments</strong>
-        {data.payments.map((payment) => (
-          <p key={payment.number}>
-            {payment.method}: {payment.amount} {data.company.currencyCode}
-            {payment.reference ? ` (${payment.reference})` : ''}
-          </p>
-        ))}
-        {data.returns.map((row) => (
-          <p key={row.number}>
-            {row.kind} {row.number}: -{row.amount}
-          </p>
-        ))}
-      </div>
-      <footer className="mt-6 border-t border-slate-300 pt-3 text-center text-xs">
-        Thank you for your business.
-      </footer>
-    </article>
   );
 }

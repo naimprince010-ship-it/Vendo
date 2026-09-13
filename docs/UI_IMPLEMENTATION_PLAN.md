@@ -353,6 +353,8 @@ Commit: `ui: redesign administration and settings`
 
 ### Stage 12 — Print, responsive, accessibility, and final polish (high)
 
+Status: **PASS (2026-09-13)** — the shared historical invoice projection now provides polished 72 mm thermal and 194 × 277 mm A4 browser-print presentation, including tile batch/shade and payment history, without changing report or transaction contracts. Responsive review passes at 1440 × 900, 1280 × 720, 1024, and the supported 390 × 844 back-office shell width; keyboard focus, accessible names, dialog focus/return behavior, deep links, anonymous redirects, restricted-profit behavior, and representative module consoles pass. `BUG-039` is resolved by excluding supplier-less outbound payments from the supplier-payment query, with focused regression coverage and no financial semantic change. Physical thermal-printer acceptance remains pending actual hardware.
+
 Extract invoice projection/presentation while preserving the existing report invoice API and print behavior.
 
 Expected files:
@@ -368,7 +370,7 @@ Acceptance:
 - 1440/1280 desktop, back-office tablet/mobile, keyboard navigation, focus visibility, accessible names, error/live-region behavior, and browser console pass.
 - Physical thermal printer remains an environment acceptance gate and cannot be marked passed from browser-only testing.
 
-Commit: `ui: polish print responsive and accessibility behavior`
+Commit: `ui: finalize Vendo V1 frontend`
 
 ## 7. Cross-stage verification gate
 

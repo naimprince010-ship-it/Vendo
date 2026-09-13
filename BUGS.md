@@ -529,7 +529,7 @@ No Critical/High Customer Group, Customer, Walk-in, credit-limit, opening/correc
 - **Reproduction:** With a posted outbound sale refund in the company, open `/app/purchases/payments`. The API returns HTTP 200, then the list fails with `Cannot read properties of null (reading 'name')`. The direct `/app/purchases/payments/new/:supplierId` workflow remains operational.
 - **Expected:** The purchasing endpoint returns supplier payments only, or the documented response projection safely distinguishes other outbound payment kinds; the list never dereferences a null supplier.
 - **Actual:** Non-supplier outbound refunds can enter the purchasing result set and crash the list after a successful response.
-- **Status:** Open — pre-existing and outside the approved Stage 9 Cash/Expenses scope. It does not affect Cash routes, the direct supplier-payment workflow, or verified drawer movement integration. Requires separate approval because this stage explicitly forbids Purchasing/API changes.
+- **Status:** Resolved — Stage 12 confirmed that the supplier-payment list query filtered only by outbound direction and therefore admitted sale-refund payments with no supplier. The query now requires a non-null supplier while preserving the existing response shape and all posting, allocation, ledger, idempotency, and accounting semantics. Focused regression coverage proves a supplier-less outbound refund is excluded, genuine supplier payments remain visible, and the browser list renders without null-supplier failure.
 - **Related task:** Stage 9 cross-module supplier-payment verification; future bounded Purchasing fix
 
 ## Stage 9 Verification Note — 2026-09-13
@@ -555,3 +555,7 @@ No Critical/High Dashboard, Sales, Product/Tile, Inventory, Purchasing, Customer
 ## Stage 11 Verification Note — 2026-09-13
 
 No Critical/High Company, Branch, Branch Access, Warehouse, Register, User, Role, Permission, tenant-isolation, responsive-layout, audit, or browser-console blocker remains. `BUG-040` was found during production-browser acceptance and resolved with a frontend-only UserStatus mapping correction. `BUG-039` remains Open as a separate Medium pre-existing Purchasing payment-list defect and did not receive an out-of-scope change.
+
+## Stage 12 Verification Note — 2026-09-13
+
+No open Medium/High Vendo application defect remains. `BUG-039` is resolved with the smallest semantic supplier-payment query filter and focused integration coverage; financial posting behavior is unchanged. Browser-print acceptance passes for the 72 mm thermal and 194 × 277 mm A4 layouts, responsive and accessibility audits pass, representative module consoles are clean, and complete API/business plus frontend gates pass. Physical thermal-printer output remains pending actual hardware. Low deferred `BUG-008` and historical external-tooling `BUG-034` remain non-blocking and are not Vendo runtime defects.

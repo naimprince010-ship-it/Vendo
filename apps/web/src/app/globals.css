@@ -69,16 +69,180 @@ textarea {
 }
 
 .print-document {
-  display: none;
+  border: 1px solid #d0d5dd;
+  border-radius: 9px;
+  box-shadow: 0 12px 32px rgb(23 32 51 / 0.08);
+  color: #101828;
+  font-family: var(--font-geist-sans), sans-serif;
+  margin-inline: auto;
+  max-width: 100%;
+  padding: 6mm;
+}
+
+.print-document h1 {
+  color: #101828;
+  font-size: 18px;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.print-document small {
+  display: block;
+  color: #475467;
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.print-document .invoice-document-kind {
+  color: #667085;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  margin-bottom: 1mm;
+  text-transform: uppercase;
+}
+
+.invoice-meta {
+  border-block: 1px solid #d0d5dd;
+  display: grid;
+  gap: 2mm 5mm;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-block: 4mm;
+  padding-block: 3mm;
+}
+
+.invoice-meta div,
+.invoice-party {
+  display: flex;
+  flex-direction: column;
+}
+
+.invoice-meta span,
+.invoice-party > span {
+  color: #667085;
+  font-size: 9px;
+  text-transform: uppercase;
+}
+
+.invoice-party {
+  margin-bottom: 4mm;
+}
+
+.invoice-lines {
+  border-collapse: collapse;
+  font-size: 11px;
+  width: 100%;
+}
+
+.invoice-lines th,
+.invoice-lines td {
+  border-bottom: 1px solid #d0d5dd;
+  padding: 2.2mm 1.2mm;
+  text-align: left;
+  vertical-align: top;
+}
+
+.invoice-lines th:first-child,
+.invoice-lines td:first-child {
+  padding-left: 0;
+}
+
+.invoice-lines th:last-child,
+.invoice-lines td:last-child {
+  padding-right: 0;
+}
+
+.print-document .numeric-cell {
+  text-align: right;
+}
+
+.invoice-totals {
+  margin-left: auto;
+  margin-top: 4mm;
+  width: min(78mm, 100%);
+}
+
+.invoice-totals > div,
+.invoice-payments > div {
+  display: flex;
+  gap: 4mm;
+  justify-content: space-between;
+  padding-block: 0.7mm;
+}
+
+.invoice-grand-total {
+  border-block: 1.5px solid #101828;
+  font-size: 13px;
+  margin-block: 1mm;
+  padding-block: 1.3mm !important;
+}
+
+.invoice-payments,
+.invoice-notes {
+  border-top: 1px solid #d0d5dd;
+  font-size: 10px;
+  margin-top: 4mm;
+  padding-top: 3mm;
+}
+
+.invoice-payments h2 {
+  color: #101828;
+  font-size: 11px;
+  font-weight: 700;
+  margin-bottom: 1mm;
+}
+
+.print-document footer {
+  border-top: 1px solid #d0d5dd;
+  font-size: 10px;
+  margin-top: 6mm;
+  padding-top: 3mm;
+  text-align: center;
+}
+
+.print-thermal {
+  font-size: 10px;
+  padding: 2mm;
+  width: 72mm;
+}
+
+.print-thermal .invoice-header h1 {
+  font-size: 15px;
+}
+
+.print-thermal .invoice-a4-only {
+  display: none !important;
+}
+
+.print-thermal .invoice-meta {
+  display: block;
+}
+
+.print-thermal .invoice-meta div {
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.print-thermal .invoice-lines {
+  font-size: 9px;
+}
+
+.print-thermal .invoice-lines th,
+.print-thermal .invoice-lines td {
+  padding-block: 1.6mm;
+}
+
+.print-a4 {
+  min-height: min(277mm, 100%);
+  width: 194mm;
 }
 
 @media print {
-  @page {
-    margin: 8mm;
-  }
-
   body {
     background: white !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
   }
 
   body * {
@@ -93,8 +257,11 @@ textarea {
   }
 
   .print-document {
+    border: 0 !important;
     display: block !important;
     left: 0;
+    margin: 0 !important;
+    max-width: none !important;
     position: absolute;
     top: 0;
     visibility: visible !important;
@@ -105,15 +272,37 @@ textarea {
     visibility: visible !important;
   }
 
+  .print-document header,
+  .print-document section,
+  .print-document footer,
+  .print-document tr {
+    break-inside: avoid;
+  }
+
+  .print-document thead {
+    display: table-header-group;
+  }
+
   .print-thermal {
+    page: thermal;
     width: 72mm;
     padding: 2mm !important;
     font-size: 10px;
   }
 
   .print-a4 {
+    page: a4;
     width: 194mm;
     min-height: 277mm;
     padding: 10mm !important;
   }
+}
+
+@page thermal {
+  margin: 4mm;
+}
+
+@page a4 {
+  margin: 8mm;
+  size: A4 portrait;
 }

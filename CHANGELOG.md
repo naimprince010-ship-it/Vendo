@@ -4,6 +4,16 @@ All meaningful project changes are recorded here. This project follows a phase-o
 
 ## Unreleased
 
+### V1 UI redesign — Stage 12 final frontend acceptance
+
+- Extracted the immutable historical invoice projection into a shared Thermal/A4 document, added Decimal-string-safe display formatting, and polished browser-print CSS for 72 mm thermal and 194 × 277 mm A4 content without app chrome, clipping, or transaction mutation.
+- Preserved invoice, company, customer, cashier/register, item, SKU, tile size, batch/shade, discount, tax, payment, due/change, return, note, and footer history. Added focused Thermal/A4 rendering and formatter coverage.
+- Improved print-dialog accessibility with explicit mode state, initial focus, Escape behavior, and focus return to the Print/reprint trigger. Representative controls across all modules have accessible names and visible keyboard focus.
+- Resolved `BUG-039` at the semantic source: the supplier-payment list now excludes outbound records without a supplier. Focused Phase 8 coverage proves supplier-less refunds are excluded while genuine supplier payments remain visible; no payment posting, allocation, ledger, API response, schema, or accounting behavior changed.
+- Production-browser acceptance passes authenticated deep links, anonymous redirects, restricted profit visibility, representative V1 journeys, clean consoles, and layouts at 1440 × 900, 1280 × 720, 1024, and the supported 390 × 844 back-office shell width with no whole-page overflow.
+- Complete API regression passes 15 suites/96 tests; web and shared UI suites pass 39/39 and 5/5. Lint, strict TypeScript, API/Next.js production builds, Prisma validation, 16-migration live status and isolated replay parity, formatting, dependency audit, secret scan, and Git whitespace pass.
+- Browser thermal/A4 print layout acceptance passes. Physical thermal-printer acceptance remains pending actual hardware and is not falsely marked complete. Low deferred `BUG-008` and historical external-tooling `BUG-034` remain non-blocking.
+
 ### V1 UI redesign — Stage 11 Administration and Settings
 
 - Replaced the legacy organization console with route-addressable Company Profile, Branches, Branch Access, Warehouses, Registers, Users, and Roles/Permissions workspaces using the approved light-first design system.

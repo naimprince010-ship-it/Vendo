@@ -28,8 +28,8 @@ import {
 } from '@vendo/ui';
 import { useMemo, useRef, useState } from 'react';
 import { useAuth } from '../../auth/auth-context';
-import { InvoiceDocument, type InvoiceData } from '../../app/app/reporting-console';
 import { useBranchContext } from '../../contexts/branch-context';
+import { InvoiceDocument, type InvoiceData } from '../printing/invoice-document';
 import { configuredPrice, decimalCompare } from '../pos/decimal';
 import {
   FinancialSummary,
@@ -59,6 +59,7 @@ function operationSignature(type: string, payload: unknown) {
 }
 
 export function SaleDetailWorkspace({ saleId }: { saleId: string }) {
+  const printTriggerRef = useRef<HTMLButtonElement>(null);
   const { user } = useAuth();
   const { activeBranchId } = useBranchContext();
   const api = useSalesApi();
@@ -366,10 +367,19 @@ export function SaleDetailWorkspace({ saleId }: { saleId: string }) {
         onRefund={() => setAction('refund')}
         onExchange={() => setAction('exchange')}
         onPrint={() => setAction('print')}
+        printTriggerRef={printTriggerRef}
         onVoid={() => setAction('void')}
       />
 
-      <Dialog open={action === 'print'} onOpenChange={(open) => !open && close()}>
+      <Dialog
+        open={action === 'print'}
+        onOpenChange={(open) => {
+          if (!open) {
+            close();
+            requestAnimationFrame(() => printTriggerRef.current?.focus());
+          }
+        }}
+      >
         <DialogContent className="max-w-4xl">
           <DialogHeader>
             <DialogTitle>Print or reprint invoice</DialogTitle>
@@ -381,12 +391,14 @@ export function SaleDetailWorkspace({ saleId }: { saleId: string }) {
           <div className="flex flex-wrap gap-2">
             <Button
               variant={printMode === 'thermal' ? 'secondary' : 'outline'}
+              aria-pressed={printMode === 'thermal'}
               onClick={() => setPrintMode('thermal')}
             >
               Thermal receipt
             </Button>
             <Button
               variant={printMode === 'a4' ? 'secondary' : 'outline'}
+              aria-pressed={printMode === 'a4'}
               onClick={() => setPrintMode('a4')}
             >
               A4 invoice

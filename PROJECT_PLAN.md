@@ -373,6 +373,33 @@ Current gate status: **PASS (2026-09-13)**. Production-browser workflows and Pos
 - Monorepo lint, strict TypeScript, API/Next.js production builds, formatting, secret scan, and Git whitespace: PASS
 - Scope review: PASS (frontend-only; no backend security, Prisma, migration, API-contract, auth/RBAC, or transaction change)
 
+## Approved V1 UI Redesign — Stage 12 Print, Responsive, Accessibility, and Final UI/UX Polish
+
+- [x] Resolve `BUG-039` at the supplier-payment query boundary without changing financial posting semantics
+- [x] Extract and polish shared historical Thermal/A4 invoice presentation
+- [x] Verify 72 mm thermal and 194 × 277 mm A4 browser-print layout and print isolation
+- [x] Verify authenticated deep links, anonymous redirects, permission-sensitive navigation, and restricted profit visibility
+- [x] Pass 1440 × 900, 1280 × 720, 1024, and supported 390 × 844 back-office responsive checks
+- [x] Pass keyboard focus, dialog focus/return, accessible-name, status, contrast, and interaction-state review
+- [x] Pass representative POS, Sales, Catalog, Inventory, Purchasing, Parties, Cash, Reports, and Administration browser regression
+- [x] Pass complete API/business, web/UI, security, build, migration, dependency, formatting, secret, and Git gates
+- [x] Complete Stage 12 final UI gate
+
+Current gate status: **PASS (2026-09-13)**. The final V1 frontend has verified browser-print, responsive, accessibility, navigation, permission, console, and cross-module behavior. `BUG-039` is resolved with a minimal supplier-presence filter and focused regression test; no schema, migration, API response, or accounting semantic changed. Browser print acceptance passes, while physical thermal-printer acceptance remains honestly pending actual hardware. No Medium/High Vendo application defect remains.
+
+### Stage 12 Gate — PASS (2026-09-13)
+
+- Complete API/business regression: PASS (15 suites, 96 tests)
+- Web presentation tests and shared UI tests: PASS (39/39 and 5/5)
+- BUG-039 focused purchasing regression: PASS; supplier-less outbound refund excluded and supplier payments preserved
+- Production-browser print, deep-link, restricted-profit, cross-module, responsive, accessibility, and console acceptance: PASS
+- Thermal 72 mm and A4 194 × 277 mm browser print layouts: PASS; physical printer pending hardware
+- Approved 1440 × 900, 1280 × 720, 1024, and 390 × 844 supported-shell layouts: PASS with no whole-page overflow
+- Prisma validation, 16-migration live status, isolated clean replay, and normalized live/replay schema parity: PASS
+- Monorepo lint, strict TypeScript, API/Next.js production builds, formatting, production dependency audit, secret scan, and Git whitespace: PASS
+- Open defect review: PASS (no Medium/High Vendo application defect; `BUG-008` Low deferred; `BUG-034` external tooling)
+- Scope review: PASS (no schema/migration/API-response change; financial and business semantics preserved)
+
 ## Phase Gate Log
 
 ### Phase 1 — PASS (2026-09-04)

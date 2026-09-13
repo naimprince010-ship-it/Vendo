@@ -965,7 +965,7 @@ export class PurchasingService {
     const where: Prisma.PaymentWhereInput = {
       companyId: principal.companyId,
       branchId: branch.id,
-      supplierId: query.supplierId,
+      supplierId: query.supplierId ?? { not: null },
       direction: PaymentDirection.OUTBOUND,
       ...(query.search
         ? {

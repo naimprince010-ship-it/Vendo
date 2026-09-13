@@ -13,6 +13,7 @@ import {
   StatusBadge,
 } from '@vendo/ui';
 import Link from 'next/link';
+import type { Ref } from 'react';
 import { decimalCompare, decimalMax, decimalSubtract, decimalSum } from '../pos/decimal';
 import { lineReturnableQuantity, returnRefundable, returnRefunded } from './finance';
 import type { SaleDetail, SaleLine, SaleListItem, SaleReturn, TimelineEvent } from './types';
@@ -463,6 +464,7 @@ export function PostSaleActionBar({
   onRefund,
   onReturn,
   onPrint,
+  printTriggerRef,
   onVoid,
   sale,
 }: {
@@ -476,6 +478,7 @@ export function PostSaleActionBar({
   onRefund(): void;
   onReturn(): void;
   onPrint(): void;
+  printTriggerRef?: Ref<HTMLButtonElement>;
   onVoid(): void;
   sale: SaleDetail;
 }) {
@@ -506,7 +509,7 @@ export function PostSaleActionBar({
           Refund credit
         </Button>
       ) : null}
-      <Button variant="outline" onClick={onPrint}>
+      <Button ref={printTriggerRef} variant="outline" onClick={onPrint}>
         Print / reprint
       </Button>
       {canVoid && hasReturnable ? (

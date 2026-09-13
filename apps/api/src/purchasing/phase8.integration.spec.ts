@@ -23,6 +23,7 @@ describe('Phase 8 purchasing API', () => {
   let boxId = '';
   let methodId = '';
   let ownerToken = '';
+  let ownerId = '';
   let limitedToken = '';
   let orderId = '';
   let orderItemId = '';
@@ -80,6 +81,7 @@ describe('Phase 8 purchasing API', () => {
       db.role.create({ data: { companyId, key: `viewer-${suffix}`, name: 'Viewer' } }),
     ]);
     const permissions = await db.permission.findMany({ select: { id: true, key: true } });
+    ownerId = owner.id;
     const branch = await db.branch.create({
       data: { companyId, code: 'MAIN', name: 'Main Branch' },
     });
@@ -354,6 +356,33 @@ describe('Phase 8 purchasing API', () => {
     await expect(
       db.purchaseInvoice.update({ where: { id: invoiceId }, data: { total: '1' } }),
     ).rejects.toThrow(/immutable/i);
+  });
+
+  it('keeps non-supplier outbound payments out of the supplier payment list', async () => {
+    const refund = await db.payment.create({
+      data: {
+        companyId,
+        branchId,
+        methodId,
+        recordedById: ownerId,
+        paymentNumber: `RF-${suffix}`,
+        direction: 'OUTBOUND',
+        amount: '25.0000',
+        reference: 'Synthetic sale refund outside purchasing',
+      },
+    });
+
+    const response = await request(app.getHttpServer())
+      .get('/purchases/payments?limit=100')
+      .set(auth(ownerToken))
+      .expect(200);
+
+    expect(response.body.items.some((payment: { id: string }) => payment.id === refund.id)).toBe(
+      false,
+    );
+    expect(response.body.items.every((payment: { supplier: unknown }) => payment.supplier)).toBe(
+      true,
+    );
   });
 
   it('allocates a partial payment, records unapplied advance, and rejects over-allocation', async () => {
