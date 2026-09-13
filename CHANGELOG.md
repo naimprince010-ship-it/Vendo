@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-09-13 — V1 final UAT and production-readiness freeze
+
+- Reverified the exact V1 release baseline with 15 API suites/96 tests, 39 web tests, 5 shared UI tests, uncached lint/type/build gates, formatting, and dependency/secret checks.
+- Replayed all 16 migrations from zero, confirmed normalized live/replay schema equality, and completed a fresh custom-format backup plus isolated restore with catalog and critical business-invariant parity.
+- Rechecked production configuration, non-root runtime definitions, private PostgreSQL topology, security controls, local health/readiness, and representative authenticated browser routes without changing application behavior.
+- Added `docs/V1_FINAL_UAT.md` with the honest verdict **D. NOT READY — PRODUCTION ENVIRONMENT INPUTS MISSING**, pending hardware statuses, and the exact inputs needed for deployment acceptance.
+- No V2 feature, production resource, schema, migration, API contract, or business rule was added or changed.
+
 All meaningful project changes are recorded here. This project follows a phase-oriented development history rather than release claims based on file presence.
 
 ## Unreleased

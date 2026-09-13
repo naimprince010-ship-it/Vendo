@@ -1,50 +1,51 @@
 # Current Phase
 
-Approved V1 UI Redesign — Stage 12 Print, Responsive, Accessibility, and Final UI/UX Polish
+Vendo V1 Final UAT and Production Readiness
 
 # Current Task
 
-Finalize Vendo V1 frontend acceptance across print, responsive behavior, accessibility, navigation, shared interaction states, and cross-module consistency without expanding product scope or changing established business semantics.
+Freeze the verified V1 release baseline and determine whether it can proceed to production environment provisioning and deployment acceptance.
 
 # Objective
 
-Deliver the final verified V1 UI layer: production-quality thermal/A4 invoice presentation, responsive consistency, keyboard and focus accessibility, stable deep links, clean runtime behavior, and complete regression evidence across all verified modules.
+Re-run the complete application, database, recovery, security, dependency, production-asset, and production-like UAT gates without deploying or beginning Version 2.
 
-# Dependencies
+# Release Baseline
 
-- Verified Stage 11 commit `ef89f063e5f98f63859c8d045dffe6d5a936dbf7`
-- Approved Stage 1 light design system and Stage 2 route-addressable application shell
-- Verified Stage 3–11 business-module presentation patterns
-- Verified Phase 3–13 backend behavior and the existing 16-migration database
-- Existing production-rollout and UI-audit artifacts remain preserved
+- Verified V1 commit `51d7b11e477b8aef6fbf15932f4d5267d3a0c7f3`
+- Phase 1–13 functional roadmap complete
+- UI Stage 1–12 complete
+- 16-migration PostgreSQL schema
+- Existing untracked UI-audit and rollout artifacts preserved
 
-# Delivered Scope
+# Verified Scope
 
-- Extracted a shared historical invoice document for Thermal and A4 presentation.
-- Added Decimal-string-safe print formatting and focused print projection tests.
-- Polished 72 mm thermal and 194 × 277 mm A4 browser-print layouts, print isolation, page breaks, and high-contrast output.
-- Restored dialog trigger focus and verified accessible print-mode selection.
-- Resolved `BUG-039` by limiting the supplier-payment list query to payments with a supplier, without changing posting or accounting semantics.
-- Completed final responsive, keyboard, accessible-name, permission, route/deep-link, print, console, security, and cross-module browser reviews.
+- Complete API/business, web, and shared UI regression
+- Uncached lint, strict TypeScript, API/shared/Next.js production builds, formatting, and Git whitespace
+- Prisma validation, 16-migration live status, clean replay, and live/replay parity
+- Fresh PostgreSQL backup, isolated restore, catalog parity, and critical invariant reconciliation
+- Security, production configuration, dependency, and secret/history review
+- Production-like local HTTP and authenticated browser route acceptance
+- Stage 12 functional, responsive, accessibility, and browser-print evidence retained at the exact release baseline
 
-# Acceptance Criteria
+# Acceptance Result
 
-- Historical invoice values, item metadata, batch/shade, totals, payments, due, change, and returns remain authoritative.
-- Major routes have no whole-page overflow at 1440 × 900, 1280 × 720, and 1024 widths; the supported narrow shell remains usable at 390 × 844.
-- Keyboard focus, dialog behavior, accessible names, status text, loading/empty/error patterns, and permission-sensitive content pass final review.
-- No open Medium/High Vendo application defect remains.
-- API/business regression, web/UI tests, lint, TypeScript, production builds, Prisma/migrations, dependency audit, formatting, secret scan, and Git whitespace pass.
+- Application release gates: PASS
+- Open Medium/High Vendo application defects: none
+- Physical thermal printer: PENDING HARDWARE
+- Physical barcode scanner: PENDING HARDWARE
+- External production host/DNS/TLS/secrets/backup/monitoring/business inputs: NOT PROVIDED
 
 # Status
 
-PASS (2026-09-13). Stage 12 browser-print, responsive, accessibility, deep-link, permission, console, API/database, migration-replay, dependency, security, build, and regression gates are complete. `BUG-039` is resolved.
+**D. NOT READY — PRODUCTION ENVIRONMENT INPUTS MISSING** (2026-09-13).
 
-# Deferred Environment Acceptance
+The application is ready to proceed to environment provisioning; deployment acceptance cannot pass until target infrastructure, secure configuration, backup/monitoring destinations, authorized production identity/business data, and hardware acceptance are available.
 
-- Physical thermal-printer output remains pending actual hardware; browser layout and print CSS pass, but no physical-printer PASS is claimed.
-- `BUG-034` remains a historical external Codex browser-control/runtime issue, not a Vendo application defect.
-- `BUG-008` remains Low deferred for the planned `pg@9` compatibility revalidation and is non-blocking.
+# Evidence
+
+See `docs/V1_FINAL_UAT.md` for exact test counts, migration/recovery evidence, security review, browser scope, open-bug classification, hardware deferrals, and missing production inputs.
 
 # Next Approved Task
 
-Vendo V1 final UAT, deployment acceptance, and production rollout preparation. Do not begin Version 2.
+Production Environment Provisioning & Deployment Acceptance. Do not deploy until explicitly authorized and do not begin Version 2.

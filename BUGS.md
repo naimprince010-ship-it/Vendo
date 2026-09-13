@@ -1,5 +1,13 @@
 # Bug Register
 
+## V1 Final UAT Review — 2026-09-13
+
+- Open Medium/High Vendo application defects: none.
+- `BUG-008`: Low deferred future `pg@9` compatibility warning; non-blocking on pinned `pg` 8.23.
+- `BUG-034`: external Codex tooling history, not a Vendo application defect; non-blocking.
+- `BUG-035` through `BUG-040`: resolved and covered by the final 15-suite/96-test regression.
+- Final readiness is blocked only by missing production-environment inputs and pending physical printer/scanner acceptance, not by a known application defect. See `docs/V1_FINAL_UAT.md`.
+
 ## BUG-001 — Dependency installation blocked by disk exhaustion
 
 - **ID:** BUG-001

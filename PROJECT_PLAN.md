@@ -2,6 +2,19 @@
 
 Checkboxes are marked complete only after implementation and verification. Phase gates record the exact evidence used.
 
+## V1 Final UAT and Production Readiness — 2026-09-13
+
+- [x] Verify release baseline `51d7b11e477b8aef6fbf15932f4d5267d3a0c7f3`
+- [x] Re-run complete API, web/UI, lint, type, build, format, dependency, and secret gates
+- [x] Verify all 16 migrations through live status and clean replay parity
+- [x] Complete a fresh backup/isolated-restore drill and reconcile critical invariants
+- [x] Review security, production configuration, local production-like HTTP, and browser evidence
+- [x] Freeze open-bug, hardware, monitoring, backup, bootstrap, and environment-input status
+- [x] Record final evidence in `docs/V1_FINAL_UAT.md`
+- [ ] Provision and accept the production environment
+
+Current verdict: **D. NOT READY — PRODUCTION ENVIRONMENT INPUTS MISSING**. The application release gates pass and no Medium/High Vendo application defect is open. Production host/DNS/TLS/secrets/storage, off-host backup, monitoring/alerts, authorized Owner/business setup data, and physical printer/scanner acceptance remain environment-specific prerequisites. Version 2 is not started.
+
 ## Phase 1 — Repository, Architecture, and Foundation
 
 - [x] Inspect local and remote repositories
