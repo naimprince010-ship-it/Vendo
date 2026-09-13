@@ -127,10 +127,10 @@ export const appRouteGroups: readonly AppRouteGroup[] = [
     label: 'Administration',
     routes: [
       {
-        label: 'Settings',
+        label: 'Administration',
         href: '/app/settings',
         icon: 'settings',
-        description: 'Company and access settings',
+        description: 'Company, users and access',
         permissions: [
           'company.view',
           'branch.view',

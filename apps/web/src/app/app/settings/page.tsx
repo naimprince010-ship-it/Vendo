@@ -1,5 +1,5 @@
 import { PermissionGate } from '../../../components/app-shell/permission-gate';
-import { OrganizationConsole } from '../organization-console';
+import { AdministrationWorkspace } from '../../../features/administration/administration-workspace';
 
 const settingsPermissions = [
   'company.view',
@@ -13,7 +13,7 @@ const settingsPermissions = [
 export default function SettingsPage() {
   return (
     <PermissionGate permissions={settingsPermissions}>
-      <OrganizationConsole />
+      <AdministrationWorkspace />
     </PermissionGate>
   );
 }

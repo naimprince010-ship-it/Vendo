@@ -349,6 +349,30 @@ Current gate status: **PASS (2026-09-13)**. Browser results reconcile to databas
 - Monorepo lint, strict TypeScript, API/Next.js production builds, formatting, secret scan, and Git whitespace: PASS
 - Scope review: PASS (frontend-only; no report definition, schema, migration, API-contract, auth/RBAC, or transaction change)
 
+## Approved V1 UI Redesign — Stage 11 Administration and Settings
+
+- [x] Implement route-addressable Company Profile, Branches, Branch Access, Warehouses, Registers, Users, and Roles/Permissions workspaces
+- [x] Preserve Phase 3/4 authentication, tenancy, branch ownership, session revocation, RBAC, and audit behavior
+- [x] Replace browser prompts with labeled forms and reviewed high-risk lifecycle/permission dialogs
+- [x] Keep lists bounded and searchable where APIs support it, with explicit active/inactive and branch context
+- [x] Verify restricted navigation, branch isolation, permission matrix persistence, profit hiding, and audit visibility
+- [x] Pass 1440 × 900 and 1280 × 720 production-browser acceptance with no whole-page overflow and a clean console
+- [x] Pass web/UI tests, Phase 3/4/report-security regressions, lint, typecheck, production builds, formatting, secret scan, and Git whitespace checks
+- [x] Complete Stage 11 gate
+
+Current gate status: **PASS (2026-09-13)**. Production-browser workflows and PostgreSQL reconciliation verify company updates, branch lifecycle, explicit user branch access, warehouse/register creation, user create/edit/password/status lifecycle, role permissions, restricted navigation, profit hiding, and audit records. `BUG-040` was found and resolved by mapping deactivation to the existing backend `DISABLED` status; no backend, schema, migration, or API-contract change was made. Unsupported negative-stock/payment-method settings remain honestly omitted or read-only. `BUG-039` remains a separate Medium Purchasing-list issue. Stage 12 has not started.
+
+### Stage 11 Gate — PASS (2026-09-13)
+
+- Web presentation tests and shared UI tests: PASS (36/36 and 5/5)
+- Phase 3 authentication/RBAC, Phase 4 organization, reporting permission, and route-security regressions: PASS (30/30)
+- Production-browser administration, restricted-role, responsive, navigation, and console acceptance: PASS
+- PostgreSQL/API reconciliation: PASS (synthetic branch, warehouse, register, user, role, six permissions, one explicit branch assignment, and audit history)
+- Approved 1440 × 900 and 1280 × 720 layouts: PASS with no whole-page horizontal overflow
+- Prisma schema validation and migration status: PASS (16 migrations current; no Stage 11 migration)
+- Monorepo lint, strict TypeScript, API/Next.js production builds, formatting, secret scan, and Git whitespace: PASS
+- Scope review: PASS (frontend-only; no backend security, Prisma, migration, API-contract, auth/RBAC, or transaction change)
+
 ## Phase Gate Log
 
 ### Phase 1 — PASS (2026-09-04)

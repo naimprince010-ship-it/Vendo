@@ -539,3 +539,19 @@ No Critical/High Current Shift, opening-float, Expected Cash, cash-source mappin
 ## Stage 10 Verification Note — 2026-09-13
 
 No Critical/High Dashboard, Sales, Product/Tile, Inventory, Purchasing, Customer, Supplier, Expense, Cash, Financial Summary, permission, timezone, export-response, responsive-layout, or browser-console blocker remains. Production-browser results reconcile to the scoped API/PostgreSQL data, and profit data is absent for a restricted reporting user. `BUG-039` remains Open as a separate Medium pre-existing Purchasing payment-list defect; it did not block the Stage 10 Purchasing report and received no out-of-scope change.
+
+## BUG-040 — Administration user deactivation used unsupported status
+
+- **ID:** BUG-040
+- **Severity:** High
+- **Area:** Stage 11 Administration user lifecycle frontend
+- **Description:** The new User Detail deactivation action sent `INACTIVE`, but the established backend UserStatus contract accepts `INVITED`, `ACTIVE`, `SUSPENDED`, or `DISABLED`.
+- **Reproduction:** Open an active synthetic user, choose Deactivate account, and confirm. The API rejects the request with a raw status-enum validation message and the user remains active.
+- **Expected:** Deactivation sends `DISABLED`, revokes sessions according to existing backend behavior, and the account can later be explicitly reactivated with `ACTIVE`.
+- **Actual:** The frontend sent the unsupported `INACTIVE` value.
+- **Status:** Resolved — the administration presentation layer now maps inactive filters and lifecycle actions to `DISABLED`, with focused tests. Production-browser deactivation and reactivation pass against the existing API and database without changing backend behavior or contracts.
+- **Related task:** Approved V1 UI redesign — Stage 11 Administration and Settings
+
+## Stage 11 Verification Note — 2026-09-13
+
+No Critical/High Company, Branch, Branch Access, Warehouse, Register, User, Role, Permission, tenant-isolation, responsive-layout, audit, or browser-console blocker remains. `BUG-040` was found during production-browser acceptance and resolved with a frontend-only UserStatus mapping correction. `BUG-039` remains Open as a separate Medium pre-existing Purchasing payment-list defect and did not receive an out-of-scope change.

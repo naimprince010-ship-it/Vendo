@@ -341,6 +341,8 @@ Commit: `ui: redesign dashboard and reports`
 
 ### Stage 11 — Administration and settings (high)
 
+Status: **PASS (2026-09-13)** — Company Profile, Branches, explicit User Branch Access, Warehouses, Registers, Users, and Roles/Permissions are route-addressable light-first workspaces backed by the existing Phase 3/4 APIs. Production-browser UAT and PostgreSQL reconciliation pass company/location/user/role lifecycle, six-permission restricted access, branch isolation, session-aware password/status controls, audit visibility, profit hiding, responsive layouts, and clean-console inspection. `BUG-040` was resolved with a frontend-only mapping to the established `DISABLED` user status. No backend, Prisma, migration, API contract, authentication, RBAC, or transaction rule changed. Stage 12 has not started.
+
 Decompose `OrganizationConsole`; replace `window.prompt` editing with labeled forms/dialogs. Add UI only for already supported APIs.
 
 Expected files: modify/move `organization-console.tsx`; add settings routes and `features/organization/*`, `features/identity/*`.

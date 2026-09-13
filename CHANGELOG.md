@@ -4,6 +4,16 @@ All meaningful project changes are recorded here. This project follows a phase-o
 
 ## Unreleased
 
+### V1 UI redesign — Stage 11 Administration and Settings
+
+- Replaced the legacy organization console with route-addressable Company Profile, Branches, Branch Access, Warehouses, Registers, Users, and Roles/Permissions workspaces using the approved light-first design system.
+- Added bounded search/lifecycle views, explicit branch ownership, deliberate reviewed dialogs, readable canonical permission grouping, user role and branch assignment, controlled password/status workflows, and concise audit timelines using only existing APIs.
+- Preserved backend-authoritative company/branch isolation, self-protection, permission enforcement, session revocation, auditability, and system-role semantics. Unsupported negative-stock mutation and payment-method CRUD were not fabricated.
+- Resolved `BUG-040`: user deactivation now sends the existing backend `DISABLED` status instead of unsupported `INACTIVE`; focused tests cover lifecycle and list-filter mappings.
+- Production-browser UAT verified company update, branch lifecycle, warehouse/register creation, user create/edit/password/deactivate/reactivate, role permission persistence, explicit branch access, restricted navigation, profit hiding, 1440 × 900 and 1280 × 720 layouts, and a clean console.
+- PostgreSQL reconciliation confirms the synthetic entities, six canonical role permissions, one explicit branch assignment, active final user state, and 14 relevant audit entries. Web tests (36/36), shared UI tests (5/5), Phase 3/4/report/route-security regressions (30/30), monorepo lint/typecheck, API and Next.js builds, Prisma validation/status, formatting, secret scan, and Git whitespace all pass.
+- No backend source, Prisma schema, migration, API contract, authentication/RBAC rule, or transaction behavior changed. `BUG-039` remains a separate Medium Purchasing-list issue.
+
 ### V1 UI redesign — Stage 10 Dashboard and Reports
 
 - Replaced the generic reporting presentation with an operational Dashboard and route-addressable Sales, Products/Tiles, Inventory, Purchasing, Customer, Supplier, Expense, Cash, and Financial Summary workspaces using explicit domain columns and the approved light-first patterns.
