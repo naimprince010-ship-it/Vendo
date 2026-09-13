@@ -317,6 +317,8 @@ Commit: `ui: redesign customer and supplier workspaces`
 
 ### Stage 9 — Cash and expenses (very high)
 
+Status: **PASS (2026-09-13)** — Current Shift, Shift History/Detail, immutable Cash Movements, Expenses, and Expense Categories are route-addressable light-first workspaces. Production-browser UAT verified starting-float semantics, backend-derived expected cash, applied-cash/change exclusion, cash and non-cash customer/supplier mappings, refund outflow, manual movements, cash/non-cash expenses, controlled reversal, close variance, closed-drawer blocking, 1440 × 900 and 1280 × 720 layouts, and a clean Stage 9 console. PostgreSQL reconciliation confirms source uniqueness and exact shift totals; Phase 11/9/10/8 regressions pass. `BUG-039` is a separately recorded pre-existing Purchasing-list issue and is outside this stage. Stage 10 has not started.
+
 Separate shift lifecycle, immutable movements, manual cash commands, expense categories, and expense posting.
 
 Expected files: modify/move `cash-console.tsx`; add cash/expense routes and `features/cash/*`, `features/expenses/*`.

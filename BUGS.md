@@ -519,3 +519,19 @@ No Critical/High Purchase Order, partial-receipt, batch/shade, invoice, supplier
 ## Stage 8 Verification Note — 2026-09-13
 
 No Critical/High Customer Group, Customer, Walk-in, credit-limit, opening/correction, immutable-ledger, Supplier, search/pagination, permission, responsive-layout, or browser-console blocker remains. `BUG-038` was found during production-browser acceptance and resolved with deterministic query ordering plus focused regression coverage. Existing Low deferred `BUG-008` and external tooling issue `BUG-034` remain unchanged and do not represent Stage 8 application defects.
+
+## BUG-039 — Purchase Payments list includes non-supplier outbound payments
+
+- **ID:** BUG-039
+- **Severity:** Medium
+- **Area:** Existing Stage 7 Purchasing payment list / API query semantics
+- **Description:** The Purchase Payments list endpoint can include outbound sale-refund payments whose `supplier` relation is null. The existing Stage 7 list assumes every returned row has a supplier and dereferences `payment.supplier.name`, causing a client runtime error.
+- **Reproduction:** With a posted outbound sale refund in the company, open `/app/purchases/payments`. The API returns HTTP 200, then the list fails with `Cannot read properties of null (reading 'name')`. The direct `/app/purchases/payments/new/:supplierId` workflow remains operational.
+- **Expected:** The purchasing endpoint returns supplier payments only, or the documented response projection safely distinguishes other outbound payment kinds; the list never dereferences a null supplier.
+- **Actual:** Non-supplier outbound refunds can enter the purchasing result set and crash the list after a successful response.
+- **Status:** Open — pre-existing and outside the approved Stage 9 Cash/Expenses scope. It does not affect Cash routes, the direct supplier-payment workflow, or verified drawer movement integration. Requires separate approval because this stage explicitly forbids Purchasing/API changes.
+- **Related task:** Stage 9 cross-module supplier-payment verification; future bounded Purchasing fix
+
+## Stage 9 Verification Note — 2026-09-13
+
+No Critical/High Current Shift, opening-float, Expected Cash, cash-source mapping, manual movement, expense, reversal, closing, variance, responsive-layout, or Stage 9 console blocker remains. Production-browser UAT and PostgreSQL reconciliation pass, including exact cash versus non-cash collection/supplier-payment behavior and unique automatic source movements. `BUG-039` is a separate Medium pre-existing Purchasing-list defect and did not require or receive an out-of-scope code change.

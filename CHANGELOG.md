@@ -4,6 +4,16 @@ All meaningful project changes are recorded here. This project follows a phase-o
 
 ## Unreleased
 
+### V1 UI redesign — Stage 9 Cash and Expenses
+
+- Replaced the legacy cash console with route-addressable Current Shift, Shift History/Detail, immutable Cash Movements, Expenses, and Expense Categories workspaces using the approved light-first operational and financial patterns.
+- Added reviewed, permission-aware Open/Close Shift, Cash In/Out, expense posting, expense reversal, and category lifecycle actions with stable idempotency keys and human-readable concurrency/closed-drawer errors.
+- Presented opening cash as starting float, Expected Cash from backend summaries, `Actual - Expected` variance, applied-cash-only sale effects, and explicit cash/non-cash collection, supplier-payment, refund, and expense behavior.
+- Production-browser UAT verified BDT 5,000 opening, BDT 399.98 applied cash sales, BDT 100 cash collection, BDT 10 supplier cash payment, BDT 199.99 refund, BDT 5,289.99 expected close, BDT 5,250 actual, and −BDT 39.99 shortage. A prior shift verified manual BDT 100 in, BDT 50 out, BDT 250 cash expense, BDT 75 non-cash expense, and immutable cash-expense reversal.
+- PostgreSQL reconciliation proves exact cash/non-cash source mapping, one automatic movement per eligible source, zero duplicate source identities, and signed movement sums equal both stored shift snapshots.
+- Verified 29/29 web tests, 5/5 shared UI tests, 23/23 focused Phase 11/9/10/8 regressions, monorepo lint/typecheck, API and Next.js production builds, responsive 1440 × 900 and 1280 × 720 layouts, and a clean Stage 9 browser console. No backend cash/accounting rule, Prisma schema, migration, or API contract changed.
+- Recorded `BUG-039` separately: the pre-existing Purchase Payments list can include non-supplier outbound refunds and dereference a null supplier. The direct supplier-payment workflow and Stage 9 Cash integration pass; no out-of-scope Purchasing/API change was made.
+
 ### V1 UI redesign — Stage 8 Customers and Suppliers
 
 - Replaced the legacy party console with route-addressable Customer Groups, Customers, protected Walk-in Customer, Customer Detail/Ledger, Suppliers, and Supplier Detail/Ledger workspaces using the approved light-first list/detail patterns.

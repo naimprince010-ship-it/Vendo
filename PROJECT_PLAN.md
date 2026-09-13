@@ -299,6 +299,31 @@ Current gate status: **PASS (2026-09-13)**. Stage 8 is complete within the appro
 - Browser console: PASS; zero application errors or warnings
 - Backend scope review: PASS (only approved ledger ordering changed; no schema, migration, API-shape, or financial-rule change)
 
+## Approved V1 UI Redesign — Stage 9 Cash and Expenses
+
+- [x] Split Current Shift, Shift History/Detail, Cash Movements, Expenses, and Expense Categories into route-addressable workspaces
+- [x] Preserve one-open-shift, immutable movement, expected-cash, source uniqueness, idempotency, concurrency, permission, and branch/register rules
+- [x] Present opening cash as starting float and backend-derived Expected Cash without treating tender/change or non-cash methods as drawer activity
+- [x] Add reviewed Open/Close Shift, Cash In/Out, Expense posting, Expense reversal, and category lifecycle workflows
+- [x] Verify cash/non-cash sale, collection, supplier-payment, refund, and expense mappings against the same local API/database
+- [x] Verify closed-shift blocking, historical close snapshots, Actual minus Expected variance, bounded history, and immutable source references
+- [x] Pass responsive production-browser acceptance and clean-console inspection for all Stage 9 routes
+- [x] Pass web/UI tests, Phase 11/9/10/8 regressions, monorepo lint/typecheck, production builds, formatting, secret scan, and Git whitespace checks
+- [x] Complete Stage 9 gate
+
+Current gate status: **PASS (2026-09-13)**. Stage 9 is complete within the approved Cash and Expenses UI scope. The accepted browser sequence opened a BDT 5,000 shift and reconciled BDT 399.98 cash sales, BDT 100 cash collection, BDT 10 supplier cash payment, and BDT 199.99 cash refund to BDT 5,289.99 Expected Cash. Closing stored BDT 5,250 Actual Cash and a −BDT 39.99 shortage. Cash/non-cash expenses and controlled reversal were verified on the preceding shift. Backend cash/accounting rules, Prisma, migrations, and API contracts are unchanged. Stage 10 has not started.
+
+### Stage 9 Gate — PASS (2026-09-13)
+
+- Web presentation tests and shared UI tests: PASS (29/29 and 5/5)
+- Focused Phase 11/9/10/8 integration regressions: PASS (23/23)
+- Production-browser shift, sale cash/change, customer collection, supplier payment, refund, expense, reversal, close, history, and closed-drawer UAT: PASS
+- PostgreSQL reconciliation: PASS (both tested shift snapshots equal signed movement sums; no duplicate source identities)
+- Approved 1440 × 900 and 1280 × 720 layouts: PASS with no whole-page horizontal overflow
+- Stage 9 browser console: PASS; zero application errors or warnings in a fresh acceptance tab
+- Monorepo lint, strict TypeScript, API/Next.js production builds, formatting, secret scan, and Git whitespace: PASS
+- Scope review: PASS (no backend cash/accounting, schema, migration, API-contract, auth/RBAC, inventory, sales, purchasing, or reporting change)
+
 ## Phase Gate Log
 
 ### Phase 1 — PASS (2026-09-04)

@@ -1,63 +1,64 @@
 # Current Phase
 
-Approved V1 UI Redesign — Stage 8 Customers and Suppliers
+Approved V1 UI Redesign — Stage 9 Cash and Expenses
 
 # Current Task
 
-Redesign the verified Phase 7 Customers and Suppliers frontend into route-addressable, light-first party and immutable-ledger workspaces while preserving every existing party, ledger, sales, and purchasing contract.
+Redesign the verified Phase 11 Cash and Expenses frontend into route-addressable, light-first operational and historical workspaces while preserving all existing cash-journal and expense rules.
 
 # Objective
 
-Deliver Customer Groups, Customers, Walk-in protection, credit limits, opening/correction workflows, customer receivable/advance context, Suppliers, supplier payable/advance context, immutable ledgers, and related Sales/Purchasing navigation using real APIs and backend-authoritative Decimal balances.
+Deliver Current Shift, Shift History and Detail, immutable Cash Movements, Cash In/Out, Expense Categories, Expenses, controlled Expense Reversal, and clear cash-versus-non-cash semantics using real APIs and backend-authoritative Decimal values.
 
 # Dependencies
 
-- Verified Stage 7 commit `f24ce190b4ab8012b3599962cd0c4e629a869f87`
+- Verified Stage 8 commit `70de821cc0fbb3645e2dbd5b78dcd8ceceda40bb`
 - Approved Stage 1 light design system and Stage 2 route-addressable application shell
-- Stage 4 Sale Detail and Stage 7 Purchasing document/navigation patterns
-- Verified Phase 7 party lifecycle, walk-in, immutable ledgers, idempotency, concurrency, permissions, and tenant isolation
-- Existing Phase 8 supplier and Phase 9/10 customer transaction integrations
+- Stage 3 POS context, Stage 4 Sale Detail patterns, and Stage 7/8 financial-document patterns
+- Verified Phase 11 cash-shift, movement, expense, reversal, idempotency, concurrency, permission, and isolation behavior
+- Existing Phase 8 supplier-payment and Phase 9/10 sales, collection, and refund integrations
 - Existing production-rollout and UI-audit artifacts remain preserved
 
 # Expected Files To Change
 
-- `apps/web/src/app/app/parties-console.tsx`
-- `apps/web/src/features/parties/*`
-- Focused party/ledger presentation tests
+- `apps/web/src/app/app/cash/*`
+- `apps/web/src/app/app/expenses/*`
+- `apps/web/src/features/cash/*`
+- `apps/web/src/features/expenses/*`
+- Focused cash/expense presentation and interaction tests
 - Governance documentation
 
 # Acceptance Criteria
 
-- Customers, Customer Groups, Customer Detail, Suppliers, and Supplier Detail are route-addressable and bounded.
-- Customer and supplier lists use real server-side search, active-state filtering, and pagination.
-- Walk-in is unmistakably identified and exposes no misleading identity/status actions.
-- Positive customer balance is presented as receivable; negative as customer advance. Positive supplier balance is payable; negative as supplier advance.
-- Credit-limit, opening-balance, correction, adjustment, and lifecycle actions are permission-aware and deliberately reviewed.
-- Immutable ledger history presents backend debit/credit/running-balance values without edit/delete controls.
-- Related sales and purchasing navigation reuses existing routes without duplicating those modules.
-- No backend party/ledger rule, Prisma schema, migration, API contract, authentication, RBAC, sales, purchasing, inventory, cash, or reporting behavior is changed.
+- Current Shift, Shift History/Detail, Cash Movements, Expenses, and Expense Categories are route-addressable and bounded.
+- Opening cash is clearly starting drawer balance, not income, and Expected Cash is presented from backend-authoritative summaries.
+- Actual Cash and `Actual - Expected` variance are handled only through deliberate close-shift review.
+- Cash In/Out, expense posting, expense reversal, and shift lifecycle actions are permission-aware, idempotent, and deliberately confirmed.
+- Cash versus non-cash sale, collection, supplier-payment, refund, and expense effects remain truthful and traceable.
+- Immutable movement and posted-expense history exposes no edit/delete controls.
+- No backend cash/accounting rule, Prisma schema, migration, API contract, authentication, RBAC, sales, purchasing, inventory, or reporting behavior is changed.
 
 # Verification Required
 
 - Web and shared UI tests
 - Monorepo lint and strict TypeScript
 - Prettier and `git diff --check`
-- Next.js production build
-- Phase 7 party/ledger regression including walk-in, permissions, idempotency, and concurrency
-- Phase 9/10 customer integration and Phase 8 supplier integration regressions
-- Production-browser customer, walk-in, opening/correction, credit-limit, supplier, ledger, responsive, and clean-console workflows
+- API and Next.js production builds
+- Phase 11 cash/expense regression including concurrency, idempotency, permissions, and source uniqueness
+- Relevant Phase 9/10 cash integration and Phase 8 supplier-payment regression
+- Production-browser shift, cash integration, expense, reversal, close, responsive, and clean-console workflows
 - API/database reconciliation, secret scan, and forbidden backend/schema/migration/API-contract diff review
 
 # Status
 
-PASS (2026-09-13). The Stage 8 route-addressable party workspace, exact Decimal presentation helpers, permission-aware lifecycle and financial actions, focused tests, production-browser workflows, and API/database reconciliation are complete. `BUG-038` is resolved by deterministic `effectiveAt DESC, createdAt DESC, id DESC` ledger ordering with no schema, migration, API-shape, sign-convention, posting, idempotency, or immutability change.
+PASS (2026-09-13). Stage 9 Cash and Expenses is implemented, browser-accepted, reconciled against PostgreSQL, regression-tested, and production-built without changing backend cash/accounting rules, Prisma, migrations, or API contracts.
 
 # Blockers
 
-- No Critical/High application blocker remains for Stage 8. `BUG-038` is resolved and covered by same-effective-date customer/supplier ordering, running-balance, pagination-stability, final-balance, and immutability regression checks.
-- The approved Figma file currently exposes only the shared design-system cover and no dedicated Customers/Suppliers frames, so the accepted light-first system and established list/detail patterns govern this stage.
-- Pre-existing untracked production-rollout and UI-audit artifacts must remain untouched.
+- No Stage 9 blocker remains.
+- `BUG-039` is a separately documented pre-existing Purchasing payment-list query/projection issue. It does not affect the verified Cash/Expenses routes or authoritative cash integrations and was not changed in this stage.
+- Pre-existing untracked production-rollout and UI-audit artifacts remain untouched.
 
 # Next Approved Task
 
-STOP after the verified Stage 8 commit and push. Stage 9 Cash and Expenses requires explicit approval and has not started.
+Stage 10 Dashboard and Reports is the next planned task, but it is not approved and must not start until explicitly authorized.
