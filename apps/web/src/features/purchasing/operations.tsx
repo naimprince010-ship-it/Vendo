@@ -19,6 +19,8 @@ import {
   Input,
   LoadingState,
   MoneyDisplay,
+  QuantityDisplay,
+  formatMoneyValue,
   Select,
   StatusBadge,
   Textarea,
@@ -568,7 +570,8 @@ export function GoodsReceiptEditor({ initialOrderId = '' }: { initialOrderId?: s
                     <div>
                       <p className="font-semibold text-text-primary">{line.product.name}</p>
                       <p className="text-xs text-text-muted">
-                        {line.product.sku} · Ordered {line.quantity} {line.unit.code}
+                        {line.product.sku} · Ordered{' '}
+                        <QuantityDisplay value={line.quantity} unit={line.unit.code} />
                       </p>
                     </div>
                     <div className="text-right">
@@ -863,7 +866,8 @@ export function SupplierInvoiceEditor({ initialReceiptId = '' }: { initialReceip
                   <div>
                     <p className="font-semibold">{item.product.name}</p>
                     <p className="text-xs text-text-muted">
-                      {item.product.sku} · Receipt {item.quantity} {item.unit.code}
+                      {item.product.sku} · Receipt{' '}
+                      <QuantityDisplay value={item.quantity} unit={item.unit.code} />
                     </p>
                   </div>
                   <FormField label="Invoice quantity">
@@ -1100,7 +1104,7 @@ export function SupplierPaymentEditor({ initialSupplierId = '' }: { initialSuppl
                     </div>
                     <div>
                       <p className="text-xs text-text-muted">Outstanding</p>
-                      <p className="font-mono font-bold">{invoice.outstanding} BDT</p>
+                      <MoneyDisplay value={invoice.outstanding} className="font-bold" />
                     </div>
                     <FormField label="Allocate now">
                       <Input
@@ -1120,15 +1124,15 @@ export function SupplierPaymentEditor({ initialSupplierId = '' }: { initialSuppl
         <CardContent className="grid gap-4 pt-5 sm:grid-cols-3">
           <div>
             <p className="text-xs text-text-muted">Payment</p>
-            <p className="font-mono text-xl font-bold">{amount || '0'} BDT</p>
+            <MoneyDisplay value={amount || '0'} className="text-xl font-bold" />
           </div>
           <div>
             <p className="text-xs text-text-muted">Allocated</p>
-            <p className="font-mono text-xl font-bold">{summary.allocated} BDT</p>
+            <MoneyDisplay value={summary.allocated} className="text-xl font-bold" />
           </div>
           <div>
             <p className="text-xs text-text-muted">Unapplied advance</p>
-            <p className="font-mono text-xl font-bold">{summary.unapplied} BDT</p>
+            <MoneyDisplay value={summary.unapplied} className="text-xl font-bold" />
           </div>
         </CardContent>
       </Card>
@@ -1146,7 +1150,9 @@ export function SupplierPaymentEditor({ initialSupplierId = '' }: { initialSuppl
       >
         <p>{suppliers.find((item) => item.id === supplierId)?.name}</p>
         <p className="mt-1">
-          Payment {amount} BDT · Allocated {summary.allocated} · Advance {summary.unapplied}
+          Payment <MoneyDisplay value={amount} /> · Allocated{' '}
+          <MoneyDisplay value={summary.allocated} /> · Advance{' '}
+          <MoneyDisplay value={summary.unapplied} />
         </p>
       </ConfirmDialog>
     </div>
@@ -1283,7 +1289,8 @@ export function PurchaseReturnEditor({ initialReceiptId = '' }: { initialReceipt
               <option value="">Select line</option>
               {(receipt.data?.items ?? []).map((item) => (
                 <option key={item.id} value={item.id}>
-                  {item.product.sku} · {item.quantity} {item.unit.code}
+                  {item.product.sku} ·{' '}
+                  <QuantityDisplay value={item.quantity} unit={item.unit.code} />
                   {item.batch?.shade ? ` · Shade ${item.batch.shade}` : ''}
                 </option>
               ))}
@@ -1315,7 +1322,7 @@ export function PurchaseReturnEditor({ initialReceiptId = '' }: { initialReceipt
                   .filter((item) => item.receiptItemId === receiptItemId)
                   .map((item) => (
                     <option key={item.id} value={item.id}>
-                      {item.product.name} · {item.lineTotal} BDT
+                      {item.product.name} · {formatMoneyValue(item.lineTotal)}
                     </option>
                   ))}
               </Select>

@@ -31,6 +31,7 @@ import { useMemo, useState, type ReactNode } from 'react';
 import { useAuth } from '../../auth/auth-context';
 import { useBranchContext } from '../../contexts/branch-context';
 import { useVendoApi } from '../../hooks/use-vendo-api';
+import { financialPosition } from '../parties/presentation';
 import {
   REPORTS,
   dateTimeLabel,
@@ -46,7 +47,15 @@ const PAGE_SIZE = 25;
 type Column = {
   key: string;
   label: string;
-  kind?: 'money' | 'quantity' | 'date' | 'status' | 'position' | 'text';
+  kind?:
+    | 'money'
+    | 'quantity'
+    | 'date'
+    | 'status'
+    | 'position'
+    | 'customer-balance'
+    | 'supplier-balance'
+    | 'text';
   unitKey?: string;
   nestedKeys?: string[];
   profit?: boolean;
@@ -101,7 +110,7 @@ const columns: Record<Exclude<ReportKind, 'financial'>, Column[]> = {
     { key: 'group', label: 'Group' },
     { key: 'phone', label: 'Phone' },
     { key: 'creditLimit', label: 'Credit limit', kind: 'money' },
-    { key: 'balance', label: 'Ledger balance', kind: 'money' },
+    { key: 'balance', label: 'Receivable / advance', kind: 'customer-balance' },
     { key: 'position', label: 'Position', kind: 'position' },
   ],
   suppliers: [
@@ -109,7 +118,7 @@ const columns: Record<Exclude<ReportKind, 'financial'>, Column[]> = {
     { key: 'name', label: 'Supplier' },
     { key: 'contactName', label: 'Contact' },
     { key: 'phone', label: 'Phone' },
-    { key: 'balance', label: 'Ledger balance', kind: 'money' },
+    { key: 'balance', label: 'Payable / advance', kind: 'supplier-balance' },
     { key: 'position', label: 'Position', kind: 'position' },
   ],
   expenses: [
@@ -230,19 +239,31 @@ function Metric({
   value,
   currency,
   count = false,
+  emphasis = false,
+  warning = false,
   href,
 }: {
   label: string;
   value: unknown;
   currency: string;
   count?: boolean;
+  emphasis?: boolean;
+  warning?: boolean;
   href?: string;
 }) {
   const content = (
-    <Card className="h-full transition-colors hover:border-border-strong">
-      <CardContent className="p-4">
+    <Card
+      className={`h-full transition-colors hover:border-border-strong ${
+        warning ? 'border-warning/30 bg-warning-soft/30' : ''
+      } ${emphasis ? 'border-primary/30' : ''}`}
+    >
+      <CardContent className={emphasis ? 'p-5' : 'p-4'}>
         <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">{label}</p>
-        <p className="mt-2 text-2xl font-bold tabular-nums text-text-primary">
+        <p
+          className={`mt-2 font-bold tabular-nums text-text-primary ${
+            emphasis ? 'text-3xl' : 'text-2xl'
+          }`}
+        >
           {count ? (
             String(value ?? 0)
           ) : (
@@ -269,6 +290,12 @@ export function DashboardWorkspace() {
     );
   const data = dashboard.data;
   const currency = data?.currencyCode ?? 'BDT';
+  const customerPosition = data?.kpis.receivables
+    ? financialPosition(data.kpis.receivables, 'customer')
+    : null;
+  const supplierPosition = data?.kpis.payables
+    ? financialPosition(data.kpis.payables, 'supplier')
+    : null;
   return (
     <div className="space-y-6">
       <Heading
@@ -305,10 +332,11 @@ export function DashboardWorkspace() {
               label="Today net sales"
               value={data.kpis.netSales}
               currency={currency}
+              emphasis
               href={reportPath('sales')}
             />
             <Metric
-              label="Invoices"
+              label="Today's invoices"
               value={data.kpis.invoiceCount}
               currency={currency}
               count
@@ -332,16 +360,16 @@ export function DashboardWorkspace() {
             ) : null}
             {can('report.view_customers') && data.kpis.receivables !== null ? (
               <Metric
-                label="Customer net position"
-                value={data.kpis.receivables}
+                label={customerPosition?.label ?? 'Customer receivable'}
+                value={customerPosition?.amount ?? '0'}
                 currency={currency}
                 href={reportPath('customers')}
               />
             ) : null}
             {can('report.view_suppliers') && data.kpis.payables !== null ? (
               <Metric
-                label="Supplier net position"
-                value={data.kpis.payables}
+                label={supplierPosition?.label ?? 'Supplier payable'}
+                value={supplierPosition?.amount ?? '0'}
                 currency={currency}
                 href={reportPath('suppliers')}
               />
@@ -352,6 +380,7 @@ export function DashboardWorkspace() {
                 value={data.kpis.lowStockPositions}
                 currency={currency}
                 count
+                warning
                 href={reportPath('inventory')}
               />
             ) : null}
@@ -361,7 +390,7 @@ export function DashboardWorkspace() {
               title="Recent sales"
               description="Completed invoices in today's event period."
               rows={data.recentSales}
-              empty="No sales recorded today."
+              empty="No sales yet today"
               render={(row) => (
                 <Link
                   href={`/app/sales/${String(row.id)}`}
@@ -382,7 +411,7 @@ export function DashboardWorkspace() {
                 title="Low stock"
                 description="Positions at or below configured reorder levels."
                 rows={data.lowStock}
-                empty="No low-stock positions need attention."
+                empty="Stock levels look healthy"
                 render={(row) => {
                   const product = row.product as Record<string, unknown>;
                   return (
@@ -411,7 +440,7 @@ export function DashboardWorkspace() {
               title="Top products"
               description="Net sales performance for today's event period."
               rows={data.topProducts}
-              empty="No product sales recorded today."
+              empty="No product sales yet today"
               render={(row) => (
                 <Link
                   href={reportPath('products')}
@@ -432,7 +461,7 @@ export function DashboardWorkspace() {
                 title="Recent supplier invoices"
                 description="Posted purchasing documents, separate from receipts and payments."
                 rows={data.recentPurchases}
-                empty="No supplier invoices recorded today."
+                empty="No supplier invoices yet today"
                 render={(row) => (
                   <Link
                     href={reportPath('purchases')}
@@ -722,6 +751,8 @@ function ReportDataTable({
   allowProfit: boolean;
 }) {
   const visible = columns[kind].filter((column) => !column.profit || allowProfit);
+  const numericKind = (column: Column) =>
+    ['money', 'quantity', 'customer-balance', 'supplier-balance'].includes(column.kind ?? 'text');
   if (!rows.length)
     return (
       <EmptyState
@@ -735,10 +766,7 @@ function ReportDataTable({
         <TableHeader>
           <TableRow>
             {visible.map((column) => (
-              <TableHead
-                key={column.key}
-                numeric={column.kind === 'money' || column.kind === 'quantity'}
-              >
+              <TableHead key={column.key} numeric={numericKind(column)}>
                 {column.label}
               </TableHead>
             ))}
@@ -748,11 +776,8 @@ function ReportDataTable({
           {rows.map((row, index) => (
             <TableRow key={String(row.id ?? index)}>
               {visible.map((column) => (
-                <TableCell
-                  key={column.key}
-                  numeric={column.kind === 'money' || column.kind === 'quantity'}
-                >
-                  {renderCell(row, column, currency)}
+                <TableCell key={column.key} numeric={numericKind(column)}>
+                  {renderCell(row, column, currency, kind)}
                 </TableCell>
               ))}
             </TableRow>
@@ -763,7 +788,12 @@ function ReportDataTable({
   );
 }
 
-function renderCell(row: Record<string, unknown>, column: Column, currency: string) {
+function renderCell(
+  row: Record<string, unknown>,
+  column: Column,
+  currency: string,
+  reportKind: Exclude<ReportKind, 'financial'>,
+) {
   const value = row[column.key];
   if (column.key === 'equivalents' && Array.isArray(value)) {
     const derived = value.slice(1) as { unit: string; quantity: string }[];
@@ -771,7 +801,7 @@ function renderCell(row: Record<string, unknown>, column: Column, currency: stri
       <div className="flex flex-wrap justify-end gap-1">
         {derived.map((item) => (
           <StatusBadge tone="neutral" key={item.unit}>
-            {item.quantity} {item.unit} equivalent
+            <QuantityDisplay value={item.quantity} unit={item.unit} /> equivalent
           </StatusBadge>
         ))}
       </div>
@@ -798,6 +828,14 @@ function renderCell(row: Record<string, unknown>, column: Column, currency: stri
     ) : (
       <MoneyDisplay currency={currency} value={String(value)} />
     );
+  if (column.kind === 'customer-balance' || column.kind === 'supplier-balance') {
+    if (value === null || value === undefined) return '—';
+    const position = financialPosition(
+      String(value),
+      column.kind === 'customer-balance' ? 'customer' : 'supplier',
+    );
+    return <MoneyDisplay currency={currency} value={position.amount} />;
+  }
   if (column.kind === 'quantity')
     return value === null || value === undefined ? (
       '—'
@@ -830,7 +868,8 @@ function renderCell(row: Record<string, unknown>, column: Column, currency: stri
   if (column.kind === 'position')
     return (
       <StatusBadge tone={String(value) === 'ADVANCE' ? 'info' : 'warning'}>
-        {String(value)}
+        {reportKind === 'customers' ? 'Customer ' : reportKind === 'suppliers' ? 'Supplier ' : ''}
+        {titleCase(String(value))}
       </StatusBadge>
     );
   if (value && typeof value === 'object') {
@@ -846,12 +885,14 @@ function renderCell(row: Record<string, unknown>, column: Column, currency: stri
 
 function FinancialSummary({ data, currency }: { data?: ReportResponse; currency: string }) {
   if (!data) return null;
+  const customerPosition = financialPosition(String(data.receivables ?? '0'), 'customer');
+  const supplierPosition = financialPosition(String(data.payables ?? '0'), 'supplier');
   const values = [
     ['Net sales', data.netSales],
     ['Gross profit', data.grossProfit],
     ['Posted expenses', data.expenses],
-    ['Customer net position', data.receivables],
-    ['Supplier net position', data.payables],
+    [customerPosition.label, customerPosition.amount],
+    [supplierPosition.label, supplierPosition.amount],
     ['Cash inflow', data.cashInflow],
     ['Cash outflow', data.cashOutflow],
     ['Net cash movement', data.netCashMovement],

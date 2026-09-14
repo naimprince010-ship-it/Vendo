@@ -94,13 +94,13 @@ function ShellFrame({ children }: { children: ReactNode }) {
     <TooltipProvider delayDuration={350}>
       <div className="min-h-screen overflow-x-hidden bg-canvas text-text-primary">
         <aside className="fixed inset-y-0 left-0 z-40 hidden w-[72px] flex-col border-r border-border bg-surface md:flex min-[1400px]:w-64">
-          <div className="flex h-16 items-center border-b border-divider px-5">
+          <div className="flex h-16 items-center border-b border-divider px-4 min-[1400px]:px-5">
             <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-primary text-sm font-bold text-white">
               V
             </div>
-            <div className="ml-3 hidden min-[1400px]:block">
-              <p className="text-sm font-bold tracking-wide text-primary">VENDO</p>
-              <p className="text-[11px] text-text-muted">Tiles + Sanitary</p>
+            <div className="ml-3 hidden min-[1400px]:block leading-none">
+              <p className="text-sm font-bold tracking-[0.12em] text-primary">VENDO</p>
+              <p className="mt-1.5 text-[11px] leading-none text-text-muted">Tiles + Sanitary</p>
             </div>
           </div>
           <Sidebar />

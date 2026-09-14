@@ -29,6 +29,20 @@ test('customer and supplier signs are interpreted semantically', () => {
   assert.equal(financialPosition('-25.25', 'customer').label, 'Customer advance');
   assert.equal(financialPosition('25.25', 'supplier').label, 'Supplier payable');
   assert.equal(financialPosition('-25.25', 'supplier').label, 'Supplier advance');
+  assert.deepEqual(
+    {
+      label: financialPosition('-3800.0100', 'customer').label,
+      amount: financialPosition('-3800.0100', 'customer').amount,
+    },
+    { label: 'Customer advance', amount: '3800.01' },
+  );
+  assert.deepEqual(
+    {
+      label: financialPosition('309.7500', 'supplier').label,
+      amount: financialPosition('309.7500', 'supplier').amount,
+    },
+    { label: 'Supplier payable', amount: '309.75' },
+  );
 });
 
 test('ledger labels and common API errors remain human readable', () => {

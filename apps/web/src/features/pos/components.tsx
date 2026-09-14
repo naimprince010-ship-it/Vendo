@@ -11,6 +11,7 @@ import {
   Input,
   MoneyDisplay,
   QuantityDisplay,
+  formatQuantityValue,
   Select,
   StatusBadge,
 } from '@vendo/ui';
@@ -267,8 +268,8 @@ export function PosCartRow({
               <option value="">Select exact batch / shade</option>
               {batches.map((batch) => (
                 <option key={batch.id} value={batch.id}>
-                  {batch.batchNumber} · Shade {batch.shade ?? '—'} · {batch.baseQuantity}{' '}
-                  {line.product.baseUnit.code}
+                  {batch.batchNumber} · Shade {batch.shade ?? '—'} ·{' '}
+                  {formatQuantityValue(batch.baseQuantity)} {line.product.baseUnit.code}
                 </option>
               ))}
             </Select>
@@ -552,8 +553,11 @@ export function SaleHistoryDialog({
                         <div>
                           <p className="font-semibold">{line.product.name}</p>
                           <p className="text-xs text-text-muted">
-                            {line.quantity} {line.unit.code} · {line.baseQuantity}{' '}
-                            {line.product.baseUnit.code}
+                            <QuantityDisplay value={line.quantity} unit={line.unit.code} /> ·{' '}
+                            <QuantityDisplay
+                              value={line.baseQuantity}
+                              unit={line.product.baseUnit.code}
+                            />
                             {line.batch
                               ? ` · Batch ${line.batch.batchNumber} · Shade ${line.batch.shade ?? '—'}`
                               : ''}

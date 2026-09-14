@@ -23,6 +23,7 @@ import {
   Input,
   LoadingState,
   MoneyDisplay,
+  formatMoneyValue,
   Select,
   Textarea,
 } from '@vendo/ui';
@@ -350,7 +351,7 @@ export function SaleDetailWorkspace({ saleId }: { saleId: string }) {
             <p className="mt-1 text-xs text-text-muted">
               {sale.customer.isWalkIn
                 ? 'System walk-in customer'
-                : `Credit limit BDT ${sale.customer.creditLimit}`}
+                : `Credit limit ${formatMoneyValue(sale.customer.creditLimit)}`}
             </p>
           </div>
         </aside>

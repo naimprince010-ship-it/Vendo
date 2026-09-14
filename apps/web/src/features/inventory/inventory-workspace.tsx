@@ -13,6 +13,7 @@ import {
   ErrorState,
   LoadingState,
   Pagination,
+  QuantityDisplay,
   SearchInput,
   Select,
   StatusBadge,
@@ -296,7 +297,7 @@ function Equivalents({ balance }: { balance: Balance }) {
           key={item.unit.id}
           className="rounded-md bg-neutral-subtle px-2 py-1 font-mono text-xs text-text-secondary"
         >
-          {item.quantity} {item.unit.code} equivalent
+          <QuantityDisplay value={item.quantity} unit={item.unit.code} /> equivalent
         </span>
       ))}
     </div>
@@ -427,7 +428,10 @@ function StockList() {
                     </TableCell>
                     <TableCell numeric>
                       <span className="font-mono text-base font-bold text-text-primary">
-                        {balance.baseQuantity} {balance.product.baseUnit.code}
+                        <QuantityDisplay
+                          value={balance.baseQuantity}
+                          unit={balance.product.baseUnit.code}
+                        />
                       </span>
                       <p className="text-xs text-text-muted">Authoritative</p>
                     </TableCell>
@@ -517,7 +521,10 @@ function ProductStockDetail({ productId }: { productId: string }) {
                       Base stock · authoritative
                     </p>
                     <p className="mt-1 font-mono text-2xl font-bold text-text-primary">
-                      {balance.baseQuantity} {balance.product.baseUnit.code}
+                      <QuantityDisplay
+                        value={balance.baseQuantity}
+                        unit={balance.product.baseUnit.code}
+                      />
                     </p>
                   </div>
                   <div className="mt-3">
@@ -625,7 +632,7 @@ function LowStock() {
                   </TableCell>
                   <TableCell>{row.warehouse.name}</TableCell>
                   <TableCell numeric className="font-mono font-bold">
-                    {row.baseQuantity} {row.product.baseUnit.code}
+                    <QuantityDisplay value={row.baseQuantity} unit={row.product.baseUnit.code} />
                   </TableCell>
                   <TableCell numeric className="font-mono">
                     {row.product.reorderLevel ?? '—'} {row.product.baseUnit.code}

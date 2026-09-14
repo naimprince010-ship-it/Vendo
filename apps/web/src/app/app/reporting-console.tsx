@@ -1,6 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
+import { MoneyDisplay } from '@vendo/ui';
 import { useMemo, useState, type ReactNode } from 'react';
 import { useAuth } from '../../auth/auth-context';
 import { useBranchContext } from '../../contexts/branch-context';
@@ -76,13 +77,7 @@ function Card({ title, children }: { title: string; children: ReactNode }) {
 }
 
 function Money({ value, currency = 'BDT' }: { value: unknown; currency?: string }) {
-  const formatted = new Intl.NumberFormat('en-BD', {
-    style: 'currency',
-    currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(Number(value ?? 0));
-  return <>{formatted}</>;
+  return <MoneyDisplay value={String(value ?? '0')} currency={currency} />;
 }
 
 export function DashboardConsole() {

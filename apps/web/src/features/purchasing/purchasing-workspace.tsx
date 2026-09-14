@@ -20,6 +20,8 @@ import {
   LoadingState,
   MoneyDisplay,
   Pagination,
+  QuantityDisplay,
+  formatMoneyValue,
   SearchInput,
   Select,
   StatusBadge,
@@ -541,16 +543,26 @@ function OrderDetail({ id }: { id: string }) {
                       </p>
                     </TableCell>
                     <TableCell numeric>
-                      {line.quantity} {line.unit.code}
+                      <QuantityDisplay value={line.quantity} unit={line.unit.code} />
                     </TableCell>
                     <TableCell numeric>
-                      {line.receivedBaseQuantity} {productBaseUnitCode(line.productId, products)}
+                      <QuantityDisplay
+                        value={line.receivedBaseQuantity ?? '0'}
+                        unit={productBaseUnitCode(line.productId, products)}
+                      />
                     </TableCell>
                     <TableCell numeric className="font-bold">
-                      {line.remainingBaseQuantity} {productBaseUnitCode(line.productId, products)}
+                      <QuantityDisplay
+                        value={line.remainingBaseQuantity ?? '0'}
+                        unit={productBaseUnitCode(line.productId, products)}
+                      />
                     </TableCell>
-                    <TableCell numeric>{line.unitCost} BDT</TableCell>
-                    <TableCell numeric>{line.lineTotal} BDT</TableCell>
+                    <TableCell numeric>
+                      <MoneyDisplay value={line.unitCost} />
+                    </TableCell>
+                    <TableCell numeric>
+                      <MoneyDisplay value={line.lineTotal} />
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -819,10 +831,13 @@ function ReceiptDetail({ id }: { id: string }) {
                       <p className="text-xs text-text-muted">{line.product.sku}</p>
                     </TableCell>
                     <TableCell numeric>
-                      {line.quantity} {line.unit.code}
+                      <QuantityDisplay value={line.quantity} unit={line.unit.code} />
                     </TableCell>
                     <TableCell numeric>
-                      {line.baseQuantity} {productBaseUnitCode(line.productId, products)}
+                      <QuantityDisplay
+                        value={line.baseQuantity}
+                        unit={productBaseUnitCode(line.productId, products)}
+                      />
                       <p className="text-xs text-text-muted">Factor × {line.conversionFactor}</p>
                     </TableCell>
                     <TableCell>
@@ -837,7 +852,9 @@ function ReceiptDetail({ id }: { id: string }) {
                         'Not batch tracked'
                       )}
                     </TableCell>
-                    <TableCell numeric>{line.unitCost} BDT</TableCell>
+                    <TableCell numeric>
+                      <MoneyDisplay value={line.unitCost} />
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -937,10 +954,14 @@ function InvoiceList() {
                         Due {invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString() : '—'}
                       </p>
                     </TableCell>
-                    <TableCell numeric>{invoice.total} BDT</TableCell>
-                    <TableCell numeric>{f.paid} BDT</TableCell>
+                    <TableCell numeric>
+                      <MoneyDisplay value={invoice.total} />
+                    </TableCell>
+                    <TableCell numeric>
+                      <MoneyDisplay value={f.paid} />
+                    </TableCell>
                     <TableCell numeric className="font-bold">
-                      {f.outstanding} BDT
+                      <MoneyDisplay value={f.outstanding} />
                     </TableCell>
                   </TableRow>
                 );
@@ -1033,11 +1054,11 @@ function InvoiceDetail({ id }: { id: string }) {
         </Summary>
         <Summary label="Paid / credited">
           <p className="font-mono font-bold">
-            {finance.paid} / {finance.credited} BDT
+            <MoneyDisplay value={finance.paid} /> / <MoneyDisplay value={finance.credited} />
           </p>
         </Summary>
         <Summary label="Outstanding">
-          <p className="font-mono text-xl font-bold">{finance.outstanding} BDT</p>
+          <MoneyDisplay value={finance.outstanding} className="text-xl font-bold" />
         </Summary>
       </div>
       <Card>
@@ -1068,13 +1089,13 @@ function InvoiceDetail({ id }: { id: string }) {
                       <p className="text-xs text-text-muted">{line.product.sku}</p>
                     </TableCell>
                     <TableCell numeric>
-                      {line.quantity} {line.unit.code}
+                      <QuantityDisplay value={line.quantity} unit={line.unit.code} />
                     </TableCell>
                     <TableCell numeric>{line.unitCost}</TableCell>
                     <TableCell numeric>{line.discount}</TableCell>
                     <TableCell numeric>{line.tax}</TableCell>
                     <TableCell numeric className="font-bold">
-                      {line.lineTotal} BDT
+                      <MoneyDisplay value={line.lineTotal} />
                     </TableCell>
                   </TableRow>
                 ))}
@@ -1217,10 +1238,14 @@ function PaymentList() {
                     </TableCell>
                     <TableCell>{new Date(payment.paidAt).toLocaleString()}</TableCell>
                     <TableCell>{payment.method.name}</TableCell>
-                    <TableCell numeric>{payment.amount} BDT</TableCell>
-                    <TableCell numeric>{s.allocated} BDT</TableCell>
+                    <TableCell numeric>
+                      <MoneyDisplay value={payment.amount} />
+                    </TableCell>
+                    <TableCell numeric>
+                      <MoneyDisplay value={s.allocated} />
+                    </TableCell>
                     <TableCell numeric className="font-bold">
-                      {s.unapplied} BDT
+                      <MoneyDisplay value={s.unapplied} />
                     </TableCell>
                   </TableRow>
                 );
@@ -1273,13 +1298,13 @@ function PaymentDetail({ documentNumber }: { documentNumber: string }) {
           <p className="font-semibold">{payment.method.name}</p>
         </Summary>
         <Summary label="Total paid">
-          <p className="font-mono text-xl font-bold">{payment.amount} BDT</p>
+          <MoneyDisplay value={payment.amount} className="text-xl font-bold" />
         </Summary>
         <Summary label="Allocated">
-          <p className="font-mono text-xl font-bold">{summary.allocated} BDT</p>
+          <MoneyDisplay value={summary.allocated} className="text-xl font-bold" />
         </Summary>
         <Summary label="Unapplied advance">
-          <p className="font-mono text-xl font-bold">{summary.unapplied} BDT</p>
+          <MoneyDisplay value={summary.unapplied} className="text-xl font-bold" />
         </Summary>
       </div>
       <Card>
@@ -1293,7 +1318,7 @@ function PaymentDetail({ documentNumber }: { documentNumber: string }) {
               <RelatedLink
                 key={row.invoiceId}
                 href={`${ROOT}/invoices/${row.invoiceId}`}
-                label={`Invoice allocation · ${row.amount} BDT`}
+                label={`Invoice allocation · ${formatMoneyValue(row.amount)}`}
               />
             ))
           ) : (
@@ -1372,7 +1397,9 @@ function ReturnList() {
                       {row.invoiceId ? 'Inventory + credit' : 'Inventory only'}
                     </StatusBadge>
                   </TableCell>
-                  <TableCell numeric>{row.financialTotal} BDT</TableCell>
+                  <TableCell numeric>
+                    <MoneyDisplay value={row.financialTotal} />
+                  </TableCell>
                   <TableCell className="max-w-56 truncate">{row.reason}</TableCell>
                 </TableRow>
               ))}
@@ -1481,7 +1508,7 @@ function TotalRow({
       className={`flex justify-between gap-4 ${strong ? 'border-t border-border pt-3 text-base font-bold' : 'text-text-secondary'}`}
     >
       <span>{label}</span>
-      <span className="font-mono">{value} BDT</span>
+      <MoneyDisplay value={value} />
     </div>
   );
 }

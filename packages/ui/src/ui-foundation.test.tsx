@@ -56,8 +56,25 @@ test('status, alert, and display primitives are presentation-only and determinis
   );
   assert.match(markup, /bg-success-soft/);
   assert.match(markup, /role="status"/);
-  assert.match(markup, /1,250\.50/);
-  assert.match(markup, /8\.0000/);
+  assert.match(markup, /BDT 1,250\.50/);
+  assert.match(markup, />8<span/);
+});
+
+test('money and quantity displays hide storage precision without changing input values', () => {
+  const markup = renderToStaticMarkup(
+    <>
+      <MoneyDisplay value="0.0000" />
+      <MoneyDisplay value="-3800.0100" />
+      <MoneyDisplay value="25000.005" />
+      <QuantityDisplay value="2.500000" unit="SQ.FT" />
+      <QuantityDisplay value="3.125000" unit="SQ.M" />
+    </>,
+  );
+  assert.match(markup, /BDT 0\.00/);
+  assert.match(markup, /BDT -3,800\.01/);
+  assert.match(markup, /BDT 25,000\.01/);
+  assert.match(markup, />2\.5<span/);
+  assert.match(markup, />3\.125<span/);
 });
 
 test('table primitives preserve semantic table markup and numeric alignment', () => {

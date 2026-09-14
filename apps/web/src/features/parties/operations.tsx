@@ -16,6 +16,7 @@ import {
   DialogTitle,
   FormField as BaseFormField,
   Input,
+  MoneyDisplay,
   Select,
   StatusBadge,
   Textarea,
@@ -416,7 +417,9 @@ export function CreditLimitDialog({ customer }: { customer: Customer }) {
         <p className="font-semibold text-text-primary">
           {customer.code} · {customer.name}
         </p>
-        <p className="mt-1">New credit limit: {amount} BDT</p>
+        <p className="mt-1">
+          New credit limit: <MoneyDisplay value={amount} />
+        </p>
         <p className="mt-1">Reason: {reason}</p>
       </ActionDialog>
     </>
@@ -576,7 +579,7 @@ export function LedgerActionDialog({
           {party.code} · {party.name}
         </p>
         <p className="mt-1">
-          {meaning === 'positive' ? positiveLabel : negativeLabel}: {amount} BDT
+          {meaning === 'positive' ? positiveLabel : negativeLabel}: <MoneyDisplay value={amount} />
         </p>
         <p className="mt-1">
           Effective {effectiveAt} · {reason}

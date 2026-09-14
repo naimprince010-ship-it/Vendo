@@ -70,7 +70,20 @@ function State({ action, className, description, icon, title, ...props }: StateP
 }
 
 export function EmptyState(props: StateProps) {
-  return <State icon={props.icon ?? '○'} {...props} />;
+  const defaultIcon = (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      fill="none"
+      className="size-6"
+      stroke="currentColor"
+      strokeWidth="1.5"
+    >
+      <path d="M4.75 7.75h14.5v10.5H4.75z" />
+      <path d="M8 11.25h8M9.5 5.75h5" strokeLinecap="round" />
+    </svg>
+  );
+  return <State icon={props.icon ?? defaultIcon} {...props} />;
 }
 
 export interface LoadingStateProps extends Omit<StateProps, 'title'> {

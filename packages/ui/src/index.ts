@@ -37,6 +37,8 @@ export {
 export {
   MoneyDisplay,
   QuantityDisplay,
+  formatMoneyValue,
+  formatQuantityValue,
   type MoneyDisplayProps,
   type QuantityDisplayProps,
 } from './display';

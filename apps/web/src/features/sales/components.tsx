@@ -399,9 +399,9 @@ export function ReturnLineSelector({
             <div>
               <p className="text-sm font-semibold text-text-primary">{line.productNameSnapshot}</p>
               <p className="mt-1 text-xs text-text-secondary">
-                Sold {line.quantity} {line.unitCodeSnapshot} · previously returned{' '}
-                {line.returnedBaseQuantity} {line.product.baseUnit.code} · returnable {remaining}{' '}
-                {line.unitCodeSnapshot}
+                Sold <QuantityDisplay value={line.quantity} unit={line.unitCodeSnapshot} /> ·
+                previously returned {line.returnedBaseQuantity} {line.product.baseUnit.code} ·
+                returnable {remaining} {line.unitCodeSnapshot}
               </p>
               {line.batchNumberSnapshot ? (
                 <p className="mt-1 text-xs text-text-muted">

@@ -882,14 +882,15 @@ function PartyLedger({ kind, id }: { kind: PartyKind; id: string }) {
                   </div>
                   <div className="text-right">
                     <p className="font-mono font-semibold text-text-primary">
-                      {compareDecimal(entry.debit) > 0
-                        ? `Debit ${entry.debit}`
-                        : `Credit ${entry.credit}`}{' '}
-                      BDT
+                      {compareDecimal(entry.debit) > 0 ? 'Debit ' : 'Credit '}
+                      <MoneyDisplay
+                        value={compareDecimal(entry.debit) > 0 ? entry.debit : entry.credit}
+                      />
                     </p>
                     {entry.runningBalance ? (
                       <p className="text-xs text-text-muted">
-                        Running balance {entry.runningBalance} BDT
+                        Running balance{' '}
+                        <MoneyDisplay value={entry.runningBalance} className="text-xs" />
                       </p>
                     ) : null}
                   </div>
