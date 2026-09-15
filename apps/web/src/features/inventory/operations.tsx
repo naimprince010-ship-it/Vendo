@@ -37,6 +37,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  VendoIcon,
 } from '@vendo/ui';
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
@@ -925,7 +926,8 @@ function CountDetailView({ countId }: { countId: string }) {
             className="text-sm font-semibold text-primary hover:underline"
             href={`${ROOT}/counts`}
           >
-            ← All counts
+            <VendoIcon name="back" size={16} />
+            All counts
           </Link>
           <h1 className="mt-2 text-2xl font-bold text-text-primary">{count.countNumber}</h1>
           <p className="text-sm text-text-secondary">

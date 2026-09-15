@@ -31,6 +31,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  VendoIcon,
+  type VendoIconName,
 } from '@vendo/ui';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -89,11 +91,11 @@ function PurchasingNav() {
   const path = usePathname();
   const { can } = usePurchasing();
   const links = [
-    [`${ROOT}/orders`, 'Purchase orders', 'purchase.view'],
-    [`${ROOT}/receipts`, 'Goods receipts', 'purchase.view'],
-    [`${ROOT}/invoices`, 'Supplier invoices', 'purchase.view'],
-    [`${ROOT}/payments`, 'Payments', 'supplier.payment.view'],
-    [`${ROOT}/returns`, 'Returns', 'purchase.view'],
+    [`${ROOT}/orders`, 'Purchase orders', 'purchase.view', 'purchaseOrder'],
+    [`${ROOT}/receipts`, 'Goods receipts', 'purchase.view', 'goodsReceipt'],
+    [`${ROOT}/invoices`, 'Supplier invoices', 'purchase.view', 'supplierInvoice'],
+    [`${ROOT}/payments`, 'Payments', 'supplier.payment.view', 'supplierPayment'],
+    [`${ROOT}/returns`, 'Returns', 'purchase.view', 'purchaseReturn'],
   ] as const;
   return (
     <nav
@@ -102,7 +104,7 @@ function PurchasingNav() {
     >
       {links
         .filter(([, , permission]) => can(permission))
-        .map(([href, label]) => {
+        .map(([href, label, , icon]) => {
           const active =
             path === href ||
             path.startsWith(`${href}/`) ||
@@ -111,8 +113,9 @@ function PurchasingNav() {
             <Link
               key={href}
               href={href}
-              className={`whitespace-nowrap rounded-md px-3 py-2 text-sm font-semibold ${active ? 'bg-primary-soft text-primary' : 'text-text-secondary hover:bg-neutral-hover hover:text-text-primary'}`}
+              className={`flex items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm font-semibold ${active ? 'bg-primary-soft text-primary' : 'text-text-secondary hover:bg-neutral-hover hover:text-text-primary'}`}
             >
+              <VendoIcon name={icon as VendoIconName} size={16} />
               {label}
             </Link>
           );
@@ -1519,7 +1522,7 @@ function RelatedLink({ href, label }: { href: string; label: string }) {
       className="flex items-center justify-between rounded-md border border-border p-3 text-sm font-semibold text-primary hover:bg-neutral-hover"
     >
       <span>{label}</span>
-      <span aria-hidden>→</span>
+      <VendoIcon name="view" size={16} />
     </Link>
   );
 }

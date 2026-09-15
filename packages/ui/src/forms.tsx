@@ -7,30 +7,10 @@ import {
   type TextareaHTMLAttributes,
 } from 'react';
 import { cn } from './lib/cn';
+import { VendoIcon } from './icon';
 
 const controlStyles =
   'h-control-md w-full rounded-md border border-border-strong bg-surface px-3 text-sm text-text-primary outline-none transition placeholder:text-text-muted hover:border-text-muted focus:border-primary focus:ring-2 focus:ring-primary/15 disabled:cursor-not-allowed disabled:bg-surface-secondary disabled:text-text-disabled aria-invalid:border-danger aria-invalid:ring-danger/15 read-only:bg-surface-secondary';
-
-function SearchIcon() {
-  return (
-    <svg aria-hidden="true" viewBox="0 0 20 20" className="size-4" fill="none">
-      <circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" strokeWidth="1.7" />
-      <path d="m12.5 12.5 4 4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function BarcodeIcon() {
-  return (
-    <svg aria-hidden="true" viewBox="0 0 20 20" className="size-4" fill="none">
-      <path
-        d="M3 4v12M6 4v12M9 4v12M13 4v12M15 4v12M17 4v12"
-        stroke="currentColor"
-        strokeWidth="1.4"
-      />
-    </svg>
-  );
-}
 
 export interface FormFieldProps {
   children: ReactNode;
@@ -117,7 +97,7 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(functi
   return (
     <div className="relative">
       <span aria-hidden="true" className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted">
-        <SearchIcon />
+        <VendoIcon name="search" size={16} />
       </span>
       <Input
         ref={ref}
@@ -141,7 +121,7 @@ export const BarcodeSearchInput = forwardRef<HTMLInputElement, SearchInputProps>
           aria-hidden="true"
           className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted"
         >
-          <BarcodeIcon />
+          <VendoIcon name="barcode" size={16} />
         </span>
         <Input
           ref={ref}

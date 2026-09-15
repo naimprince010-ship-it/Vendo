@@ -26,6 +26,7 @@ import {
   formatMoneyValue,
   Select,
   Textarea,
+  VendoIcon,
 } from '@vendo/ui';
 import { useMemo, useRef, useState } from 'react';
 import { useAuth } from '../../auth/auth-context';
@@ -405,6 +406,7 @@ export function SaleDetailWorkspace({ saleId }: { saleId: string }) {
               A4 invoice
             </Button>
             <Button className="ml-auto" onClick={() => window.print()} disabled={!invoice.data}>
+              <VendoIcon name="print" size={16} />
               Print
             </Button>
           </div>

@@ -41,6 +41,8 @@ import {
   TableHeader,
   TableRow,
   Textarea,
+  VendoIcon,
+  type VendoIconName,
 } from '@vendo/ui';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -142,6 +144,15 @@ function PageHeading({
 function AdministrationNav() {
   const pathname = usePathname();
   const { can } = useAdministration();
+  const icons: Record<(typeof ADMIN_SECTIONS)[number]['key'], VendoIconName> = {
+    company: 'company',
+    branches: 'branch',
+    access: 'permission',
+    warehouses: 'warehouse',
+    registers: 'cashRegister',
+    users: 'user',
+    roles: 'role',
+  };
   return (
     <nav aria-label="Administration sections" className="flex gap-2 overflow-x-auto pb-1">
       {ADMIN_SECTIONS.filter((item) => can(item.permission)).map((item) => {
@@ -151,12 +162,13 @@ function AdministrationNav() {
           <Link
             key={item.key}
             href={href}
-            className={`min-w-fit rounded-md border px-3 py-2 text-sm font-medium transition-colors ${
+            className={`flex min-w-fit items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium transition-colors ${
               active
                 ? 'border-primary bg-primary-subtle text-primary'
                 : 'border-border bg-surface text-text-secondary hover:bg-neutral-hover'
             }`}
           >
+            <VendoIcon name={icons[item.key]} size={16} />
             {item.label}
           </Link>
         );

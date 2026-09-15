@@ -23,6 +23,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  VendoIcon,
+  type VendoIconName,
 } from '@vendo/ui';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -70,20 +72,20 @@ function Heading({
 function InventoryNav() {
   const path = usePathname();
   const links = [
-    [ROOT, 'Overview'],
-    [`${ROOT}/stock`, 'Stock'],
-    [`${ROOT}/low-stock`, 'Low stock'],
-    [`${ROOT}/batches`, 'Batches'],
-    [`${ROOT}/counts`, 'Counts'],
-    [`${ROOT}/transfers`, 'Transfers'],
-    [`${ROOT}/movements`, 'Movements'],
+    [ROOT, 'Overview', 'inventory'],
+    [`${ROOT}/stock`, 'Stock', 'stock'],
+    [`${ROOT}/low-stock`, 'Low stock', 'lowStock'],
+    [`${ROOT}/batches`, 'Batches', 'batch'],
+    [`${ROOT}/counts`, 'Counts', 'physicalCount'],
+    [`${ROOT}/transfers`, 'Transfers', 'transfer'],
+    [`${ROOT}/movements`, 'Movements', 'movementHistory'],
   ] as const;
   return (
     <nav
       aria-label="Inventory sections"
       className="flex gap-1 overflow-x-auto rounded-lg border border-border bg-surface p-1"
     >
-      {links.map(([href, label]) => {
+      {links.map(([href, label, icon]) => {
         const active =
           href === ROOT
             ? path === ROOT
@@ -94,12 +96,13 @@ function InventoryNav() {
           <Link
             key={href}
             href={href}
-            className={`whitespace-nowrap rounded-md px-3 py-2 text-sm font-semibold ${
+            className={`flex items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm font-semibold ${
               active
                 ? 'bg-primary-soft text-primary'
                 : 'text-text-secondary hover:bg-neutral-hover hover:text-text-primary'
             }`}
           >
+            <VendoIcon name={icon as VendoIconName} size={16} />
             {label}
           </Link>
         );

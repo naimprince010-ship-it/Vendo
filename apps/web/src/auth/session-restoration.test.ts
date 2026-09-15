@@ -46,3 +46,21 @@ test('rejects stale authentication responses after login or logout advances stat
   revision.advance();
   assert.equal(revision.isCurrent(login), false);
 });
+
+test('fails closed and releases a stalled session restoration request', async () => {
+  let requests = 0;
+  globalThis.fetch = async (_input, init) => {
+    requests += 1;
+    if (requests > 1) return new Response(null, { status: 401 });
+    return new Promise<Response>((_resolve, reject) => {
+      init?.signal?.addEventListener('abort', () => {
+        reject(new DOMException('The operation was aborted.', 'AbortError'));
+      });
+    });
+  };
+
+  const restore = createSessionRestorer<{ accessToken: string }>('http://local.test/refresh', 10);
+  assert.equal(await restore(), null);
+  assert.equal(await restore(), null);
+  assert.equal(requests, 2);
+});

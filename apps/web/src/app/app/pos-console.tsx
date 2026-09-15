@@ -12,6 +12,7 @@ import {
   Input,
   Select,
   StatusBadge,
+  VendoIcon,
 } from '@vendo/ui';
 import { useMemo, useRef, useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
@@ -498,6 +499,7 @@ function PosSession({ branchId }: { branchId: string }) {
         <div className="flex items-center gap-2">
           <Badge tone="neutral">{held.data?.total ?? 0} held</Badge>
           <Button variant="outline" size="sm" onClick={() => setHistoryOpen(true)}>
+            <VendoIcon name="receipt" size={16} />
             Recent sales
           </Button>
         </div>
@@ -514,7 +516,10 @@ function PosSession({ branchId }: { branchId: string }) {
       <div className="mt-3 grid min-h-0 flex-1 gap-3 xl:grid-cols-[minmax(250px,0.82fr)_minmax(380px,1.18fr)_minmax(300px,0.9fr)]">
         <Card className="flex min-h-[480px] min-w-0 flex-col overflow-hidden xl:min-h-0">
           <div className="border-b border-divider p-3">
-            <h2 className="mb-2 text-sm font-semibold">Find products</h2>
+            <h2 className="mb-2 flex items-center gap-2 text-sm font-semibold">
+              <VendoIcon name="search" size={18} />
+              Find products
+            </h2>
             <form className="flex gap-2" onSubmit={scan}>
               <BarcodeSearchInput
                 ref={searchRef}
@@ -525,6 +530,7 @@ function PosSession({ branchId }: { branchId: string }) {
                 accessibleLabel="POS product search"
               />
               <Button type="submit" variant="outline" disabled={!search.trim()}>
+                <VendoIcon name="barcode" size={16} />
                 Exact
               </Button>
             </form>
@@ -583,14 +589,25 @@ function PosSession({ branchId }: { branchId: string }) {
           <div className="border-b border-divider p-3">
             <div className="mb-2 flex items-center justify-between gap-2">
               <div>
-                <h2 className="text-sm font-semibold">Current sale</h2>
+                <h2 className="flex items-center gap-2 text-sm font-semibold">
+                  <VendoIcon name="cart" size={18} />
+                  Current sale
+                </h2>
                 <p className="text-xs text-text-muted">{cart.length} item lines</p>
               </div>
               <Button variant="ghost" size="sm" disabled={!cart.length} onClick={clearSale}>
                 Clear
               </Button>
             </div>
-            <FormField htmlFor="pos-customer" label="Customer">
+            <FormField
+              htmlFor="pos-customer"
+              label={
+                <span className="inline-flex items-center gap-2">
+                  <VendoIcon name="user" size={16} />
+                  Customer
+                </span>
+              }
+            >
               <Select
                 ref={customerRef}
                 id="pos-customer"

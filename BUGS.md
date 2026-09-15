@@ -1,5 +1,16 @@
 # Bug Register
 
+## BUG-042 — Stalled refresh request leaves authentication permanently loading
+
+- **Severity:** High
+- **Area:** Web authentication/session restoration
+- **Description:** If the browser-to-API refresh request remains pending instead of resolving or rejecting, the authentication provider stays in `loading` indefinitely. Protected routes show “Restoring secure session…” and the Login button remains disabled, leaving no recovery path even though credentials are available.
+- **Reproduction:** Leave `POST /auth/refresh` pending while opening `/login` or a protected route. The provider never transitions to authenticated or anonymous state.
+- **Root cause:** The shared refresh promise introduced for `BUG-041` correctly serialized rotations but had no bounded failure path for a transport request that never settles.
+- **Fix:** Abort a stalled restoration request after ten seconds, fail closed to anonymous state, clear the shared pending promise, and allow a later login or refresh attempt to proceed. Token lifetimes, cookie policy, server rotation, reuse detection, and route guards are unchanged.
+- **Regression coverage:** A focused test proves a stalled request aborts, returns no session, releases the shared promise, and permits a subsequent restoration attempt.
+- **Status:** Resolved — focused regression coverage passes; when PostgreSQL was intentionally unavailable, the stalled restoration request timed out to an enabled Login page instead of remaining permanently loading. After Docker/PostgreSQL and the local API recovered, sign-in, authenticated restoration, branch restoration, and client-side navigation across representative protected routes succeeded with a clean browser console.
+
 ## BUG-041 — Concurrent session restoration redirects a valid session to Sign in
 
 - **Severity:** Medium

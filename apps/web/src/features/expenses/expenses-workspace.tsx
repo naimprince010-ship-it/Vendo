@@ -22,6 +22,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  VendoIcon,
 } from '@vendo/ui';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -58,20 +59,21 @@ function Heading({
 export function ExpenseNavigation() {
   const path = usePathname();
   const links = [
-    [ROOT, 'Expenses'],
-    [`${ROOT}/categories`, 'Expense categories'],
+    [ROOT, 'Expenses', 'expense'],
+    [`${ROOT}/categories`, 'Expense categories', 'category'],
   ] as const;
   return (
     <nav
       aria-label="Expense sections"
       className="flex gap-1 overflow-x-auto rounded-lg border border-border bg-surface p-1"
     >
-      {links.map(([href, label]) => (
+      {links.map(([href, label, icon]) => (
         <Link
           key={href}
           href={href}
-          className={`whitespace-nowrap rounded-md px-3 py-2 text-sm font-semibold ${path === href ? 'bg-primary-soft text-primary' : 'text-text-secondary hover:bg-neutral-hover hover:text-text-primary'}`}
+          className={`flex items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm font-semibold ${path === href ? 'bg-primary-soft text-primary' : 'text-text-secondary hover:bg-neutral-hover hover:text-text-primary'}`}
         >
+          <VendoIcon name={icon} size={16} />
           {label}
         </Link>
       ))}

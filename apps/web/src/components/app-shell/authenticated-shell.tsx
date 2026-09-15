@@ -8,6 +8,8 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
+  VendoIcon,
+  type VendoIconName,
 } from '@vendo/ui';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -16,7 +18,21 @@ import { useAuth } from '../../auth/auth-context';
 import { BranchProvider, useBranchContext } from '../../contexts/branch-context';
 import { hasAnyPermission } from '../../lib/permissions';
 import { appRouteGroups, routeForPath, type AppRoute } from '../../lib/routes';
-import { NavigationIcon } from './navigation-icon';
+
+const navigationIcons: Record<AppRoute['icon'], VendoIconName> = {
+  dashboard: 'dashboard',
+  pos: 'pos',
+  sales: 'sales',
+  purchases: 'purchasing',
+  products: 'products',
+  inventory: 'inventory',
+  customers: 'customers',
+  suppliers: 'suppliers',
+  cash: 'cash',
+  expenses: 'cash',
+  reports: 'reports',
+  settings: 'administration',
+};
 
 function NavigationLink({ mobile, route }: { mobile?: boolean; route: AppRoute }) {
   const pathname = usePathname();
@@ -32,7 +48,7 @@ function NavigationLink({ mobile, route }: { mobile?: boolean; route: AppRoute }
           : 'text-text-secondary hover:bg-neutral-hover hover:text-text-primary'
       } ${mobile ? '' : 'justify-center min-[1400px]:justify-start'}`}
     >
-      <NavigationIcon name={route.icon} className="shrink-0" />
+      <VendoIcon name={navigationIcons[route.icon]} size={20} className="shrink-0" />
       <span className={mobile ? '' : 'hidden min-[1400px]:inline'}>{route.label}</span>
     </Link>
   );

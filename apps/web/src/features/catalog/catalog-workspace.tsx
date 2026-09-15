@@ -40,6 +40,8 @@ import {
   TableHeader,
   TableRow,
   Textarea,
+  VendoIcon,
+  type VendoIconName,
 } from '@vendo/ui';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -98,18 +100,18 @@ function TypeBadge({ type }: { type: ProductType }) {
 function Nav() {
   const path = usePathname();
   const links = [
-    [ROOT, 'Products'],
-    [`${ROOT}/categories`, 'Categories'],
-    [`${ROOT}/brands`, 'Brands'],
-    [`${ROOT}/manufacturers`, 'Manufacturers'],
-    [`${ROOT}/units`, 'Units'],
+    [ROOT, 'Products', 'product'],
+    [`${ROOT}/categories`, 'Categories', 'category'],
+    [`${ROOT}/brands`, 'Brands', 'brand'],
+    [`${ROOT}/manufacturers`, 'Manufacturers', 'manufacturer'],
+    [`${ROOT}/units`, 'Units', 'unit'],
   ] as const;
   return (
     <nav
       aria-label="Catalog sections"
       className="flex gap-1 overflow-x-auto rounded-lg border border-border bg-surface p-1"
     >
-      {links.map(([href, label]) => {
+      {links.map(([href, label, icon]) => {
         const active =
           href === ROOT
             ? path === ROOT ||
@@ -120,8 +122,9 @@ function Nav() {
           <Link
             key={href}
             href={href}
-            className={`whitespace-nowrap rounded-md px-3 py-2 text-sm font-semibold ${active ? 'bg-primary-soft text-primary' : 'text-text-secondary hover:bg-neutral-hover hover:text-text-primary'}`}
+            className={`flex items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm font-semibold ${active ? 'bg-primary-soft text-primary' : 'text-text-secondary hover:bg-neutral-hover hover:text-text-primary'}`}
           >
+            <VendoIcon name={icon as VendoIconName} size={16} />
             {label}
           </Link>
         );

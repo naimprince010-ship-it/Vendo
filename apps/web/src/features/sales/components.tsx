@@ -11,6 +11,7 @@ import {
   MoneyDisplay,
   QuantityDisplay,
   StatusBadge,
+  VendoIcon,
 } from '@vendo/ui';
 import Link from 'next/link';
 import type { Ref } from 'react';
@@ -73,7 +74,9 @@ export function SaleListCard({ sale }: { sale: SaleListItem }) {
       </div>
       <div className="text-left sm:text-right">
         <MoneyDisplay className="text-base font-bold" value={sale.total} />
-        <p className="mt-1 text-xs text-text-muted">Open transaction detail →</p>
+        <p className="mt-1 inline-flex items-center gap-1 text-xs text-text-muted">
+          Open transaction detail <VendoIcon name="view" size={16} />
+        </p>
       </div>
     </Link>
   );
@@ -88,7 +91,7 @@ export function SaleHeader({ sale }: { sale: SaleDetail }) {
           className="text-sm font-medium text-primary outline-none hover:underline focus-visible:ring-2 focus-visible:ring-primary"
           href="/app/sales"
         >
-          ← Sales history
+          <VendoIcon name="back" size={16} className="mr-1 inline" /> Sales history
         </Link>
         <div className="mt-3 flex flex-wrap items-center gap-3">
           <h1 className="text-2xl font-bold tracking-tight text-text-primary">
@@ -164,7 +167,11 @@ export function SaleLineTable({ sale }: { sale: SaleDetail }) {
                   </span>
                   {decimalCompare(line.returnedBaseQuantity, '0') > 0 ? (
                     <span className="text-warning">
-                      {line.returnedBaseQuantity} {line.product.baseUnit.code} returned
+                      <QuantityDisplay
+                        value={line.returnedBaseQuantity}
+                        unit={line.product.baseUnit.code}
+                      />{' '}
+                      returned
                     </span>
                   ) : null}
                 </div>
@@ -400,8 +407,12 @@ export function ReturnLineSelector({
               <p className="text-sm font-semibold text-text-primary">{line.productNameSnapshot}</p>
               <p className="mt-1 text-xs text-text-secondary">
                 Sold <QuantityDisplay value={line.quantity} unit={line.unitCodeSnapshot} /> ·
-                previously returned {line.returnedBaseQuantity} {line.product.baseUnit.code} ·
-                returnable {remaining} {line.unitCodeSnapshot}
+                previously returned{' '}
+                <QuantityDisplay
+                  value={line.returnedBaseQuantity}
+                  unit={line.product.baseUnit.code}
+                />{' '}
+                · returnable <QuantityDisplay value={remaining} unit={line.unitCodeSnapshot} />
               </p>
               {line.batchNumberSnapshot ? (
                 <p className="mt-1 text-xs text-text-muted">
@@ -492,25 +503,27 @@ export function PostSaleActionBar({
   return (
     <div className="sticky bottom-3 z-20 flex flex-wrap items-center gap-2 rounded-lg border border-border bg-surface/95 p-3 shadow-dialog backdrop-blur">
       {canCollect && hasOutstanding && !sale.customer.isWalkIn ? (
-        <Button onClick={onCollect}>Collect due</Button>
+        <Button onClick={onCollect}>
+          <VendoIcon name="payment" size={18} /> Collect due
+        </Button>
       ) : null}
       {canReturn && hasReturnable ? (
         <Button variant="outline" onClick={onReturn}>
-          Return items
+          <VendoIcon name="return" size={18} /> Return items
         </Button>
       ) : null}
       {canExchange && hasReturnable ? (
         <Button variant="outline" onClick={onExchange}>
-          Exchange
+          <VendoIcon name="exchange" size={18} /> Exchange
         </Button>
       ) : null}
       {canRefund && hasRefundable ? (
         <Button variant="ghost" className="text-danger" onClick={onRefund}>
-          Refund credit
+          <VendoIcon name="refund" size={18} /> Refund credit
         </Button>
       ) : null}
       <Button ref={printTriggerRef} variant="outline" onClick={onPrint}>
-        Print / reprint
+        <VendoIcon name="print" size={18} /> Print / reprint
       </Button>
       {canVoid && hasReturnable ? (
         <Button className="ml-auto" variant="danger" onClick={onVoid}>

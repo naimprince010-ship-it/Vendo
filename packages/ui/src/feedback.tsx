@@ -1,6 +1,7 @@
 import { cva, type VariantProps } from 'class-variance-authority';
 import type { HTMLAttributes, ReactNode } from 'react';
 import { Button } from './button';
+import { VendoIcon } from './icon';
 import { cn } from './lib/cn';
 
 const alertVariants = cva('rounded-md border px-4 py-3 text-sm', {
@@ -70,19 +71,7 @@ function State({ action, className, description, icon, title, ...props }: StateP
 }
 
 export function EmptyState(props: StateProps) {
-  const defaultIcon = (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 24 24"
-      fill="none"
-      className="size-6"
-      stroke="currentColor"
-      strokeWidth="1.5"
-    >
-      <path d="M4.75 7.75h14.5v10.5H4.75z" />
-      <path d="M8 11.25h8M9.5 5.75h5" strokeLinecap="round" />
-    </svg>
-  );
+  const defaultIcon = <VendoIcon name="empty" size={24} />;
   return <State icon={props.icon ?? defaultIcon} {...props} />;
 }
 
@@ -95,7 +84,7 @@ export function LoadingState({ title = 'Loading…', ...props }: LoadingStatePro
     <State
       role="status"
       aria-live="polite"
-      icon={<span className="inline-block animate-spin">◌</span>}
+      icon={<VendoIcon name="loading" size={24} className="animate-spin" />}
       title={title}
       {...props}
     />
@@ -116,7 +105,7 @@ export function ErrorState({
   return (
     <State
       role="alert"
-      icon="!"
+      icon={<VendoIcon name="error" size={24} />}
       title={title}
       action={action ?? (onRetry ? <Button onClick={onRetry}>Try again</Button> : undefined)}
       {...props}

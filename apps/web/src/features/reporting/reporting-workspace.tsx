@@ -24,6 +24,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  VendoIcon,
+  type VendoIconName,
 } from '@vendo/ui';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -44,6 +46,17 @@ import {
 import type { BranchPage, DashboardResponse, ReportKind, ReportResponse } from './types';
 
 const PAGE_SIZE = 25;
+const reportIcons: Record<ReportKind, VendoIconName> = {
+  sales: 'sales',
+  products: 'products',
+  inventory: 'inventory',
+  purchases: 'purchasing',
+  customers: 'customers',
+  suppliers: 'suppliers',
+  expenses: 'expenses',
+  cash: 'cash',
+  financial: 'financialSummary',
+};
 type Column = {
   key: string;
   label: string;
@@ -241,6 +254,7 @@ function Metric({
   count = false,
   emphasis = false,
   warning = false,
+  icon,
   href,
 }: {
   label: string;
@@ -249,6 +263,7 @@ function Metric({
   count?: boolean;
   emphasis?: boolean;
   warning?: boolean;
+  icon?: VendoIconName;
   href?: string;
 }) {
   const content = (
@@ -258,7 +273,20 @@ function Metric({
       } ${emphasis ? 'border-primary/30' : ''}`}
     >
       <CardContent className={emphasis ? 'p-5' : 'p-4'}>
-        <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">{label}</p>
+        <div className="flex items-start justify-between gap-3">
+          <p className="pt-1 text-xs font-semibold uppercase tracking-wide text-text-muted">
+            {label}
+          </p>
+          {icon ? (
+            <span
+              className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${
+                warning ? 'bg-warning-soft text-warning' : 'bg-primary-soft text-primary'
+              }`}
+            >
+              <VendoIcon name={icon} size={24} />
+            </span>
+          ) : null}
+        </div>
         <p
           className={`mt-2 font-bold tabular-nums text-text-primary ${
             emphasis ? 'text-3xl' : 'text-2xl'
@@ -332,6 +360,7 @@ export function DashboardWorkspace() {
               label="Today net sales"
               value={data.kpis.netSales}
               currency={currency}
+              icon="sales"
               emphasis
               href={reportPath('sales')}
             />
@@ -339,6 +368,7 @@ export function DashboardWorkspace() {
               label="Today's invoices"
               value={data.kpis.invoiceCount}
               currency={currency}
+              icon="receipt"
               count
               href={reportPath('sales')}
             />
@@ -347,6 +377,7 @@ export function DashboardWorkspace() {
                 label="Gross profit"
                 value={data.kpis.grossProfit}
                 currency={currency}
+                icon="reports"
                 href={reportPath('financial')}
               />
             ) : null}
@@ -355,6 +386,7 @@ export function DashboardWorkspace() {
                 label="Expenses"
                 value={data.kpis.expenses}
                 currency={currency}
+                icon="cash"
                 href={reportPath('expenses')}
               />
             ) : null}
@@ -363,6 +395,7 @@ export function DashboardWorkspace() {
                 label={customerPosition?.label ?? 'Customer receivable'}
                 value={customerPosition?.amount ?? '0'}
                 currency={currency}
+                icon="customers"
                 href={reportPath('customers')}
               />
             ) : null}
@@ -371,6 +404,7 @@ export function DashboardWorkspace() {
                 label={supplierPosition?.label ?? 'Supplier payable'}
                 value={supplierPosition?.amount ?? '0'}
                 currency={currency}
+                icon="suppliers"
                 href={reportPath('suppliers')}
               />
             ) : null}
@@ -379,6 +413,7 @@ export function DashboardWorkspace() {
                 label="Low-stock positions"
                 value={data.kpis.lowStockPositions}
                 currency={currency}
+                icon="inventory"
                 count
                 warning
                 href={reportPath('inventory')}
@@ -588,6 +623,7 @@ export function ReportsWorkspace() {
         actions={
           active.exportable ? (
             <Button variant="outline" loading={exporting} onClick={() => void exportCsv()}>
+              <VendoIcon name="export" size={16} />
               Export CSV
             </Button>
           ) : undefined
@@ -601,8 +637,9 @@ export function ReportsWorkspace() {
           <Link
             key={report.kind}
             href={reportPath(report.kind)}
-            className={`whitespace-nowrap rounded-md px-3 py-2 text-sm font-semibold ${report.kind === active.kind ? 'bg-primary-soft text-primary' : 'text-text-secondary hover:bg-neutral-hover hover:text-text-primary'}`}
+            className={`flex items-center gap-2 whitespace-nowrap rounded-md px-3 py-2 text-sm font-semibold ${report.kind === active.kind ? 'bg-primary-soft text-primary' : 'text-text-secondary hover:bg-neutral-hover hover:text-text-primary'}`}
           >
+            <VendoIcon name={reportIcons[report.kind]} size={16} />
             {report.label}
           </Link>
         ))}
@@ -658,6 +695,7 @@ export function ReportsWorkspace() {
               setPage(1);
             }}
           >
+            <VendoIcon name="filter" size={16} />
             Apply filters
           </Button>
           <Button
@@ -669,6 +707,7 @@ export function ReportsWorkspace() {
               setPage(1);
             }}
           >
+            <VendoIcon name="refresh" size={16} />
             Reset
           </Button>
         </CardContent>

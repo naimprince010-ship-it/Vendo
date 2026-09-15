@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
+import { VendoIcon } from '@vendo/ui';
 import { useAuth } from '../../auth/auth-context';
 
 const loginSchema = z.object({
@@ -48,7 +49,10 @@ export default function LoginPage() {
         onSubmit={handleSubmit(submit)}
         className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900 p-8 shadow-2xl"
       >
-        <p className="text-sm font-semibold uppercase tracking-[0.24em] text-amber-400">Vendo</p>
+        <div className="flex items-center gap-2 text-amber-400">
+          <VendoIcon name="security" size={24} />
+          <p className="text-sm font-semibold uppercase tracking-[0.24em]">Vendo</p>
+        </div>
         <h1 className="mt-3 text-3xl font-semibold">Sign in</h1>
         <p className="mt-2 text-sm text-slate-400">Use your company code and assigned account.</p>
 

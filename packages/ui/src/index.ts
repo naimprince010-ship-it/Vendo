@@ -78,3 +78,4 @@ export {
   TableRow,
 } from './table';
 export { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './tooltip';
+export { VendoIcon, iconRegistry, type VendoIconName, type VendoIconSize } from './icon';

@@ -14,6 +14,7 @@ import {
   formatQuantityValue,
   Select,
   StatusBadge,
+  VendoIcon,
 } from '@vendo/ui';
 import Link from 'next/link';
 import type { Ref } from 'react';
@@ -29,27 +30,6 @@ import {
   decimalSum,
 } from './decimal';
 import type { CartLine, Customer, PaymentMethod, PosProduct, PricingMode, Sale } from './types';
-
-function AddIcon() {
-  return (
-    <svg aria-hidden="true" viewBox="0 0 20 20" className="size-4" fill="none">
-      <path d="M10 4v12M4 10h12" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function RemoveIcon() {
-  return (
-    <svg aria-hidden="true" viewBox="0 0 20 20" className="size-4" fill="none">
-      <path
-        d="M5 5l10 10M15 5 5 15"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
 
 export function ProductResult({
   mode,
@@ -90,7 +70,7 @@ export function ProductResult({
               className="size-8 px-0"
               onClick={onAdd}
             >
-              <AddIcon />
+              <VendoIcon name="cart" size={16} />
             </Button>
           </div>
           {descriptor ? (
@@ -192,7 +172,7 @@ export function PosCartRow({
           aria-label={`Remove ${line.product.name}`}
           onClick={onRemove}
         >
-          <RemoveIcon />
+          <VendoIcon name="close" size={16} />
         </Button>
       </div>
 
