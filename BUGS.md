@@ -1,5 +1,16 @@
 # Bug Register
 
+## BUG-041 — Concurrent session restoration redirects a valid session to Sign in
+
+- **Severity:** Medium
+- **Area:** Frontend authentication/session restoration
+- **Description:** React development Strict Mode mounts the authentication provider twice. Both mount effects could issue refresh requests before the first response rotated the shared HTTP-only refresh cookie. A slow mount-time restoration response could also overwrite a newer successful login. In either ordering, a stale request could set the client state to anonymous despite a valid newer authentication state.
+- **Reproduction:** Sign in locally, open an authenticated route, and reload it while React development Strict Mode is active.
+- **Expected:** A valid refresh session rotates once, restores the user and branch context, and keeps the authenticated route visible.
+- **Actual:** The browser can redirect to Sign in immediately after the reload even though PostgreSQL retains a valid successor session.
+- **Status:** Resolved — concurrent refresh calls share one in-flight request, and an authentication-state revision guard prevents stale restoration, login, or refresh responses from overwriting newer login/logout state. Verified in development Strict Mode with sustained authentication, authenticated navigation, direct-route reload, branch restoration, one-successor refresh rotation without new reuse revocation, clean browser console, explicit logout, and anonymous protected-route redirect. Server-side rotation, reuse detection, token lifetimes, route guards, and cookie policy are unchanged. Focused frontend and Phase 3 authentication/security regressions pass.
+- **Related task:** UI Micro-Polish authentication stability gate
+
 ## V1 Final UAT Review — 2026-09-13
 
 - Open Medium/High Vendo application defects: none.

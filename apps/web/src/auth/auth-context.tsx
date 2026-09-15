@@ -6,9 +6,11 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from 'react';
+import { createAuthRevisionGuard, createSessionRestorer } from './session-restoration';
 
 interface AuthUser {
   id: string;
@@ -37,11 +39,13 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api/v1';
+const requestRefreshSession = createSessionRestorer<SessionResponse>(`${API_URL}/auth/refresh`);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [status, setStatus] = useState<AuthContextValue['status']>('loading');
+  const authRevision = useRef(createAuthRevisionGuard());
 
   const acceptSession = useCallback((session: SessionResponse) => {
     setUser(session.user);
@@ -50,39 +54,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const refresh = useCallback(async (): Promise<string | null> => {
-    const response = await fetch(`${API_URL}/auth/refresh`, {
-      method: 'POST',
-      credentials: 'include',
-    });
-    if (!response.ok) {
+    const revision = authRevision.current.capture();
+    const session = await requestRefreshSession();
+    if (!authRevision.current.isCurrent(revision)) return null;
+    if (!session) {
       setUser(null);
       setAccessToken(null);
       setStatus('anonymous');
       return null;
     }
-    const session = (await response.json()) as SessionResponse;
     acceptSession(session);
     return session.accessToken;
   }, [acceptSession]);
 
   useEffect(() => {
     let active = true;
-    void fetch(`${API_URL}/auth/refresh`, {
-      method: 'POST',
-      credentials: 'include',
-    })
-      .then(async (response) => {
-        if (!active) return;
-        if (!response.ok) {
+    const revision = authRevision.current.capture();
+    void requestRefreshSession()
+      .then((session) => {
+        if (!active || !authRevision.current.isCurrent(revision)) return;
+        if (!session) {
           setUser(null);
           setAccessToken(null);
           setStatus('anonymous');
           return;
         }
-        acceptSession((await response.json()) as SessionResponse);
+        acceptSession(session);
       })
       .catch(() => {
-        if (active) setStatus('anonymous');
+        if (active && authRevision.current.isCurrent(revision)) setStatus('anonymous');
       });
     return () => {
       active = false;
@@ -91,12 +91,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = useCallback(
     async (companyCode: string, email: string, password: string) => {
+      const revision = authRevision.current.advance();
       const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({ companyCode, email, password }),
       });
+      if (!authRevision.current.isCurrent(revision)) return;
       if (!response.ok) throw new Error('Sign in failed. Check your company code and credentials.');
       acceptSession((await response.json()) as SessionResponse);
     },
@@ -104,6 +106,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const logout = useCallback(async () => {
+    authRevision.current.advance();
     if (accessToken) {
       await fetch(`${API_URL}/auth/logout`, {
         method: 'POST',
