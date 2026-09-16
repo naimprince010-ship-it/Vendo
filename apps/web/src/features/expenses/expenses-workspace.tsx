@@ -65,7 +65,7 @@ export function ExpenseNavigation() {
   return (
     <nav
       aria-label="Expense sections"
-      className="flex gap-1 overflow-x-auto rounded-lg border border-border bg-surface p-1"
+      className="flex gap-1 overflow-x-auto rounded-lg border border-border bg-surface p-1 shadow-card"
     >
       {links.map(([href, label, icon]) => (
         <Link

@@ -44,17 +44,19 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-950 px-6 py-12 text-slate-100">
+    <main className="flex min-h-screen items-center justify-center bg-canvas px-6 py-12 text-text-primary">
       <form
         onSubmit={handleSubmit(submit)}
-        className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900 p-8 shadow-2xl"
+        className="w-full max-w-md rounded-xl border border-border-strong bg-surface p-8 shadow-elevated"
       >
-        <div className="flex items-center gap-2 text-amber-400">
+        <div className="flex items-center gap-2 text-primary">
           <VendoIcon name="security" size={24} />
           <p className="text-sm font-semibold uppercase tracking-[0.24em]">Vendo</p>
         </div>
         <h1 className="mt-3 text-3xl font-semibold">Sign in</h1>
-        <p className="mt-2 text-sm text-slate-400">Use your company code and assigned account.</p>
+        <p className="mt-2 text-sm text-text-secondary">
+          Use your company code and assigned account.
+        </p>
 
         <label className="mt-8 block text-sm font-medium" htmlFor="companyCode">
           Company code
@@ -64,10 +66,10 @@ export default function LoginPage() {
           autoComplete="organization"
           {...register('companyCode')}
           aria-invalid={Boolean(errors.companyCode)}
-          className="mt-2 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 outline-none focus:border-amber-400"
+          className="mt-2 w-full rounded-md border border-border-strong bg-surface px-3 py-2 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/15"
         />
         {errors.companyCode ? (
-          <p className="mt-1 text-sm text-red-300">{errors.companyCode.message}</p>
+          <p className="mt-1 text-sm text-danger">{errors.companyCode.message}</p>
         ) : null}
 
         <label className="mt-5 block text-sm font-medium" htmlFor="email">
@@ -79,9 +81,9 @@ export default function LoginPage() {
           autoComplete="username"
           {...register('email')}
           aria-invalid={Boolean(errors.email)}
-          className="mt-2 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 outline-none focus:border-amber-400"
+          className="mt-2 w-full rounded-md border border-border-strong bg-surface px-3 py-2 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/15"
         />
-        {errors.email ? <p className="mt-1 text-sm text-red-300">{errors.email.message}</p> : null}
+        {errors.email ? <p className="mt-1 text-sm text-danger">{errors.email.message}</p> : null}
 
         <label className="mt-5 block text-sm font-medium" htmlFor="password">
           Password
@@ -92,21 +94,24 @@ export default function LoginPage() {
           autoComplete="current-password"
           {...register('password')}
           aria-invalid={Boolean(errors.password)}
-          className="mt-2 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 outline-none focus:border-amber-400"
+          className="mt-2 w-full rounded-md border border-border-strong bg-surface px-3 py-2 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/15"
         />
         {errors.password ? (
-          <p className="mt-1 text-sm text-red-300">{errors.password.message}</p>
+          <p className="mt-1 text-sm text-danger">{errors.password.message}</p>
         ) : null}
 
         {error ? (
-          <p role="alert" className="mt-4 text-sm text-red-300">
+          <p
+            role="alert"
+            className="mt-4 rounded-md border border-danger/20 bg-danger-soft px-3 py-2 text-sm text-danger"
+          >
             {error}
           </p>
         ) : null}
         <button
           type="submit"
           disabled={isSubmitting || status === 'loading'}
-          className="mt-7 w-full rounded-lg bg-amber-400 px-4 py-2.5 font-semibold text-slate-950 disabled:cursor-not-allowed disabled:opacity-60"
+          className="mt-7 w-full rounded-md border border-primary bg-primary px-4 py-2.5 font-semibold text-white shadow-sm transition hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isSubmitting ? 'Signing in…' : 'Sign in'}
         </button>

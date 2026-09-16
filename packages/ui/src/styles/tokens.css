@@ -1,17 +1,17 @@
 :root,
 [data-theme='light'] {
   color-scheme: light;
-  --vendo-canvas: #f6f7f9;
+  --vendo-canvas: #f3f5f8;
   --vendo-surface: #ffffff;
-  --vendo-surface-secondary: #f9fafb;
-  --vendo-neutral-hover: #f1f5f9;
-  --vendo-text-primary: #172033;
-  --vendo-text-secondary: #667085;
-  --vendo-text-muted: #98a2b3;
+  --vendo-surface-secondary: #f7f9fc;
+  --vendo-neutral-hover: #edf2f7;
+  --vendo-text-primary: #142033;
+  --vendo-text-secondary: #58677d;
+  --vendo-text-muted: #8491a3;
   --vendo-text-disabled: #b8c0cc;
-  --vendo-border: #e4e7ec;
-  --vendo-border-strong: #d0d5dd;
-  --vendo-divider: #eaecf0;
+  --vendo-border: #dfe5ec;
+  --vendo-border-strong: #c8d1dd;
+  --vendo-divider: #e8edf3;
   --vendo-primary: #1d3557;
   --vendo-primary-hover: #152a46;
   --vendo-primary-soft: #eef2f7;
@@ -31,5 +31,7 @@
   --vendo-control-sm: 32px;
   --vendo-control-md: 40px;
   --vendo-control-lg: 44px;
-  --vendo-shadow-dialog: 0 24px 64px rgb(23 32 51 / 0.18);
+  --vendo-shadow-card: 0 1px 2px rgb(20 32 51 / 0.04), 0 4px 14px rgb(20 32 51 / 0.035);
+  --vendo-shadow-elevated: 0 2px 5px rgb(20 32 51 / 0.06), 0 12px 28px rgb(20 32 51 / 0.07);
+  --vendo-shadow-dialog: 0 24px 64px rgb(20 32 51 / 0.16);
 }

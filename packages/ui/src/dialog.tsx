@@ -23,7 +23,7 @@ export const DialogContent = forwardRef<
       <DialogPrimitive.Content
         ref={ref}
         className={cn(
-          'fixed left-1/2 top-1/2 z-50 max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-lg border border-border bg-surface p-6 text-text-primary shadow-dialog outline-none focus-visible:ring-2 focus-visible:ring-primary',
+          'fixed left-1/2 top-1/2 z-50 max-h-[calc(100vh-2rem)] w-[calc(100vw-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-lg border border-border-strong bg-surface p-6 text-text-primary shadow-dialog outline-none focus-visible:ring-2 focus-visible:ring-primary',
           className,
         )}
         {...props}
@@ -35,7 +35,9 @@ export const DialogContent = forwardRef<
 });
 
 export function DialogHeader({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn('mb-5 grid gap-1.5', className)} {...props} />;
+  return (
+    <div className={cn('mb-5 grid gap-1.5 border-b border-divider pb-4', className)} {...props} />
+  );
 }
 export function DialogTitle({
   className,

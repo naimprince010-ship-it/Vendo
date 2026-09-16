@@ -3,13 +3,16 @@ import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from 'react';
 import { cn } from './lib/cn';
 
 export const buttonVariants = cva(
-  'inline-flex shrink-0 items-center justify-center gap-2 rounded-md font-semibold transition-colors outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:pointer-events-none disabled:opacity-50 active:translate-y-px',
+  'inline-flex shrink-0 items-center justify-center gap-2 rounded-md font-semibold transition-[background-color,border-color,color,box-shadow,transform] duration-150 outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:pointer-events-none disabled:opacity-50 active:translate-y-px',
   {
     variants: {
       variant: {
-        primary: 'bg-primary text-white hover:bg-primary-hover',
-        secondary: 'bg-primary-soft text-primary hover:bg-neutral-hover',
-        outline: 'border border-border-strong bg-surface text-text-primary hover:bg-neutral-hover',
+        primary:
+          'border border-primary bg-primary text-white shadow-sm hover:bg-primary-hover hover:shadow-card',
+        secondary:
+          'border border-primary/10 bg-primary-soft text-primary hover:border-primary/20 hover:bg-neutral-hover',
+        outline:
+          'border border-border-strong bg-surface text-text-primary shadow-[0_1px_1px_rgb(20_32_51/0.03)] hover:border-text-muted hover:bg-neutral-hover',
         ghost: 'text-text-secondary hover:bg-neutral-hover hover:text-text-primary',
         danger: 'bg-danger text-white hover:bg-danger/90',
       },

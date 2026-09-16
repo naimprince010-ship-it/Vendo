@@ -4,7 +4,7 @@ import { cn } from './lib/cn';
 export const Table = forwardRef<HTMLTableElement, TableHTMLAttributes<HTMLTableElement>>(
   function Table({ className, ...props }, ref) {
     return (
-      <div className="w-full overflow-x-auto rounded-md border border-border">
+      <div className="w-full overflow-x-auto rounded-lg border border-border bg-surface shadow-[0_1px_2px_rgb(20_32_51/0.025)]">
         <table ref={ref} className={cn('w-full border-collapse text-sm', className)} {...props} />
       </div>
     );
@@ -26,7 +26,7 @@ export function TableRow({ className, ...props }: HTMLAttributes<HTMLTableRowEle
   return (
     <tr
       className={cn(
-        'border-b border-divider transition-colors last:border-0 hover:bg-neutral-hover data-[selected=true]:bg-primary-soft',
+        'border-b border-divider transition-colors last:border-0 hover:bg-surface-secondary data-[selected=true]:bg-primary-soft',
         className,
       )}
       {...props}
@@ -42,7 +42,7 @@ export function TableHead({ className, numeric, ...props }: TableCellProps) {
   return (
     <th
       className={cn(
-        'h-10 bg-surface-secondary px-4 text-left text-xs font-semibold uppercase tracking-wide text-text-secondary',
+        'h-10 bg-primary-soft/55 px-4 text-left text-[11px] font-semibold uppercase tracking-[0.055em] text-text-secondary',
         numeric && 'text-right tabular-nums',
         className,
       )}
@@ -53,7 +53,11 @@ export function TableHead({ className, numeric, ...props }: TableCellProps) {
 export function TableCell({ className, numeric, ...props }: TableCellProps) {
   return (
     <td
-      className={cn('px-4 py-3 text-text-primary', numeric && 'text-right tabular-nums', className)}
+      className={cn(
+        'px-4 py-2.5 text-text-primary',
+        numeric && 'text-right tabular-nums',
+        className,
+      )}
       {...props}
     />
   );

@@ -253,7 +253,7 @@ function Metric({
   currency,
   count = false,
   emphasis = false,
-  warning = false,
+  tone = 'primary',
   icon,
   href,
 }: {
@@ -262,15 +262,22 @@ function Metric({
   currency: string;
   count?: boolean;
   emphasis?: boolean;
-  warning?: boolean;
+  tone?: 'primary' | 'success' | 'danger' | 'warning' | 'info';
   icon?: VendoIconName;
   href?: string;
 }) {
+  const toneClasses = {
+    primary: 'border-primary/20 bg-primary-soft/20 text-primary',
+    success: 'border-success/25 bg-success-soft/25 text-success',
+    danger: 'border-danger/20 bg-danger-soft/20 text-danger',
+    warning: 'border-warning/30 bg-warning-soft/30 text-warning',
+    info: 'border-info/25 bg-info-soft/25 text-info',
+  }[tone];
   const content = (
     <Card
-      className={`h-full transition-colors hover:border-border-strong ${
-        warning ? 'border-warning/30 bg-warning-soft/30' : ''
-      } ${emphasis ? 'border-primary/30' : ''}`}
+      className={`h-full transition-[border-color,box-shadow,transform] hover:-translate-y-px hover:border-border-strong hover:shadow-elevated ${
+        emphasis ? 'border-primary/30' : ''
+      }`}
     >
       <CardContent className={emphasis ? 'p-5' : 'p-4'}>
         <div className="flex items-start justify-between gap-3">
@@ -279,9 +286,7 @@ function Metric({
           </p>
           {icon ? (
             <span
-              className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${
-                warning ? 'bg-warning-soft text-warning' : 'bg-primary-soft text-primary'
-              }`}
+              className={`flex size-9 shrink-0 items-center justify-center rounded-lg border ${toneClasses}`}
             >
               <VendoIcon name={icon} size={24} />
             </span>
@@ -361,6 +366,7 @@ export function DashboardWorkspace() {
               value={data.kpis.netSales}
               currency={currency}
               icon="sales"
+              tone="primary"
               emphasis
               href={reportPath('sales')}
             />
@@ -369,6 +375,7 @@ export function DashboardWorkspace() {
               value={data.kpis.invoiceCount}
               currency={currency}
               icon="receipt"
+              tone="info"
               count
               href={reportPath('sales')}
             />
@@ -378,6 +385,7 @@ export function DashboardWorkspace() {
                 value={data.kpis.grossProfit}
                 currency={currency}
                 icon="reports"
+                tone="success"
                 href={reportPath('financial')}
               />
             ) : null}
@@ -387,6 +395,7 @@ export function DashboardWorkspace() {
                 value={data.kpis.expenses}
                 currency={currency}
                 icon="cash"
+                tone="danger"
                 href={reportPath('expenses')}
               />
             ) : null}
@@ -396,6 +405,7 @@ export function DashboardWorkspace() {
                 value={customerPosition?.amount ?? '0'}
                 currency={currency}
                 icon="customers"
+                tone="info"
                 href={reportPath('customers')}
               />
             ) : null}
@@ -405,6 +415,7 @@ export function DashboardWorkspace() {
                 value={supplierPosition?.amount ?? '0'}
                 currency={currency}
                 icon="suppliers"
+                tone="primary"
                 href={reportPath('suppliers')}
               />
             ) : null}
@@ -415,7 +426,7 @@ export function DashboardWorkspace() {
                 currency={currency}
                 icon="inventory"
                 count
-                warning
+                tone="warning"
                 href={reportPath('inventory')}
               />
             ) : null}

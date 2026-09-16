@@ -49,7 +49,7 @@ export function ProductResult({
     .filter(Boolean)
     .join(' · ');
   return (
-    <article className="group rounded-lg border border-border bg-surface p-3 transition hover:border-primary/40 hover:shadow-sm">
+    <article className="group rounded-lg border border-border bg-surface p-3 shadow-card transition-[border-color,box-shadow,transform] hover:-translate-y-px hover:border-primary/40 hover:shadow-elevated">
       <div className="flex items-start gap-3">
         <span
           className={`flex size-9 shrink-0 items-center justify-center rounded-md text-xs font-bold ${
@@ -150,7 +150,7 @@ export function PosCartRow({
     ),
   );
   return (
-    <article className="rounded-lg border border-border bg-surface p-3 shadow-sm">
+    <article className="rounded-lg border border-border bg-surface p-3 shadow-card">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">

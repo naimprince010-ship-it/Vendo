@@ -54,7 +54,7 @@ export function SaleListCard({ sale }: { sale: SaleListItem }) {
   return (
     <Link
       href={`/app/sales/${sale.id}`}
-      className="grid gap-3 rounded-lg border border-border bg-surface p-4 outline-none transition hover:border-primary/40 hover:shadow-sm focus-visible:ring-2 focus-visible:ring-primary sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
+      className="grid gap-3 rounded-lg border border-border bg-surface p-4 shadow-card outline-none transition-[border-color,box-shadow,transform] hover:-translate-y-px hover:border-primary/40 hover:shadow-elevated focus-visible:ring-2 focus-visible:ring-primary sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center"
     >
       <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-2">
@@ -501,7 +501,7 @@ export function PostSaleActionBar({
     (item) => decimalCompare(returnRefundable(item), '0') > 0,
   );
   return (
-    <div className="sticky bottom-3 z-20 flex flex-wrap items-center gap-2 rounded-lg border border-border bg-surface/95 p-3 shadow-dialog backdrop-blur">
+    <div className="sticky bottom-3 z-20 flex flex-wrap items-center gap-2 rounded-lg border border-border bg-surface/95 p-3 shadow-elevated backdrop-blur">
       {canCollect && hasOutstanding && !sale.customer.isWalkIn ? (
         <Button onClick={onCollect}>
           <VendoIcon name="payment" size={18} /> Collect due

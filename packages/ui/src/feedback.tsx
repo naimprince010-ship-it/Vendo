@@ -55,12 +55,16 @@ function State({ action, className, description, icon, title, ...props }: StateP
   return (
     <div
       className={cn(
-        'flex min-h-40 flex-col items-center justify-center rounded-lg border border-dashed border-border-strong bg-surface-secondary p-6 text-center',
+        'flex min-h-40 flex-col items-center justify-center rounded-lg border border-border bg-surface-secondary/70 p-6 text-center shadow-[inset_0_1px_0_rgb(255_255_255/0.75)]',
         className,
       )}
       {...props}
     >
-      {icon ? <div className="mb-3 text-2xl text-text-muted">{icon}</div> : null}
+      {icon ? (
+        <div className="mb-3 flex size-10 items-center justify-center rounded-lg border border-border bg-surface text-text-muted shadow-sm">
+          {icon}
+        </div>
+      ) : null}
       <h3 className="text-sm font-semibold text-text-primary">{title}</h3>
       {description ? (
         <p className="mt-1 max-w-md text-sm text-text-secondary">{description}</p>

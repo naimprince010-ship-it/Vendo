@@ -2,20 +2,23 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import type { HTMLAttributes } from 'react';
 import { cn } from './lib/cn';
 
-const badgeVariants = cva('inline-flex items-center rounded-sm px-2 py-1 text-xs font-semibold', {
-  variants: {
-    tone: {
-      neutral: 'bg-neutral-hover text-text-secondary',
-      primary: 'bg-primary-soft text-primary',
-      info: 'bg-info-soft text-info',
-      success: 'bg-success-soft text-success',
-      warning: 'bg-warning-soft text-warning',
-      danger: 'bg-danger-soft text-danger',
-      amber: 'bg-amber-soft text-amber',
+const badgeVariants = cva(
+  'inline-flex items-center rounded-sm border px-2 py-1 text-xs font-semibold',
+  {
+    variants: {
+      tone: {
+        neutral: 'border-border bg-surface-secondary text-text-secondary',
+        primary: 'border-primary/15 bg-primary-soft text-primary',
+        info: 'border-info/15 bg-info-soft text-info',
+        success: 'border-success/15 bg-success-soft text-success',
+        warning: 'border-warning/15 bg-warning-soft text-warning',
+        danger: 'border-danger/15 bg-danger-soft text-danger',
+        amber: 'border-amber/15 bg-amber-soft text-amber',
+      },
     },
+    defaultVariants: { tone: 'neutral' },
   },
-  defaultVariants: { tone: 'neutral' },
-});
+);
 
 export interface BadgeProps
   extends HTMLAttributes<HTMLSpanElement>, VariantProps<typeof badgeVariants> {}

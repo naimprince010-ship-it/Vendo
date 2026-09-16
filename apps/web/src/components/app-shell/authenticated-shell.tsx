@@ -42,9 +42,9 @@ function NavigationLink({ mobile, route }: { mobile?: boolean; route: AppRoute }
       href={route.href}
       aria-label={route.label}
       aria-current={active ? 'page' : undefined}
-      className={`group flex h-10 items-center gap-3 rounded-md px-3 text-sm font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface ${
+      className={`group relative flex h-10 items-center gap-3 rounded-md px-3 text-sm font-medium outline-none transition-[background-color,color,box-shadow] focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface ${
         active
-          ? 'bg-primary-soft text-primary'
+          ? 'bg-primary-soft text-primary shadow-[inset_0_0_0_1px_rgb(29_53_87/0.06)] before:absolute before:inset-y-2 before:left-0 before:w-0.5 before:rounded-full before:bg-primary'
           : 'text-text-secondary hover:bg-neutral-hover hover:text-text-primary'
       } ${mobile ? '' : 'justify-center min-[1400px]:justify-start'}`}
     >
@@ -69,7 +69,7 @@ function Sidebar({ mobile }: { mobile?: boolean }) {
   return (
     <nav
       aria-label="Primary navigation"
-      className="flex min-h-0 flex-1 flex-col overflow-y-auto px-3 py-4"
+      className="flex min-h-0 flex-1 flex-col overflow-y-auto px-3 py-5"
     >
       {appRouteGroups.map((group) => {
         const routes = group.routes.filter((route) =>
@@ -79,7 +79,7 @@ function Sidebar({ mobile }: { mobile?: boolean }) {
         return (
           <div key={group.label} className="mb-5 last:mb-0">
             <p
-              className={`mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.16em] text-text-muted ${mobile ? '' : 'hidden min-[1400px]:block'}`}
+              className={`mb-2.5 px-3 text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted ${mobile ? '' : 'hidden min-[1400px]:block'}`}
             >
               {group.label}
             </p>
@@ -109,19 +109,19 @@ function ShellFrame({ children }: { children: ReactNode }) {
   return (
     <TooltipProvider delayDuration={350}>
       <div className="min-h-screen overflow-x-hidden bg-canvas text-text-primary">
-        <aside className="fixed inset-y-0 left-0 z-40 hidden w-[72px] flex-col border-r border-border bg-surface md:flex min-[1400px]:w-64">
-          <div className="flex h-16 items-center border-b border-divider px-4 min-[1400px]:px-5">
-            <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-primary text-sm font-bold text-white">
+        <aside className="fixed inset-y-0 left-0 z-40 hidden w-[72px] flex-col border-r border-border bg-surface shadow-[4px_0_20px_rgb(20_32_51/0.025)] md:flex min-[1400px]:w-64">
+          <div className="flex h-16 items-center border-b border-divider bg-surface-secondary/45 px-4 min-[1400px]:px-5">
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-md border border-primary-hover bg-primary text-sm font-bold text-white shadow-sm">
               V
             </div>
             <div className="ml-3 hidden min-[1400px]:block leading-none">
-              <p className="text-sm font-bold tracking-[0.12em] text-primary">VENDO</p>
+              <p className="text-sm font-extrabold tracking-[0.14em] text-primary">VENDO</p>
               <p className="mt-1.5 text-[11px] leading-none text-text-muted">Tiles + Sanitary</p>
             </div>
           </div>
           <Sidebar />
           <div className="border-t border-divider p-3">
-            <div className="flex items-center justify-center gap-3 rounded-md bg-surface-secondary p-2 min-[1400px]:justify-start">
+            <div className="flex items-center justify-center gap-3 rounded-md border border-border bg-surface-secondary p-2 min-[1400px]:justify-start">
               <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary-soft text-xs font-semibold text-primary">
                 {initials}
               </span>
@@ -155,7 +155,7 @@ function ShellFrame({ children }: { children: ReactNode }) {
         ) : null}
 
         <div className="min-w-0 md:pl-[72px] min-[1400px]:!pl-64">
-          <header className="sticky top-0 z-30 flex min-h-16 items-center gap-3 border-b border-divider bg-surface/95 px-4 backdrop-blur sm:px-6">
+          <header className="sticky top-0 z-30 flex min-h-16 items-center gap-3 border-b border-border bg-surface/95 px-4 shadow-[0_1px_8px_rgb(20_32_51/0.035)] backdrop-blur sm:px-6">
             <Button
               variant="ghost"
               size="sm"
@@ -165,7 +165,9 @@ function ShellFrame({ children }: { children: ReactNode }) {
               Menu
             </Button>
             <div className="min-w-0 flex-1">
-              <h1 className="truncate text-lg font-semibold">{route?.label ?? 'Vendo'}</h1>
+              <h1 className="truncate text-lg font-semibold tracking-[-0.015em]">
+                {route?.label ?? 'Vendo'}
+              </h1>
               <p className="hidden truncate text-xs text-text-muted sm:block">
                 {route?.description ?? 'Business operations'}
               </p>
@@ -212,7 +214,7 @@ function ShellFrame({ children }: { children: ReactNode }) {
               ))}
             </Select>
           </div>
-          <main className="min-w-0 p-4 sm:p-6 lg:p-8">{children}</main>
+          <main className="min-w-0 p-4 sm:p-6 lg:p-8 xl:p-9">{children}</main>
         </div>
       </div>
     </TooltipProvider>

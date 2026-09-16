@@ -43,6 +43,8 @@
   --spacing-control-md: var(--vendo-control-md);
   --spacing-control-lg: var(--vendo-control-lg);
   --shadow-dialog: var(--vendo-shadow-dialog);
+  --shadow-card: var(--vendo-shadow-card);
+  --shadow-elevated: var(--vendo-shadow-elevated);
 }
 
 body {
@@ -51,6 +53,16 @@ body {
   font-family: var(--font-geist-sans), sans-serif;
   font-size: 14px;
   line-height: 1.5;
+  font-feature-settings:
+    'tnum' 1,
+    'cv02' 1,
+    'cv03' 1,
+    'cv04' 1;
+}
+
+::selection {
+  background: var(--vendo-primary-soft);
+  color: var(--vendo-primary);
 }
 
 h1,

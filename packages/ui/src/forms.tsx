@@ -10,7 +10,7 @@ import { cn } from './lib/cn';
 import { VendoIcon } from './icon';
 
 const controlStyles =
-  'h-control-md w-full rounded-md border border-border-strong bg-surface px-3 text-sm text-text-primary outline-none transition placeholder:text-text-muted hover:border-text-muted focus:border-primary focus:ring-2 focus:ring-primary/15 disabled:cursor-not-allowed disabled:bg-surface-secondary disabled:text-text-disabled aria-invalid:border-danger aria-invalid:ring-danger/15 read-only:bg-surface-secondary';
+  'h-control-md w-full rounded-md border border-border-strong bg-surface px-3 text-sm text-text-primary shadow-[inset_0_1px_1px_rgb(20_32_51/0.025)] outline-none transition-[border-color,box-shadow,background-color] placeholder:text-text-muted hover:border-text-muted focus:border-primary focus:ring-2 focus:ring-primary/15 disabled:cursor-not-allowed disabled:border-border disabled:bg-surface-secondary disabled:text-text-disabled aria-invalid:border-danger aria-invalid:ring-2 aria-invalid:ring-danger/15 read-only:bg-surface-secondary';
 
 export interface FormFieldProps {
   children: ReactNode;
@@ -35,7 +35,7 @@ export function FormField({
 }: FormFieldProps) {
   return (
     <div className={cn('grid gap-1.5', className)}>
-      <label htmlFor={htmlFor} className="text-sm font-medium text-text-primary">
+      <label htmlFor={htmlFor} className="text-xs font-semibold text-text-secondary">
         {label}
         {required ? <span className="ml-1 text-danger">*</span> : null}
         {optional ? <span className="ml-1 font-normal text-text-muted">(optional)</span> : null}

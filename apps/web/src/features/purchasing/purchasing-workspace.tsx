@@ -100,7 +100,7 @@ function PurchasingNav() {
   return (
     <nav
       aria-label="Purchasing sections"
-      className="flex gap-1 overflow-x-auto rounded-lg border border-border bg-surface p-1"
+      className="flex gap-1 overflow-x-auto rounded-lg border border-border bg-surface p-1 shadow-card"
     >
       {links
         .filter(([, , permission]) => can(permission))
