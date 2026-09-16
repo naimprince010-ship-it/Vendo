@@ -108,7 +108,7 @@ function ShellFrame({ children }: { children: ReactNode }) {
 
   return (
     <TooltipProvider delayDuration={350}>
-      <div className="min-h-screen overflow-x-hidden bg-canvas text-text-primary">
+      <div className="min-h-screen overflow-x-clip bg-canvas text-text-primary">
         <aside className="fixed inset-y-0 left-0 z-40 hidden w-[72px] flex-col border-r border-border bg-surface shadow-[4px_0_20px_rgb(20_32_51/0.025)] md:flex min-[1400px]:w-64">
           <div className="flex h-16 items-center border-b border-divider bg-surface-secondary/45 px-4 min-[1400px]:px-5">
             <div className="flex size-9 shrink-0 items-center justify-center rounded-md border border-primary-hover bg-primary text-sm font-bold text-white shadow-sm">
